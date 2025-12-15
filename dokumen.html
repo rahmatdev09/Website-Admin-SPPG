@@ -1,0 +1,802 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard - Beranda</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/feather-icons"></script>
+
+    <link
+      rel="apple-touch-icon"
+      sizes="180x180"
+      href="favicon_io/apple-touch-icon.png"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="32x32"
+      href="favicon_io/favicon-32x32.png"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="16x16"
+      href="favicon_io/favicon-16x16.png"
+    />
+    <link rel="manifest" href="favicon_io/site.webmanifest" />
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+      rel="stylesheet"
+    />
+    <script src="https://unpkg.com/docxtemplater@3.67.6/build/docxtemplater.js"></script>
+    <script src="https://unpkg.com/pizzip@3.2.0/dist/pizzip.js"></script>
+    <script src="https://unpkg.com/pizzip@3.2.0/dist/pizzip-utils.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/1.3.8/FileSaver.js"></script>
+
+    <style>
+      :root {
+        --tw-color-primary: #061e49;
+      }
+      .bg-primary {
+        background-color: #061e49;
+      }
+      .text-primary {
+        color: #061e49;
+      }
+      .hover\:bg-primary:hover {
+        background-color: #03112b;
+      }
+      .border-primary {
+        border-color: #061e49;
+      }
+    </style>
+  </head>
+  <body class="md:flex bg-gray-100">
+    <!-- Sidebar -->
+    <aside
+      id="sidebar"
+      class="fixed inset-y-0 left-0 w-64 bg-primary text-white flex flex-col p-4 space-y-4 transform -translate-x-full transition-transform duration-300 md:translate-x-0 md:static md:h-screen z-50"
+    >
+      <div class="flex flex-col mx-auto items-center">
+        <img
+          src="https://upload.wikimedia.org/wikipedia/id/2/29/Logo_Badan_Gizi_Nasional.svg"
+          alt=""
+          class="w-24 rounded-full"
+        />
+        <h1 class="text-2xl font-bold mb-4 text-center">SPPG NAILA JASMIN</h1>
+      </div>
+
+      <nav class="flex flex-col space-y-3 text-sm font-medium">
+        <!-- Beranda -->
+        <a
+          href="index.html"
+          class="flex items-center px-4 py-2 rounded hover:bg-white/10 transition"
+        >
+          <i class="fa-solid fa-house mr-3"></i> Beranda
+        </a>
+
+        <!-- Barang -->
+        <a
+          href="barang.html"
+          class="flex items-center px-4 py-2 rounded hover:bg-white/10 transition"
+        >
+          <i class="fa-solid fa-box mr-3"></i> Barang
+        </a>
+
+        <!-- Dokumen (aktif contoh) -->
+        <a
+          href="dokumen.html"
+          class="flex items-center px-4 py-2 rounded bg-white text-primary font-semibold transition"
+        >
+          <i class="fa-solid fa-file-alt mr-3"></i> Dokumen
+        </a>
+
+        <!-- Stok Barang -->
+        <a
+          href="stok.html"
+          class="flex items-center px-4 py-2 rounded hover:bg-white/10 transition"
+        >
+          <i class="fa-solid fa-boxes-stacked mr-3"></i> Stok Barang
+        </a>
+
+        <!-- Penerima Manfaat -->
+        <a
+          href="pm.html"
+          class="flex items-center px-4 py-2 rounded hover:bg-white/10 transition"
+        >
+          <i class="fa-solid fa-users mr-3"></i> Penerima Manfaat
+        </a>
+
+        <!-- Absen -->
+        <a
+          href="absen.html"
+          class="flex items-center px-4 py-2 rounded hover:bg-white/10 transition"
+        >
+          <i class="fa-solid fa-clipboard-check mr-3"></i> Absen
+        </a>
+
+        <!-- Hitung Nilai Gizi -->
+        <a
+          href="gizi.html"
+          class="flex items-center px-4 py-2 rounded hover:bg-white/10 transition"
+        >
+          <i class="fa-solid fa-apple-whole mr-3"></i> Hitung Nilai Gizi
+        </a>
+      </nav>
+    </aside>
+
+    <!-- Modal Edit Profil -->
+    <div
+      id="modalEditProfile"
+      class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center"
+    >
+      <div class="bg-white rounded-lg shadow-md max-w-sm w-full mx-4 p-6">
+        <h3 class="text-lg font-bold text-primary mb-4">Edit Profil</h3>
+
+        <form id="formEditProfile" class="space-y-3">
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Nama</label>
+            <input
+              type="text"
+              id="editName"
+              class="w-full border border-gray-300 rounded px-3 py-2"
+            />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Email</label>
+            <input
+              type="email"
+              id="editEmail"
+              disabled
+              class="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
+            />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Foto</label>
+            <input
+              type="file"
+              id="editImageFile"
+              accept="image/*"
+              class="w-full border border-gray-300 rounded px-3 py-2"
+            />
+            <!-- Preview Foto -->
+            <div
+              id="previewImage"
+              class="w-20 h-20 rounded-full bg-gray-200 mt-3 mx-auto bg-center bg-cover border"
+            ></div>
+          </div>
+
+          <div class="flex justify-end space-x-2 mt-4">
+            <button
+              type="button"
+              onclick="toggleEditProfile(false)"
+              class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
+            >
+              Batal
+            </button>
+            <button
+              type="submit"
+              class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+            >
+              Simpan
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <main class="flex-1 p-6">
+      <!-- Navbar -->
+      <div
+        class="bg-white rounded-lg shadow-md border border-gray-200 p-4 flex items-center justify-between mb-6"
+      >
+        <!-- Tombol hamburger (mobile) -->
+        <button id="btnSidebarToggle" class="md:hidden text-primary">
+          <i class="fa-solid fa-bars text-xl"></i>
+        </button>
+
+        <!-- Judul -->
+        <h2 class="text-xl font-bold text-primary">Dokumen</h2>
+
+        <!-- Foto + Nama -->
+        <div class="flex items-center space-x-3">
+          <div
+            id="userPhotoWrapper"
+            class="w-10 h-10 rounded-full bg-cover bg-center bg-gray-200 cursor-pointer"
+            onclick="toggleUserCard()"
+          ></div>
+          <span
+            id="userName"
+            class="hidden md:inline font-semibold text-gray-700"
+          >
+          </span>
+        </div>
+
+        <!-- Modal Edit Profil -->
+        <div
+          id="modalEditProfile"
+          class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center"
+        >
+          <div class="bg-white rounded-lg shadow-md max-w-sm w-full mx-4 p-6">
+            <h3 class="text-lg font-bold text-primary mb-4">Edit Profil</h3>
+
+            <form id="formEditProfile" class="space-y-3">
+              <div>
+                <label class="block text-sm font-medium text-gray-700"
+                  >Nama</label
+                >
+                <input
+                  type="text"
+                  id="editName"
+                  class="w-full border border-gray-300 rounded px-3 py-2"
+                />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700"
+                  >Email</label
+                >
+                <input
+                  type="email"
+                  id="editEmail"
+                  disabled
+                  class="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
+                />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700"
+                  >Foto URL</label
+                >
+                <input
+                  type="text"
+                  id="editImage"
+                  class="w-full border border-gray-300 rounded px-3 py-2"
+                />
+              </div>
+
+              <div class="flex justify-end space-x-2 mt-4">
+                <button
+                  type="button"
+                  onclick="toggleEditProfile(false)"
+                  class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                >
+                  Simpan
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <!-- Card Detail User -->
+        <div
+          id="userCard"
+          class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center"
+        >
+          <div
+            class="bg-white rounded-lg shadow-md max-w-sm w-full mx-4 p-6 text-center animate-fadeSlideUp"
+          >
+            <div
+              id="userPhotoModal"
+              class="w-16 h-16 bg-center bg-cover rounded-full bg-gray-200 mx-auto mb-4"
+            ></div>
+            <h3 id="userNameModal" class="text-lg font-bold text-primary mb-2">
+              Nama User
+            </h3>
+            <!-- Tambahkan email di sini -->
+            <p id="userEmailModal" class="text-sm text-gray-600 mb-4">
+              email@email.com
+            </p>
+
+            <div class="space-y-2">
+              <button
+                class="w-full px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+              >
+                Edit Profil
+              </button>
+              <button
+                id="btnLogoutModal"
+                class="w-full px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+              >
+                Keluar
+              </button>
+            </div>
+
+            <button
+              onclick="toggleUserCard()"
+              class="mt-4 text-sm text-gray-500 hover:text-red-500"
+            >
+              Tutup
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal Surat Permintaan Bayar -->
+      <div
+        id="sppModal"
+        class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50"
+      >
+        <div class="bg-white rounded-lg shadow-lg p-6">
+          <h2 class="text-lg font-bold mb-4">Surat Permintaan Bayar</h2>
+
+          <!-- Form Input -->
+
+          <div class="flex space-x-2">
+            <form
+              id="formBarang"
+              class="bg-white shadow-lg rounded-lg p-6 w-full max-w-md space-y-4"
+            >
+              <h2 class="text-xl font-bold text-gray-700 mb-4">Input Barang</h2>
+
+              <!-- Supplier -->
+              <div>
+                <label
+                  for="supplier"
+                  class="block text-sm font-medium text-gray-600"
+                  >Supplier</label
+                >
+                <select
+                  id="supplier"
+                  class="mt-1 p-3 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-gray-700"
+                >
+                  <option value="koperasi">
+                    Koperasi AGUNA SAKTI SEJAHTERA
+                  </option>
+                  <option value="yuliati">Yuliati</option>
+                  <option value="ika">IKA VEBRIANA</option>
+                </select>
+              </div>
+
+              <!-- Nama Barang -->
+              <div>
+                <label
+                  for="namaBarang"
+                  class="block text-sm font-medium text-gray-600"
+                  >Nama Barang</label
+                >
+                <input
+                  type="text"
+                  id="namaBarang"
+                  class="mt-1 p-3 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-gray-700"
+                  placeholder="Masukkan nama barang"
+                />
+              </div>
+
+              <!-- Jumlah Bayar -->
+              <div>
+                <label
+                  for="jumlahBayar"
+                  class="block text-sm font-medium text-gray-600"
+                  >Jumlah Bayar (Rp)</label
+                >
+                <input
+                  type="text"
+                  id="jumlahBayar"
+                  class="mt-1 p-3 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-gray-700"
+                  placeholder="Masukkan jumlah bayar"
+                />
+              </div>
+
+              <!-- Submit -->
+              <div>
+                <button
+                  type="submit"
+                  class="w-full bg-indigo-600 text-white font-semibold py-2 px-4 rounded-md shadow hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                >
+                  Simpan
+                </button>
+              </div>
+            </form>
+
+            <!-- Tabel Barang -->
+            <div class="bg-white shadow-lg rounded-lg p-6 w-full max-w-4xl">
+              <h2 class="text-lg font-bold text-gray-700 mb-4">
+                Daftar Barang & Supplier
+              </h2>
+
+              <div class="overflow-y-auto max-h-64">
+                <table
+                  class="table-auto border border-gray-200 divide-y divide-gray-200"
+                >
+                  <thead class="bg-gray-50 sticky top-0">
+                    <tr>
+                      <th
+                        class="w-16 px-4 py-2 text-left text-sm font-semibold text-gray-600"
+                      >
+                        No
+                      </th>
+                      <th
+                        class="w-1/4 px-4 py-2 text-left text-sm font-semibold text-gray-600"
+                      >
+                        Nama Barang
+                      </th>
+                      <th
+                        class="w-1/4 px-4 py-2 text-left text-sm font-semibold text-gray-600"
+                      >
+                        Jumlah Bayar (Rp)
+                      </th>
+                      <th
+                        class="w-1/4 px-4 py-2 text-left text-sm font-semibold text-gray-600"
+                      >
+                        Supplier
+                      </th>
+                      <th
+                        class="w-1/4 px-4 py-2 text-left text-sm font-semibold text-gray-600"
+                      >
+                        Nomor Rekening
+                      </th>
+                      <th
+                        class="w-1/4 px-4 py-2 text-left text-sm font-semibold text-gray-600"
+                      >
+                        Bank
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody id="tableBody" class="divide-y divide-gray-200">
+                    <!-- Data barang lewat JS -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- 🔑 Tambahan Input Nama Dokumen & Tanggal Dokumen -->
+          <div class="mt-6 space-y-4">
+            <!-- Nama Dokumen -->
+            <div>
+              <label
+                for="namaDokumen"
+                class="block text-sm font-medium text-gray-600"
+                >Nama Dokumen</label
+              >
+              <input
+                type="text"
+                id="namaDokumen"
+                class="mt-1 block p-3 w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-gray-700"
+                placeholder="Masukkan nama dokumen"
+              />
+            </div>
+
+            <!-- Tanggal Dokumen -->
+            <div>
+              <label
+                for="tanggalDokumen"
+                class="block text-sm font-medium text-gray-600"
+                >Tanggal Dokumen</label
+              >
+              <input
+                type="date"
+                id="tanggalDokumen"
+                class="mt-1 p-3 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-gray-700"
+              />
+            </div>
+          </div>
+
+          <!-- Tombol Simpan ke Database -->
+          <div class="mt-6 text-right">
+            <button
+              id="sppCloseBtn"
+              class="bg-gray-400 text-white px-4 py-2 rounded hover:bg-gray-500"
+            >
+              Tutup
+            </button>
+
+            <button
+              id="saveDatabase"
+              class="bg-blue-600 ms-3 text-white px-4 py-2 rounded hover:bg-green-700"
+            >
+              Simpan ke Database
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Halaman Kelas -->
+      <section id="halaman-dokumen" class="space-y-4">
+        <div
+          class="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-2"
+        >
+          <div class="flex space-x-2">
+            <button
+              id="tambahDokumenBtn"
+              class="bg-primary text-white px-4 py-2 rounded hover:bg-primary"
+            >
+              Tambah Dokumen
+            </button>
+          </div>
+
+          <!-- ✅ Filter tanggal -->
+          <!-- <div>
+            <input
+              type="date"
+              id="filterTanggal"
+              class="border rounded-lg px-3 py-2 shadow"
+            />
+          </div> -->
+
+          <input
+            type="text"
+            id="searchInput"
+            placeholder="Cari dokumen..."
+            class="border border-gray-300 rounded px-3 py-2 w-full sm:w-64 focus:outline-none focus:ring-2 focus:ring-primary"
+          />
+        </div>
+
+        <div
+          class="overflow-x-auto bg-white rounded-lg shadow-md border border-gray-200"
+        >
+          <table
+            class="min-w-full divide-y divide-gray-200 rounded-t-lg text-xs sm:text-sm"
+          >
+            <thead class="bg-blue-50 text-center">
+              <tr>
+                <th
+                  class="px-4 py-5 text-center text-xs font-bold text-primary uppercase"
+                >
+                  No
+                </th>
+                <th
+                  class="px-4 py-5 text-center text-xs font-bold text-primary uppercase"
+                >
+                  Nama Dokumen
+                </th>
+                <th
+                  class="px-4 py-5 text-center text-xs font-bold text-primary uppercase"
+                >
+                  Tanggal Dibuat
+                </th>
+                <th
+                  class="px-4 py-5 text-center text-xs font-bold text-primary uppercase"
+                >
+                  User
+                </th>
+
+                <th
+                  class="px-4 py-5 text-center text-xs font-bold text-primary uppercase"
+                >
+                  Aksi
+                </th>
+              </tr>
+            </thead>
+            <tbody
+              id="dokumenBody"
+              class="divide-y divide-gray-100 bg-white space-y-4 text-center"
+            ></tbody>
+          </table>
+          <div
+            id="pagination"
+            class="flex justify-center items-center space-x-1 my-4 text-sm"
+          ></div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Dialog Modal -->
+    <div
+      id="noAccessDialog"
+      class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+    >
+      <div class="bg-white rounded-lg shadow-lg w-80 p-6">
+        <h2 class="text-lg font-bold text-red-600 mb-4">Akses Ditolak</h2>
+        <p class="text-gray-700 mb-6">
+          Anda tidak memiliki izin untuk membuka SPP.
+        </p>
+        <div class="flex justify-end">
+          <button
+            id="closeDialog"
+            class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+          >
+            OK
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal Tambah Dokumen -->
+    <div
+      id="dokumenModal"
+      class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center"
+    >
+      <div class="bg-white rounded-lg shadow-lg w-[500px] p-6">
+        <h2 class="text-lg font-bold mb-4">Pilih Jenis Dokumen</h2>
+        <div class="grid grid-cols-2 gap-4">
+          <!-- Card SPP -->
+          <div
+            id="cardSPP"
+            class="cursor-pointer border rounded-lg p-4 hover:bg-blue-50 shadow"
+          >
+            <h3 class="text-md font-semibold mb-2">
+              📄 Surat Permintaan Bayar
+            </h3>
+            <p class="text-sm text-gray-600">
+              Dokumen permintaan pembayaran resmi.
+            </p>
+          </div>
+          <!-- Card RAB -->
+          <div
+            id="cardRAB"
+            class="cursor-pointer border rounded-lg p-4 hover:bg-blue-50 shadow"
+          >
+            <h3 class="text-md font-semibold mb-2">
+              📊 Rincian Anggaran Biaya (RAB)
+            </h3>
+            <p class="text-sm text-gray-600">
+              Dokumen rincian anggaran biaya proyek.
+            </p>
+          </div>
+        </div>
+        <div class="mt-4 text-right">
+          <button
+            id="closeDokumenModal"
+            class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
+          >
+            Tutup
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal Konfirmasi Hapus -->
+    <div
+      id="modalConfirmDelete"
+      class="md:p-0 p-5 fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50"
+    >
+      <div class="bg-white p-6 rounded shadow w-full max-w-sm relative">
+        <button
+          onclick="document.getElementById('modalConfirmDelete').classList.add('hidden')"
+          class="absolute top-3 right-3 text-gray-500 hover:text-red-500"
+        >
+          <i data-feather="x" class="w-5 h-5"></i>
+        </button>
+        <h2 class="text-lg font-bold text-primary mb-4">Konfirmasi Hapus</h2>
+        <p class="text-sm text-gray-700 mb-6">
+          Apakah kamu yakin ingin menghapus data ini? Tindakan ini tidak dapat
+          dibatalkan.
+        </p>
+        <div class="flex justify-end space-x-2">
+          <button
+            onclick="document.getElementById('modalConfirmDelete').classList.add('hidden')"
+            class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
+          >
+            Batal
+          </button>
+          <button
+            id="btnDeleteConfirm"
+            onclick="confirmDeleteDokumen()"
+            class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 flex items-center justify-center space-x-2"
+          >
+            <span id="btnDeleteText">Hapus</span>
+            <svg
+              id="btnDeleteSpinner"
+              class="hidden animate-spin h-5 w-5 text-white"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <circle
+                class="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                stroke-width="4"
+              ></circle>
+              <path
+                class="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8v8H4z"
+              ></path>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+
+    <!-- Script -->
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        feather.replace();
+      });
+
+      // Toggle modal edit profil
+      function toggleEditProfile(show = true, profile = null) {
+        const modal = document.getElementById("modalEditProfile");
+        if (show) {
+          modal.classList.remove("hidden");
+          if (profile) {
+            document.getElementById("editName").value = profile.name;
+            document.getElementById("editEmail").value = profile.email;
+            document.getElementById("editImage").value = profile.image;
+          }
+        } else {
+          modal.classList.add("hidden");
+        }
+      }
+
+      // Event klik tombol Edit Profil di modal detail user
+      document
+        .querySelector("#userCard button.bg-blue-600")
+        .addEventListener("click", async () => {
+          // ambil data dari modal detail
+          const profile = {
+            name: document.getElementById("userNameModal").textContent,
+            email: document.getElementById("userEmailModal").textContent,
+            image: document.querySelector("#userPhotoModal img")?.src || "",
+          };
+          toggleEditProfile(true, profile);
+        });
+
+      // Submit form edit profil
+      document
+        .getElementById("formEditProfile")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+
+          const newName = document.getElementById("editName").value;
+          const newImage = document.getElementById("editImage").value;
+          const email = document.getElementById("editEmail").value;
+
+          // update ke Firestore
+          await updateAdminProfileByEmail(email, {
+            name: newName,
+            image: newImage,
+          });
+
+          // update tampilan navbar & modal detail
+          document.getElementById("userName").textContent = newName;
+          document.getElementById("userNameModal").textContent = newName;
+          document.getElementById("userPhotoWrapper").innerHTML = `
+    <img src="${newImage}" alt="User Photo"
+         class="w-10 h-10 rounded-full border border-gray-300 cursor-pointer">
+  `;
+          document.getElementById("userPhotoModal").innerHTML = `
+    <img src="${newImage}" alt="User Photo"
+         class="w-16 h-16 rounded-full border border-gray-300">
+  `;
+
+          toggleEditProfile(false);
+        });
+    </script>
+    <!-- Dialog Sukses -->
+    <div
+      id="successModal"
+      class="fixed top-4 right-4 bg-green-500 text-white px-4 py-3 rounded shadow-lg flex items-center space-x-2 hidden animate-fade-in"
+    >
+      <i data-feather="check-circle" class="w-5 h-5"></i>
+      <span id="dialogText">Berhasil disimpan!</span>
+    </div>
+
+    <script>
+      if (localStorage.getItem("isLoggedIn") !== "true") {
+        alert("Anda harus login terlebih dahulu!");
+        window.location.href = "login.html";
+      }
+
+      function logout() {
+        localStorage.removeItem("isLoggedIn");
+        window.location.href = "login.html";
+      }
+    </script>
+
+    <!-- Script -->
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        feather.replace();
+      });
+    </script>
+    <script type="module" src="js/auth.js"></script>
+    <script type="module" src="../js/utils.js"></script>
+    <script type="module" src="js/dokumen.js"></script>
+  </body>
+</html>

@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Register User</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="bg-gray-100 flex items-center justify-center min-h-screen">
+    <div class="space-y-4 max-w-md w-full bg-white p-6 rounded shadow">
+      <h2 class="text-xl font-bold text-center text-indigo-600">
+        Register User
+      </h2>
+
+      <!-- Nama -->
+      <input
+        type="text"
+        id="nama"
+        placeholder="Nama Lengkap"
+        required
+        class="w-full border rounded p-2"
+      />
+
+      <!-- Email -->
+      <input
+        type="email"
+        id="email"
+        placeholder="Email"
+        required
+        class="w-full border rounded p-2"
+      />
+
+      <!-- Role -->
+      <select id="role" required class="w-full border rounded p-2">
+        <option value="">-- Pilih Role --</option>
+        <option value="ahli_gizi">Ahli Gizi</option>
+        <option value="akuntan">Akuntan</option>
+        <option value="admin">Admin</option>
+        <option value="ka_sppg">KA SPPG</option>
+        <option value="super_admin">Super Admin</option>
+      </select>
+
+      <!-- Password -->
+      <input
+        type="password"
+        id="password"
+        placeholder="Password"
+        required
+        class="w-full border rounded p-2"
+      />
+
+      <!-- Foto -->
+      <input
+        type="file"
+        id="foto"
+        accept="image/*"
+        required
+        class="w-full border rounded p-2"
+      />
+      <img
+        id="previewFoto"
+        class="mt-2 w-24 h-24 object-cover rounded hidden"
+      />
+
+      <!-- Tombol -->
+      <button
+        id="btnRegister"
+        class="w-full bg-indigo-600 text-white py-2 rounded hover:bg-indigo-700 flex items-center justify-center space-x-2"
+      >
+        <span id="btnText">Register</span>
+        <svg
+          id="btnSpinner"
+          class="hidden animate-spin h-5 w-5 text-white"
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+        >
+          <circle
+            class="opacity-25"
+            cx="12"
+            cy="12"
+            r="10"
+            stroke="currentColor"
+            stroke-width="4"
+          ></circle>
+          <path
+            class="opacity-75"
+            fill="currentColor"
+            d="M4 12a8 8 0 018-8v8H4z"
+          ></path>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Modal sukses -->
+    <div
+      id="successModal"
+      class="fixed top-4 right-4 bg-green-500 text-white px-4 py-3 rounded shadow-lg flex items-center space-x-2 hidden animate-fade-in"
+    >
+      <i data-feather="check-circle" class="w-5 h-5"></i>
+      <span id="dialogText">User berhasil diregister!</span>
+    </div>
+
+    <script type="module">
+      import {
+        addDoc,
+        collection,
+      } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
+      import { getFirestore } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
+
+      // 🔑 Firebase config
+      const firebaseConfig = {
+        apiKey: "AIzaSyBC598epFdcqsFp9cg3y9-Fi40PvpGX44I",
+        authDomain: "nailajasmin-c3d98.firebaseapp.com",
+        projectId: "nailajasmin-c3d98",
+        storageBucket: "nailajasmin-c3d98.firebasestorage.app",
+        messagingSenderId: "179905162603",
+        appId: "1:179905162603:web:f39f966d49b4719eeb302e",
+        measurementId: "G-V7220VWRK2",
+      };
+
+      const app = initializeApp(firebaseConfig);
+      const db = getFirestore(app);
+
+      // convert file ke base64
+      function fileToBase64(file) {
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result);
+          reader.onerror = (error) => reject(error);
+          reader.readAsDataURL(file);
+        });
+      }
+
+      // preview foto
+      document.getElementById("foto").addEventListener("change", (e) => {
+        const file = e.target.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = () => {
+            const preview = document.getElementById("previewFoto");
+            preview.src = reader.result;
+            preview.classList.remove("hidden");
+          };
+          reader.readAsDataURL(file);
+        }
+      });
+
+      // tombol register
+      document
+        .getElementById("btnRegister")
+        .addEventListener("click", async () => {
+          const nama = document.getElementById("nama").value;
+          const email = document.getElementById("email").value.toLowerCase();
+          const role = document.getElementById("role").value;
+          const password = document.getElementById("password").value;
+          const fotoFile = document.getElementById("foto").files[0];
+
+          if (!nama || !email || !role || !password || !fotoFile) {
+            alert("Lengkapi semua field!");
+            return;
+          }
+
+          const btnText = document.getElementById("btnText");
+          const btnSpinner = document.getElementById("btnSpinner");
+          btnText.textContent = "Menyimpan...";
+          btnSpinner.classList.remove("hidden");
+
+          try {
+            const fotoBase64 = await fileToBase64(fotoFile);
+
+            await addDoc(collection(db, "users"), {
+              nama,
+              email,
+              role,
+              password, // ⚠️ sebaiknya di-hash
+              foto: fotoBase64,
+              createdAt: new Date().toISOString(),
+            });
+
+            // tampilkan modal sukses
+            const successModal = document.getElementById("successModal");
+            successModal.classList.remove("hidden");
+            setTimeout(() => successModal.classList.add("hidden"), 3000);
+
+            // reset form
+            document.getElementById("nama").value = "";
+            document.getElementById("email").value = "";
+            document.getElementById("role").value = "";
+            document.getElementById("password").value = "";
+            document.getElementById("foto").value = "";
+            document.getElementById("previewFoto").classList.add("hidden");
+          } catch (err) {
+            console.error("Error register:", err);
+            alert("Gagal register user.");
+          } finally {
+            btnText.textContent = "Register";
+            btnSpinner.classList.add("hidden");
+          }
+        });
+    </script>
+  </body>
+</html>

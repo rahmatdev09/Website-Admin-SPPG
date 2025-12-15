@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <title>SPPG Naila Jasmin Web - Login</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      :root {
+        --tw-color-primary: #061e49;
+      }
+      .bg-primary {
+        background-color: #061e49;
+      }
+      .text-primary {
+        color: #061e49;
+      }
+      .hover\:bg-primary:hover {
+        background-color: #03112b;
+      }
+      .border-primary {
+        border-color: #061e49;
+      }
+    </style>
+  </head>
+  <body class="bg-primary flex items-center justify-center min-h-screen">
+    <div class="bg-white p-8 rounded shadow max-w-md w-full">
+      <h1 class="text-2xl font-bold text-primary text-center mb-2">
+        SPPG Naila Jasmin
+      </h1>
+      <p class="text-center text-gray-600 mb-6">Kelola Dapur Lebih Mudah</p>
+
+      <!-- Email -->
+      <input
+        type="email"
+        id="email"
+        placeholder="Email"
+        class="w-full border rounded p-2 mb-3 focus:ring-green-500 focus:border-green-500"
+      />
+
+      <!-- Password -->
+      <input
+        type="password"
+        id="password"
+        placeholder="Password"
+        class="w-full border rounded p-2 mb-3 focus:ring-green-500 focus:border-green-500"
+      />
+
+      <!-- Tombol Login -->
+      <button
+        id="btnLogin"
+        class="w-full bg-primary text-white py-2 rounded hover:bg-primary flex items-center justify-center space-x-2"
+      >
+        <span id="btnText">Login</span>
+        <svg
+          id="btnSpinner"
+          class="hidden animate-spin h-5 w-5 text-white"
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+        >
+          <circle
+            class="opacity-25"
+            cx="12"
+            cy="12"
+            r="10"
+            stroke="currentColor"
+            stroke-width="4"
+          ></circle>
+          <path
+            class="opacity-75"
+            fill="currentColor"
+            d="M4 12a8 8 0 018-8v8H4z"
+          ></path>
+        </svg>
+      </button>
+
+      <!-- Footer -->
+      <p class="text-center text-xs text-gray-500 mt-6">
+        © 2025 Rahmatullah. All rights reserved.
+      </p>
+    </div>
+
+    <!-- Modal sukses -->
+    <div
+      id="successModal"
+      class="fixed top-4 right-4 bg-green-500 text-white px-4 py-3 rounded shadow-lg flex items-center space-x-2 hidden animate-fade-in"
+    >
+      <span id="dialogText">Login berhasil!</span>
+    </div>
+
+    <!-- Alert Box -->
+    <!-- Dialog Alert -->
+    <!-- Dialog Alert -->
+    <div
+      id="alertDialog"
+      class="hidden fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-30"
+    >
+      <div
+        id="alertBox"
+        class="bg-white rounded-lg shadow-lg p-6 text-center transform scale-95 opacity-0 transition duration-300 ease-out"
+      >
+        <!-- Icon -->
+        <div id="alertIcon" class="flex justify-center mb-3">
+          <svg
+            class="w-12 h-12 text-green-500 animate-bounce"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M5 13l4 4L19 7"
+            />
+          </svg>
+        </div>
+        <!-- Title -->
+        <h2 id="alertTitle" class="text-lg font-bold mb-2 text-green-600">
+          Sukses
+        </h2>
+        <!-- Message -->
+        <p id="alertMessage" class="text-gray-700">Login berhasil!</p>
+      </div>
+    </div>
+
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
+      import {
+        getFirestore,
+        collection,
+        query,
+        where,
+        getDocs,
+      } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
+
+      // 🔑 Firebase config
+      const firebaseConfig = {
+        apiKey: "AIzaSyBC598epFdcqsFp9cg3y9-Fi40PvpGX44I",
+        authDomain: "nailajasmin-c3d98.firebaseapp.com",
+        projectId: "nailajasmin-c3d98",
+        storageBucket: "nailajasmin-c3d98.firebasestorage.app",
+        messagingSenderId: "179905162603",
+        appId: "1:179905162603:web:f39f966d49b4719eeb302e",
+        measurementId: "G-V7220VWRK2",
+      };
+
+      const app = initializeApp(firebaseConfig);
+      const db = getFirestore(app);
+
+      const btnLogin = document.getElementById("btnLogin");
+      const btnText = document.getElementById("btnText");
+      const btnSpinner = document.getElementById("btnSpinner");
+
+      btnLogin.addEventListener("click", async () => {
+        const email = document.getElementById("email").value.toLowerCase();
+        const password = document.getElementById("password").value;
+
+        if (!email || !password) {
+          showAlert("Email dan password wajib diisi!", "error");
+          return;
+        }
+
+        btnText.textContent = "Memproses...";
+        btnSpinner.classList.remove("hidden");
+
+        try {
+          // cari user berdasarkan email
+          const q = query(collection(db, "users"), where("email", "==", email));
+          const querySnapshot = await getDocs(q);
+
+          if (querySnapshot.empty) {
+            showAlert("Email tidak ditemukan!", "error");
+          } else {
+            const userData = querySnapshot.docs[0].data();
+
+            if (userData.password === password) {
+              // ⚠️ sebaiknya hash
+              localStorage.setItem("isLoggedIn", "true");
+              localStorage.setItem("userId", querySnapshot.docs[0].id);
+              localStorage.setItem("userRole", userData.role);
+              localStorage.setItem("userName", userData.nama);
+
+              const successModal = document.getElementById("successModal");
+              successModal.classList.remove("hidden");
+              setTimeout(() => successModal.classList.add("hidden"), 2000);
+
+              setTimeout(() => {
+                window.location.href = "index.html";
+              }, 2000);
+            } else {
+              showAlert("Password salah!", "error");
+            }
+          }
+        } catch (err) {
+          console.error("Error login:", err);
+          showAlert("Terjadi kesalahan saat login.", "error");
+        } finally {
+          btnText.textContent = "Login";
+          btnSpinner.classList.add("hidden");
+        }
+      });
+      function showAlert(message, type = "success") {
+        const dialog = document.getElementById("alertDialog");
+        const box = document.getElementById("alertBox");
+        const title = document.getElementById("alertTitle");
+        const msg = document.getElementById("alertMessage");
+        const icon = document.getElementById("alertIcon");
+
+        msg.textContent = message;
+
+        // set warna & ikon sesuai type
+        if (type === "success") {
+          title.textContent = "Sukses";
+          title.className = "text-lg font-bold mb-2 text-green-600";
+          icon.innerHTML = `
+      <svg class="w-12 h-12 text-green-500 animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+          d="M5 13l4 4L19 7" />
+      </svg>`;
+        } else if (type === "error") {
+          title.textContent = "Error";
+          title.className = "text-lg font-bold mb-2 text-red-600";
+          icon.innerHTML = `
+      <svg class="w-12 h-12 text-red-500 animate-ping" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+          d="M6 18L18 6M6 6l12 12" />
+      </svg>`;
+        } else if (type === "warning") {
+          title.textContent = "Peringatan";
+          title.className = "text-lg font-bold mb-2 text-yellow-600";
+          icon.innerHTML = `
+      <svg class="w-12 h-12 text-yellow-500 animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+          d="M12 9v2m0 4h.01M12 5a7 7 0 100 14a7 7 0 000-14z" />
+      </svg>`;
+        }
+
+        // tampilkan dialog dengan animasi
+        dialog.classList.remove("hidden");
+        setTimeout(() => {
+          box.classList.remove("scale-95", "opacity-0");
+          box.classList.add("scale-100", "opacity-100");
+        }, 50);
+
+        // auto hide setelah 2.5 detik
+        setTimeout(() => {
+          box.classList.remove("scale-100", "opacity-100");
+          box.classList.add("scale-95", "opacity-0");
+          setTimeout(() => dialog.classList.add("hidden"), 300);
+        }, 2500);
+      }
+    </script>
+  </body>
+</html>

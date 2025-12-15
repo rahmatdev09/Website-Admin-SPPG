@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard - Beranda</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/feather-icons"></script>
+
+    <link
+      rel="apple-touch-icon"
+      sizes="180x180"
+      href="favicon_io/apple-touch-icon.png"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="32x32"
+      href="favicon_io/favicon-32x32.png"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="16x16"
+      href="favicon_io/favicon-16x16.png"
+    />
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+      rel="stylesheet"
+    />
+
+    <style>
+      :root {
+        --tw-color-primary: #061e49;
+      }
+      .bg-primary {
+        background-color: #061e49;
+      }
+      .text-primary {
+        color: #061e49;
+      }
+      .hover\:bg-primary:hover {
+        background-color: #03112b;
+      }
+      .border-primary {
+        border-color: #061e49;
+      }
+
+      @keyframes fadeSlideUp {
+        0% {
+          opacity: 0;
+          transform: translateY(40px);
+        }
+        100% {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      .animate-fadeSlideUp {
+        animation: fadeSlideUp 0.3s ease-out forwards;
+      }
+    </style>
+  </head>
+  <body class="min-h-screen bg-gray-100 flex flex-col md:flex-row">
+    <!-- Sidebar -->
+    <aside
+      id="sidebar"
+      class="fixed inset-y-0 left-0 w-64 bg-primary text-white flex flex-col p-4 space-y-4 transform -translate-x-full transition-transform duration-300 md:translate-x-0 md:static md:h-screen z-50"
+    >
+      <div class="flex flex-col mx-auto items-center">
+        <img
+          src="https://upload.wikimedia.org/wikipedia/id/2/29/Logo_Badan_Gizi_Nasional.svg"
+          alt=""
+          class="w-24 rounded-full"
+        />
+        <h1 class="text-2xl font-bold mb-4 text-center">SPPG NAILA JASMIN</h1>
+      </div>
+
+      <nav class="flex flex-col space-y-3 text-sm font-medium">
+        <!-- Beranda -->
+        <a
+          href="index.html"
+          class="flex items-center px-4 py-2 rounded hover:bg-white/10 transition"
+        >
+          <i class="fa-solid fa-house mr-3"></i> Beranda
+        </a>
+
+        <!-- Barang -->
+        <a
+          href="barang.html"
+          class="flex items-center px-4 py-2 rounded hover:bg-white/10 transition"
+        >
+          <i class="fa-solid fa-box mr-3"></i> Barang
+        </a>
+
+        <!-- Dokumen -->
+        <a
+          href="dokumen.html"
+          class="flex items-center px-4 py-2 rounded hover:bg-white/10 transition"
+        >
+          <i class="fa-solid fa-file-alt mr-3"></i> Dokumen
+        </a>
+
+        <!-- Stok Barang -->
+        <a
+          href="stok.html"
+          class="flex items-center px-4 py-2 rounded hover:bg-white/10 transition"
+        >
+          <i class="fa-solid fa-boxes-stacked mr-3"></i> Stok Barang
+        </a>
+
+        <!-- Penerima Manfaat -->
+        <a
+          href="pm.html"
+          class="flex items-center px-4 py-2 rounded hover:bg-white/10 transition"
+        >
+          <i class="fa-solid fa-users mr-3"></i> Penerima Manfaat
+        </a>
+
+        <!-- Absen -->
+        <a
+          href="absen.html"
+          class="flex items-center px-4 py-2 rounded hover:bg-white/10 transition"
+        >
+          <i class="fa-solid fa-clipboard-check mr-3"></i> Absen
+        </a>
+
+        <!-- Hitung Nilai Gizi -->
+        <a
+          href="gizi.html"
+          class="flex items-center px-4 py-2 rounded bg-white text-primary font-semibold transition"
+        >
+          <i class="fa-solid fa-apple-whole mr-3"></i> Hitung Nilai Gizi
+        </a>
+      </nav>
+    </aside>
+
+    <!-- Overlay untuk mobile -->
+    <div
+      id="sidebarOverlay"
+      class="fixed inset-0 bg-black bg-opacity-50 hidden md:hidden"
+    ></div>
+
+    <!-- Main Content -->
+    <main class="flex-1 p-4 md:p-6">
+      <!-- Navbar -->
+      <div
+        class="bg-white rounded-lg shadow-md border border-gray-200 p-4 flex items-center justify-between mb-6"
+      >
+        <!-- Tombol hamburger (mobile) -->
+        <button id="btnSidebarToggle" class="md:hidden text-primary">
+          <i class="fa-solid fa-bars text-xl"></i>
+        </button>
+
+        <!-- Judul -->
+        <h2 class="text-xl font-bold text-primary">Hitung Nilai Gizi</h2>
+
+        <!-- Foto + Nama -->
+        <div class="flex items-center space-x-3">
+          <div
+            id="userPhotoWrapper"
+            class="w-10 h-10 bg-center bg-cover rounded-full bg-gray-200 cursor-pointer"
+            onclick="toggleUserCard()"
+          ></div>
+          <span
+            id="userName"
+            class="hidden md:inline font-semibold text-gray-700"
+          >
+            ....
+          </span>
+        </div>
+
+        <!-- Dialog Alert -->
+        <div
+          id="alertDialog"
+          class="hidden fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-30"
+        >
+          <div
+            id="alertBox"
+            class="bg-white rounded-lg shadow-lg p-6 text-center transform scale-95 opacity-0 transition duration-300 ease-out"
+          >
+            <!-- Icon -->
+            <div id="alertIcon" class="flex justify-center mb-3">
+              <svg
+                class="w-12 h-12 text-green-500 animate-bounce"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M5 13l4 4L19 7"
+                />
+              </svg>
+            </div>
+            <!-- Title -->
+            <h2 id="alertTitle" class="text-lg font-bold mb-2 text-green-600">
+              Sukses
+            </h2>
+            <!-- Message -->
+            <p id="alertMessage" class="text-gray-700">Login berhasil!</p>
+          </div>
+        </div>
+
+        <!-- Modal Edit Profil -->
+        <div
+          id="modalEditProfile"
+          class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center"
+        >
+          <div class="bg-white rounded-lg shadow-md max-w-sm w-full mx-4 p-6">
+            <h3 class="text-lg font-bold text-primary mb-4">Edit Profil</h3>
+
+            <form id="formEditProfile" class="space-y-3">
+              <div>
+                <label class="block text-sm font-medium text-gray-700"
+                  >Nama</label
+                >
+                <input
+                  type="text"
+                  id="editName"
+                  class="w-full border border-gray-300 rounded px-3 py-2"
+                />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700"
+                  >Email</label
+                >
+                <input
+                  type="email"
+                  id="editEmail"
+                  disabled
+                  class="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
+                />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700"
+                  >Foto</label
+                >
+                <input
+                  type="file"
+                  id="editImageFile"
+                  accept="image/*"
+                  class="w-full border border-gray-300 rounded px-3 py-2"
+                />
+                <!-- Preview Foto -->
+                <div
+                  id="previewImage"
+                  class="w-20 h-20 rounded-full bg-gray-200 mt-3 mx-auto bg-center bg-cover border"
+                ></div>
+              </div>
+
+              <div class="flex justify-end space-x-2 mt-4">
+                <button
+                  type="button"
+                  onclick="toggleEditProfile(false)"
+                  class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                >
+                  Simpan
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <!-- Card Detail User -->
+        <div
+          id="userCard"
+          class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center"
+        >
+          <div
+            class="bg-white rounded-lg shadow-md max-w-sm w-full mx-4 p-6 text-center animate-fadeSlideUp"
+          >
+            <div
+              id="userPhotoModal"
+              class="w-16 h-16 bg-center bg-cover rounded-full bg-gray-200 mx-auto mb-4"
+            ></div>
+            <h3 id="userNameModal" class="text-lg font-bold text-primary mb-2">
+              Nama User
+            </h3>
+            <!-- Tambahkan email di sini -->
+            <p id="userEmailModal" class="text-sm text-gray-600 mb-4">
+              email@email.com
+            </p>
+
+            <div class="space-y-2">
+              <button
+                class="w-full px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+              >
+                Edit Profil
+              </button>
+              <button
+                id="btnLogoutModal"
+                class="w-full px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+              >
+                Keluar
+              </button>
+            </div>
+
+            <button
+              onclick="toggleUserCard()"
+              class="mt-4 text-sm text-gray-500 hover:text-red-500"
+            >
+              Tutup
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div
+        class="bg-white shadow-lg rounded-lg p-6 w-full grid md:grid-cols-2 gap-6"
+      >
+        <!-- Panel Input (kiri) -->
+        <section>
+          <h2 class="text-xl font-bold text-gray-800 mb-4">
+            Hitung Nilai Gizi
+          </h2>
+
+          <!-- Pencarian makanan -->
+          <div class="mb-4">
+            <label class="block text-sm font-medium text-gray-700"
+              >Cari Makanan</label
+            >
+            <div class="flex gap-2">
+              <input
+                id="queryInput"
+                type="text"
+                class="flex-1 border rounded px-3 py-2"
+                placeholder="contoh: beras, ayam"
+              />
+              <button
+                id="searchBtn"
+                class="bg-primary text-white px-4 py-2 rounded hover:bg-primary"
+              >
+                Cari
+              </button>
+            </div>
+            <div id="loadingSearch" class="text-sm text-gray-500 mt-2 hidden">
+              🔄 Sedang mencari data...
+            </div>
+          </div>
+
+          <!-- Select makanan -->
+          <div class="mb-4">
+            <label class="block text-sm font-medium text-gray-700"
+              >Pilih Makanan</label
+            >
+            <select id="makananSelect" class="w-full border rounded px-3 py-2">
+              <option value="">-- Pilih Makanan --</option>
+            </select>
+          </div>
+
+          <!-- Input berat -->
+          <div class="mb-4">
+            <label class="block text-sm font-medium text-gray-700"
+              >Berat (gram)</label
+            >
+            <input
+              type="number"
+              id="beratInput"
+              class="w-full border rounded px-3 py-2"
+              placeholder="contoh: 100"
+            />
+          </div>
+
+          <!-- Tombol hitung -->
+          <button
+            id="hitungBtn"
+            class="w-full bg-primary text-white py-2 rounded hover:bg-primary"
+          >
+            Hitung
+          </button>
+          <div id="loadingHitung" class="text-sm text-gray-500 mt-2 hidden">
+            ⚙️ Sedang menghitung...
+          </div>
+        </section>
+
+        <!-- Panel Hasil Gizi (kanan) -->
+        <section>
+          <h2 class="text-xl font-bold text-gray-800 mb-4">
+            Hasil Perhitungan
+          </h2>
+          <div id="hasilEmpty" class="text-gray-500">
+            Belum ada perhitungan.
+          </div>
+
+          <div id="hasil" class="hidden grid grid-cols-1 gap-3">
+            <div class="p-4 bg-indigo-50 rounded">
+              <div class="text-xs text-gray-500">Kalori</div>
+              <div id="hasilKalori" class="text-lg font-bold text-indigo-700">
+                0 kcal
+              </div>
+            </div>
+            <div class="p-4 bg-emerald-50 rounded">
+              <div class="text-xs text-gray-500">Protein</div>
+              <div id="hasilProtein" class="text-lg font-bold text-emerald-700">
+                0 g
+              </div>
+            </div>
+            <div class="p-4 bg-yellow-50 rounded">
+              <div class="text-xs text-gray-500">Karbohidrat</div>
+              <div id="hasilKarbo" class="text-lg font-bold text-yellow-700">
+                0 g
+              </div>
+            </div>
+            <div class="p-4 bg-pink-50 rounded">
+              <div class="text-xs text-gray-500">Lemak</div>
+              <div id="hasilLemak" class="text-lg font-bold text-pink-700">
+                0 g
+              </div>
+            </div>
+            <div class="p-4 bg-teal-50 rounded">
+              <div class="text-xs text-gray-500">Serat</div>
+              <div id="hasilSerat" class="text-lg font-bold text-teal-700">
+                0 g
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <!-- Modal Edit Profil -->
+    <div
+      id="modalEditProfile"
+      class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center"
+    >
+      <div class="bg-white rounded-lg shadow-md max-w-sm w-full mx-4 p-6">
+        <h3 class="text-lg font-bold text-primary mb-4">Edit Profil</h3>
+
+        <form id="formEditProfile" class="space-y-3">
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Nama</label>
+            <input
+              type="text"
+              id="editName"
+              class="w-full border border-gray-300 rounded px-3 py-2"
+            />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Email</label>
+            <input
+              type="email"
+              id="editEmail"
+              disabled
+              class="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
+            />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700"
+              >Foto URL</label
+            >
+            <input
+              type="text"
+              id="editImage"
+              class="w-full border border-gray-300 rounded px-3 py-2"
+            />
+            <!-- Preview Foto -->
+            <div
+              id="previewImage"
+              class="w-20 h-20 bg-center bg-cover rounded-full bg-gray-200 mt-3 mx-auto bg-center bg-cover border"
+            ></div>
+          </div>
+
+          <div class="flex justify-end space-x-2 mt-4">
+            <button
+              type="button"
+              onclick="toggleEditProfile(false)"
+              class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
+            >
+              Batal
+            </button>
+            <button
+              type="submit"
+              class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+            >
+              Simpan
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Dialog Sukses -->
+    <div
+      id="dialogSuccess"
+      class="fixed top-3 right-4 bg-green-500 text-white px-4 py-3 rounded shadow-lg flex items-center space-x-2 hidden animate-fade-in"
+    >
+      <i data-feather="check-circle" class="w-5 h-5"></i>
+      <span id="dialogText">Berhasil disimpan!</span>
+    </div>
+
+    <script>
+      const API_URL = "https://sppgadminbgn.web.app/dataset/tkpi.json"; // path dataset lokal
+
+      const hasilEmpty = document.getElementById("hasilEmpty");
+      const hasilWrap = document.getElementById("hasil");
+      const outKalori = document.getElementById("hasilKalori");
+      const outProtein = document.getElementById("hasilProtein");
+      const outKarbo = document.getElementById("hasilKarbo");
+      const outLemak = document.getElementById("hasilLemak");
+      const outSerat = document.getElementById("hasilSerat");
+
+      async function searchMakanan() {
+        const q = document
+          .getElementById("queryInput")
+          .value.trim()
+          .toLowerCase();
+        if (!q) return alert("Isi kata kunci makanan!");
+        document.getElementById("loadingSearch").classList.remove("hidden");
+
+        try {
+          const res = await fetch(API_URL);
+          const data = await res.json();
+          const hasil = data.filter((item) =>
+            item["NAMA BAHAN MENTAH"].toLowerCase().includes(q)
+          );
+          const select = document.getElementById("makananSelect");
+          select.innerHTML = "<option value=''>-- Pilih Makanan --</option>";
+
+          if (hasil.length > 0) {
+            hasil.forEach((item) => {
+              const opt = document.createElement("option");
+              opt.value = item["KODE BARU"];
+              opt.textContent = item["NAMA BAHAN MENTAH"];
+              select.appendChild(opt);
+            });
+            alert(
+              "✅ Pencarian berhasil, ditemukan " + hasil.length + " makanan."
+            );
+          } else {
+            alert("❌ Tidak ada makanan yang cocok dengan kata kunci.");
+          }
+        } catch (err) {
+          alert("❌ Gagal mengambil data TKPI: " + err.message);
+        } finally {
+          document.getElementById("loadingSearch").classList.add("hidden");
+        }
+      }
+
+      document
+        .getElementById("hitungBtn")
+        .addEventListener("click", async () => {
+          const id = document.getElementById("makananSelect").value;
+          const berat = parseFloat(document.getElementById("beratInput").value);
+          if (!id || !berat) return alert("Pilih makanan dan isi berat!");
+
+          document.getElementById("loadingHitung").classList.remove("hidden");
+
+          try {
+            const res = await fetch(API_URL);
+            const data = await res.json();
+            const makanan = data.find((m) => m["KODE BARU"] === id);
+
+            const faktor = berat / makanan["BDD"]; // biasanya 100 g
+            const energi = makanan["ENERGI"] * faktor;
+            const protein = makanan["PROTEIN"] * faktor;
+            const karbo = makanan["KH"] * faktor;
+            const lemak = makanan["LEMAK"] * faktor;
+            const serat = makanan["SERAT"] ? makanan["SERAT"] * faktor : 0;
+
+            outKalori.textContent = `${energi.toFixed(2)} kcal`;
+            outProtein.textContent = `${protein.toFixed(2)} g`;
+            outKarbo.textContent = `${karbo.toFixed(2)} g`;
+            outLemak.textContent = `${lemak.toFixed(2)} g`;
+            outSerat.textContent = `${serat.toFixed(2)} g`;
+
+            hasilEmpty.classList.add("hidden");
+            hasilWrap.classList.remove("hidden");
+
+            alert("✅ Perhitungan berhasil.");
+          } catch (err) {
+            alert("❌ Gagal menghitung dari TKPI JSON: " + err.message);
+          } finally {
+            document.getElementById("loadingHitung").classList.add("hidden");
+          }
+        });
+
+      document
+        .getElementById("searchBtn")
+        .addEventListener("click", searchMakanan);
+    </script>
+
+    <script>
+      if (localStorage.getItem("isLoggedIn") !== "true") {
+        alert("Anda harus login terlebih dahulu!");
+        window.location.href = "login.html";
+      }
+
+      function logout() {
+        localStorage.removeItem("isLoggedIn");
+        window.location.href = "login.html";
+      }
+    </script>
+
+    <!-- Script -->
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        feather.replace();
+      });
+
+      // Toggle modal edit profil
+      function toggleEditProfile(show = true, profile = null) {
+        const modal = document.getElementById("modalEditProfile");
+        if (show) {
+          modal.classList.remove("hidden");
+          if (profile) {
+            document.getElementById("editName").value = profile.name;
+            document.getElementById("editEmail").value = profile.email;
+            document.getElementById("editImage").value = profile.image;
+          }
+        } else {
+          modal.classList.add("hidden");
+        }
+      }
+
+      // Event klik tombol Edit Profil di modal detail user
+      document
+        .querySelector("#userCard button.bg-blue-600")
+        .addEventListener("click", async () => {
+          // ambil data dari modal detail
+          const profile = {
+            name: document.getElementById("userNameModal").textContent,
+            email: document.getElementById("userEmailModal").textContent,
+            image: document.querySelector("#userPhotoModal img")?.src || "",
+          };
+          toggleEditProfile(true, profile);
+        });
+
+      // Submit form edit profil
+      document
+        .getElementById("formEditProfile")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+
+          const newName = document.getElementById("editName").value;
+          const newImage = document.getElementById("editImage").value;
+          const email = document.getElementById("editEmail").value;
+
+          // update ke Firestore
+          await updateAdminProfileByEmail(email, {
+            name: newName,
+            image: newImage,
+          });
+
+          // update tampilan navbar & modal detail
+          document.getElementById("userName").textContent = newName;
+          document.getElementById("userNameModal").textContent = newName;
+          document.getElementById("userPhotoWrapper").innerHTML = `
+    <img src="${newImage}" alt="User Photo"
+         class="w-10 h-10 rounded-full border border-gray-300 cursor-pointer">
+  `;
+          document.getElementById("userPhotoModal").innerHTML = `
+    <img src="${newImage}" alt="User Photo"
+         class="w-16 h-16 rounded-full border border-gray-300">
+  `;
+
+          toggleEditProfile(false);
+        });
+    </script>
+
+    <script type="module" src="js/auth.js"></script>
+
+    <script type="module" src="js/beranda.js"></script>
+  </body>
+</html>

@@ -71,20 +71,36 @@ async function confirmDeleteDokumen() {
 window.openConfirmDelete = openConfirmDelete;
 window.confirmDeleteDokumen = confirmDeleteDokumen;
 
-const inputJumlahBayar = document.getElementById("jumlahBayar");
+const jumlahBarang = document.getElementById("jumlahBarang");
+const inputJumlahBayar = document.getElementById("hargaBarang");
+const totalHarga = document.getElementById("totalHarga");
+
+function updateTotal() {
+  const jumlah = parseFloat(jumlahBarang.value) || 0;
+
+  // ambil hanya digit dari input harga
+  const rawHarga = inputJumlahBayar.value.replace(/\D/g, "");
+  const harga = parseFloat(rawHarga) || 0;
+
+  const total = jumlah * harga;
+  totalHarga.value = total.toLocaleString("id-ID");
+}
+
+jumlahBarang.addEventListener("input", updateTotal);
 
 inputJumlahBayar.addEventListener("input", (e) => {
-  let value = e.target.value.replace(/\D/g, ""); // ambil hanya digit
+  let value = e.target.value.replace(/\D/g, "");
   if (value) {
     e.target.value = parseInt(value, 10).toLocaleString("id-ID");
   } else {
     e.target.value = "";
   }
+  updateTotal(); // panggil setelah format harga
 });
 
 // 🔑 Ambil angka murni untuk simpan ke DB
 function getJumlahBayarRaw() {
-  return parseInt(inputJumlahBayar.value.replace(/\./g, ""), 10) || 0;
+  return parseInt(totalHarga.value.replace(/\./g, ""), 10) || 0;
 }
 
 // Load dokumen dari Firestore

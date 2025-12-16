@@ -125,6 +125,13 @@
         >
           <i class="fa-solid fa-apple-whole mr-3"></i> Hitung Nilai Gizi
         </a>
+        <!-- Survey Pasar -->
+        <a
+          href="survey-pasar.html"
+          class="flex items-center px-4 py-2 rounded hover:bg-white/10 transition"
+        >
+          <i class="fa-solid fa-chart-line mr-3"></i> Survey Pasar
+        </a>
       </nav>
     </aside>
 
@@ -371,18 +378,48 @@
                 />
               </div>
 
-              <!-- Jumlah Bayar -->
+              <!-- Jumlah Barang -->
               <div>
                 <label
-                  for="jumlahBayar"
+                  for="jumlahBarang"
                   class="block text-sm font-medium text-gray-600"
-                  >Jumlah Bayar (Rp)</label
+                  >Jumlah Barang</label
+                >
+                <input
+                  type="number"
+                  id="jumlahBarang"
+                  class="mt-1 p-3 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-gray-700"
+                  placeholder="Masukkan jumlah barang"
+                />
+              </div>
+
+              <!-- Harga per Barang -->
+              <div>
+                <label
+                  for="hargaBarang"
+                  class="block text-sm font-medium text-gray-600"
+                  >Harga per Barang (Rp)</label
                 >
                 <input
                   type="text"
-                  id="jumlahBayar"
+                  id="hargaBarang"
                   class="mt-1 p-3 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-gray-700"
-                  placeholder="Masukkan jumlah bayar"
+                  placeholder="Masukkan harga per barang"
+                />
+              </div>
+
+              <!-- Total Harga -->
+              <div>
+                <label
+                  for="totalHarga"
+                  class="block text-sm font-medium text-gray-600"
+                  >Total Harga (Rp)</label
+                >
+                <input
+                  type="text"
+                  id="totalHarga"
+                  class="mt-1 p-3 block w-full rounded-md border-gray-300 shadow-sm text-gray-700 bg-gray-100"
+                  disabled
                 />
               </div>
 

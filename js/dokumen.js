@@ -130,6 +130,10 @@ function getJumlahBayarRaw() {
   return parseInt(totalHarga.value.replace(/\./g, ""), 10) || 0;
 }
 
+function getJumlahBayarRawEdit() {
+  return parseInt(totalHargaEdit.value.replace(/\./g, ""), 10) || 0;
+}
+
 // Load dokumen dari Firestore
 async function loadDokumen() {
   const querySnapshot = await getDocs(collection(db, "dokumenBarang"));
@@ -314,7 +318,7 @@ document.getElementById("formBarangEdit").addEventListener("submit", (e) => {
   const supplierKey = document.getElementById("supplierEdit").value;
   const supplierInfo = supplierData[supplierKey];
   const namaBarang = document.getElementById("namaBarangEdit").value;
-  const jumlahBayar = getJumlahBayarRaw("Edit"); // bisa buat fungsi khusus untuk ambil jumlah dari form edit
+  const jumlahBayar = getJumlahBayarRawEdit("Edit"); // bisa buat fungsi khusus untuk ambil jumlah dari form edit
   const itemData = {
     namaBarang,
     jumlahBayar,

@@ -356,7 +356,9 @@ document
   .addEventListener("click", async () => {
     const docId = document.getElementById("editDokumenId").value;
     const namaDokumen = document.getElementById("namaDokumenEdit").value.trim();
-    const tanggalDokumen = document.getElementById("tanggalDokumenEdit").value;
+    const tanggalDokumen = formatTanggalDokumen(
+      document.getElementById("tanggalDokumenEdit").value
+    );
     const statusDokumen = document.getElementById("statusDokumenEdit").value;
 
     try {
@@ -415,11 +417,13 @@ document
         dibuatOleh, // ✅ tambahkan role & nama pembuat
       });
 
-      alert("✅ Dokumen berhasil diupdate, termasuk role pembuat!");
       document.getElementById("editModal").classList.add("hidden");
       loadDokumen();
       listBarangEdit = [];
       document.getElementById("tableBodyEdit").innerHTML = "";
+
+      alert("✅ Dokumen berhasil diupdate, termasuk role pembuat!");
+      location.reload(); // 🔄 langsung refresh halaman
     } catch (err) {
       console.error("Error update:", err);
       alert("❌ Gagal update dokumen.");
@@ -610,16 +614,33 @@ async function simpanDokumen(items) {
 
   const editId = document.getElementById("editDokumenId")?.value || "";
   const namaDokumen = document.getElementById("namaDokumen").value.trim();
-  const tanggalInput = document.getElementById("tanggalDokumen").value;
+  const tanggalInput = formatTanggalDokumen(
+    document.getElementById("tanggalDokumen").value
+  );
   const statusDokumen = document.getElementById("statusDokumen").value;
   const tanggalFormatted = formatTanggalDokumen(tanggalInput);
 
   try {
+    // 🔑 ambil user info untuk role
+    const userId = localStorage.getItem("userId");
+    const userRef = doc(db, "users", userId);
+    const userSnap = await getDoc(userRef);
+
+    let dibuatOleh = { nama: "anonymous", role: "unknown" };
+    if (userSnap.exists()) {
+      const dataUser = userSnap.data();
+      dibuatOleh = {
+        nama: dataUser.nama || "anonymous",
+        role: dataUser.role || "unknown",
+      };
+    }
+
     // 🔑 Simpan dokumen baru
     await addDoc(collection(db, "dokumenBarang"), {
       namaDokumen,
       createdAt: tanggalFormatted,
       status: statusDokumen,
+      dibuatOleh, // ✅ tambahkan nama & role pembuat
       suppliers: items.map((item) => ({
         supplier: item.supplier,
         barang: [
@@ -632,9 +653,14 @@ async function simpanDokumen(items) {
           },
         ],
       })),
+      totalBayar: items.reduce(
+        (sum, item) => sum + parseInt(item.jumlahBayar, 10),
+        0
+      ),
     });
 
-    alert("✅ Dokumen baru berhasil disimpan!");
+    alert("✅ Dokumen baru berhasil disimpan dengan role pembuat!");
+    location.reload(); // 🔄 langsung refresh halaman
   } catch (err) {
     console.error("Error simpan:", err);
     alert("❌ Gagal menyimpan dokumen.");

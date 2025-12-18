@@ -75,6 +75,33 @@ const jumlahBarang = document.getElementById("jumlahBarang");
 const inputJumlahBayar = document.getElementById("hargaBarang");
 const totalHarga = document.getElementById("totalHarga");
 
+const jumlahBarangEdit = document.getElementById("jumlahBarangEdit");
+const hargaBarangEdit = document.getElementById("hargaBarangEdit");
+const totalHargaEdit = document.getElementById("totalHargaEdit");
+
+function updateTotalEdit() {
+  const jumlah = parseFloat(jumlahBarangEdit.value) || 0;
+
+  // ambil hanya digit dari input harga
+  const rawHarga = hargaBarangEdit.value.replace(/\D/g, "");
+  const harga = parseFloat(rawHarga) || 0;
+
+  const total = jumlah * harga;
+  totalHargaEdit.value = total.toLocaleString("id-ID");
+}
+
+jumlahBarangEdit.addEventListener("input", updateTotalEdit);
+
+hargaBarangEdit.addEventListener("input", (e) => {
+  let value = e.target.value.replace(/\D/g, "");
+  if (value) {
+    e.target.value = parseInt(value, 10).toLocaleString("id-ID");
+  } else {
+    e.target.value = "";
+  }
+  updateTotalEdit(); // panggil setelah format harga
+});
+
 function updateTotal() {
   const jumlah = parseFloat(jumlahBarang.value) || 0;
 
@@ -109,26 +136,36 @@ async function loadDokumen() {
   const dokumenBody = document.getElementById("dokumenBody");
   dokumenBody.innerHTML = "";
 
-  let index = 1; // 🔑 nomor urut manual
+  let index = 1;
 
   if (querySnapshot.empty) {
     dokumenBody.innerHTML = `
       <tr>
-        <td colspan="5" class="text-center py-10">
-          <div class="flex flex-col items-center justify-center">
-           
-                
-            <p class="text-gray-500">Tidak ada data dokumen</p>
-          </div>
+        <td colspan="6" class="text-center py-10">
+          <p class="text-gray-500">Tidak ada data dokumen</p>
         </td>
       </tr>
     `;
     return;
   }
 
-  querySnapshot.forEach((doc) => {
-    const data = doc.data();
+  querySnapshot.forEach((docSnap) => {
+    const data = docSnap.data();
     const row = document.createElement("tr");
+    row.className = "cursor-pointer hover:bg-gray-100";
+
+    // 🔑 tombol download hanya jika status Publish
+    const downloadBtn =
+      data.status === "Publish"
+        ? `<button class="bg-indigo-600 text-white px-3 py-2 rounded shadow hover:bg-indigo-700 text-sm"
+             onclick="downloadDokumen('${docSnap.id}')">Download</button>`
+        : "";
+
+    // 🔑 tombol hapus selalu ada
+    const deleteBtn = `
+      <button class="bg-red-600 text-white px-3 py-2 rounded shadow hover:bg-red-700 text-sm"
+        onclick="openConfirmDelete('${docSnap.id}')">Hapus</button>
+    `;
 
     row.innerHTML = `
       <td class="px-4 py-2 text-sm text-gray-700">${index}</td>
@@ -137,18 +174,74 @@ async function loadDokumen() {
       <td class="px-4 py-2 text-sm text-gray-700">
         ${data.dibuatOleh?.nama || "-"} - ${data.dibuatOleh?.role || "-"}
       </td>
+      <td class="px-4 py-2 text-sm text-gray-700">${data.status || "Draft"}</td>
       <td class="px-4 py-2 text-center space-x-2">
-        <button class="bg-indigo-600 text-white px-3 py-2 rounded shadow hover:bg-indigo-700 text-sm"
-          onclick="downloadDokumen('${doc.id}')">Download</button>
-        <button class="bg-red-600 text-white px-3 py-2 rounded shadow hover:bg-red-700 text-sm"
-          onclick="openConfirmDelete('${doc.id}')">Hapus</button>
+        ${downloadBtn}
+        ${deleteBtn}
       </td>
     `;
+
+    // 🔑 klik baris → buka modal dengan data terisi
+    row.addEventListener("click", (ev) => {
+      if (ev.target.tagName.toLowerCase() === "button") return;
+
+      // isi hidden id
+      document.getElementById("editDokumenId").value = docSnap.id;
+
+      // isi input dokumen
+      document.getElementById("namaDokumenEdit").value = data.namaDokumen || "";
+      document.getElementById("tanggalDokumenEdit").value =
+        data.createdAt || "";
+      document.getElementById("statusDokumenEdit").value =
+        data.status || "Draft";
+
+      // isi tabel barang
+      const tableBody = document.getElementById("tableBodyEdit");
+      tableBody.innerHTML = "";
+      let i = 1;
+      if (data.suppliers) {
+        data.suppliers.forEach((supplierNode) => {
+          supplierNode.barang.forEach((barang) => {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+              <td class="px-4 py-2">${i++}</td>
+              <td class="px-4 py-2">${barang.namaBarang}</td>
+              <td class="px-4 py-2">${barang.jumlahBayar}</td>
+              <td class="px-4 py-2">${supplierNode.supplier}</td>
+              <td class="px-4 py-2">${barang.nomorRekening || "-"}</td>
+              <td class="px-4 py-2">${barang.namaBank || "-"}</td>
+            `;
+            tableBody.appendChild(tr);
+          });
+        });
+      }
+
+      // tampilkan modal
+      document.getElementById("editModal").classList.remove("hidden");
+    });
 
     dokumenBody.appendChild(row);
     index++;
   });
 }
+
+// Tombol Tutup modal
+document.getElementById("sppCloseBtn").addEventListener("click", () => {
+  document.getElementById("sppModal").classList.add("hidden");
+});
+
+document.getElementById("updateCloseBtn").addEventListener("click", () => {
+  document.getElementById("editModal").classList.add("hidden");
+});
+
+function openEditModal(docId, data) {
+  document.getElementById("editDokumenId").value = docId;
+  document.getElementById("namaDokumen").value = data.namaDokumen || "";
+  document.getElementById("tanggalDokumen").value = data.createdAt || "";
+  document.getElementById("statusDokumen").value = data.status || "Draft";
+  document.getElementById("sppModal").classList.remove("hidden");
+}
+
 const supplierData = {
   koperasi: {
     supplier: "Koperasi AGUNA SAKTI SEJAHTERA",
@@ -211,6 +304,127 @@ document.getElementById("formBarang").addEventListener("submit", (e) => {
 
   e.target.reset();
 });
+
+// array khusus barang edit
+let listBarangEdit = [];
+
+document.getElementById("formBarangEdit").addEventListener("submit", (e) => {
+  e.preventDefault();
+
+  const supplierKey = document.getElementById("supplierEdit").value;
+  const supplierInfo = supplierData[supplierKey];
+  const namaBarang = document.getElementById("namaBarangEdit").value;
+  const jumlahBayar = getJumlahBayarRaw("Edit"); // bisa buat fungsi khusus untuk ambil jumlah dari form edit
+  const itemData = {
+    namaBarang,
+    jumlahBayar,
+    supplier: supplierInfo.supplier,
+    namaBank: supplierInfo.namaBank,
+    nomorRekening: supplierInfo.nomorRekening,
+    createdAt: new Date(),
+  };
+
+  // ✅ cek duplikat
+  const exists = listBarangEdit.some(
+    (b) => b.namaBarang === namaBarang && b.supplier === supplierInfo.supplier
+  );
+  if (exists) {
+    alert("Barang sudah ada di list edit.");
+    return;
+  }
+
+  listBarangEdit.push(itemData);
+
+  // render ke tabel edit
+  const tableBody = document.getElementById("tableBodyEdit");
+  const row = document.createElement("tr");
+  row.innerHTML = `
+    <td>${listBarangEdit.length}</td>
+    <td>${namaBarang}</td>
+    <td>Rp. ${jumlahBayar}</td>
+    <td>${supplierInfo.supplier}</td>
+    <td>${supplierInfo.nomorRekening}</td>
+    <td>${supplierInfo.namaBank}</td>
+  `;
+  tableBody.appendChild(row);
+
+  e.target.reset();
+});
+
+document
+  .getElementById("updateDatabase")
+  .addEventListener("click", async () => {
+    const docId = document.getElementById("editDokumenId").value;
+    const namaDokumen = document.getElementById("namaDokumenEdit").value.trim();
+    const tanggalDokumen = document.getElementById("tanggalDokumenEdit").value;
+    const statusDokumen = document.getElementById("statusDokumenEdit").value;
+
+    try {
+      const docRef = doc(db, "dokumenBarang", docId);
+      const oldSnap = await getDoc(docRef);
+      let oldSuppliers = [];
+      if (oldSnap.exists()) {
+        oldSuppliers = oldSnap.data().suppliers || [];
+      }
+
+      // gabungkan barang baru ke supplier lama
+      listBarangEdit.forEach((item) => {
+        let supplierNode = oldSuppliers.find(
+          (s) => s.supplier === item.supplier
+        );
+        if (!supplierNode) {
+          supplierNode = { supplier: item.supplier, barang: [] };
+          oldSuppliers.push(supplierNode);
+        }
+        supplierNode.barang.push({
+          namaBarang: item.namaBarang,
+          jumlahBayar: item.jumlahBayar,
+          namaBank: item.namaBank,
+          nomorRekening: item.nomorRekening,
+          createdAt: item.createdAt,
+        });
+      });
+
+      // 🔑 ambil user info untuk role
+      const userId = localStorage.getItem("userId");
+      const userRef = doc(db, "users", userId);
+      const userSnap = await getDoc(userRef);
+      let dibuatOleh = { nama: "anonymous", role: "unknown" };
+      if (userSnap.exists()) {
+        const dataUser = userSnap.data();
+        dibuatOleh = {
+          nama: dataUser.nama || "anonymous",
+          role: dataUser.role || "unknown",
+        };
+      }
+
+      await updateDoc(docRef, {
+        namaDokumen,
+        createdAt: tanggalDokumen,
+        status: statusDokumen,
+        suppliers: oldSuppliers,
+        totalBayar: oldSuppliers.reduce(
+          (sum, s) =>
+            sum +
+            s.barang.reduce(
+              (subSum, b) => subSum + parseInt(b.jumlahBayar || 0, 10),
+              0
+            ),
+          0
+        ),
+        dibuatOleh, // ✅ tambahkan role & nama pembuat
+      });
+
+      alert("✅ Dokumen berhasil diupdate, termasuk role pembuat!");
+      document.getElementById("editModal").classList.add("hidden");
+      loadDokumen();
+      listBarangEdit = [];
+      document.getElementById("tableBodyEdit").innerHTML = "";
+    } catch (err) {
+      console.error("Error update:", err);
+      alert("❌ Gagal update dokumen.");
+    }
+  });
 
 async function downloadDokumen(docId) {
   try {
@@ -394,71 +608,36 @@ async function simpanDokumen(items) {
     return;
   }
 
-  try {
-    // 1. Bentuk tree suppliers → barang
-    const suppliersTree = [];
+  const editId = document.getElementById("editDokumenId")?.value || "";
+  const namaDokumen = document.getElementById("namaDokumen").value.trim();
+  const tanggalInput = document.getElementById("tanggalDokumen").value;
+  const statusDokumen = document.getElementById("statusDokumen").value;
+  const tanggalFormatted = formatTanggalDokumen(tanggalInput);
 
-    items.forEach((item) => {
-      let supplierNode = suppliersTree.find(
-        (s) => s.supplier === item.supplier
-      );
-      if (!supplierNode) {
-        supplierNode = { supplier: item.supplier, barang: [] };
-        suppliersTree.push(supplierNode);
-      }
-      supplierNode.barang.push({
-        namaBarang: item.namaBarang,
-        jumlahBayar: item.jumlahBayar,
-        namaBank: item.namaBank,
-        nomorRekening: item.nomorRekening,
-        createdAt: item.createdAt,
-      });
+  try {
+    // 🔑 Simpan dokumen baru
+    await addDoc(collection(db, "dokumenBarang"), {
+      namaDokumen,
+      createdAt: tanggalFormatted,
+      status: statusDokumen,
+      suppliers: items.map((item) => ({
+        supplier: item.supplier,
+        barang: [
+          {
+            namaBarang: item.namaBarang,
+            jumlahBayar: item.jumlahBayar,
+            namaBank: item.namaBank,
+            nomorRekening: item.nomorRekening,
+            createdAt: item.createdAt,
+          },
+        ],
+      })),
     });
 
-    const namaDokumen = document.getElementById("namaDokumen").value;
-    const tanggalInput = document.getElementById("tanggalDokumen").value; // "2025-11-06"
-    const tanggalFormatted = formatTanggalDokumen(tanggalInput);
-
-    // 🔑 Nomor dokumen otomatis (misalnya timestamp + counter)
-    const nomorDokumen = Date.now(); // atau bisa pakai counter dari Firestore
-
-    const userId = localStorage.getItem("userId");
-
-    const userRef = doc(db, "users", userId);
-    const userSnap = await getDoc(userRef);
-
-    if (userSnap.exists()) {
-      const data = userSnap.data();
-      // 🔑 User role (misalnya dari session/login)
-      // Pastikan kamu punya variabel global currentUserRole yang di-set saat login
-      const userRole = data.role || "unknown";
-      const userName = data.nama || "anonymous"; // bisa ambil dari auth
-
-      // 2. Simpan dokumen induk dengan tree suppliers
-      const docRef = await addDoc(collection(db, "dokumenBarang"), {
-        nomorDokumen: nomorDokumen,
-        namaDokumen: namaDokumen,
-        createdAt: tanggalFormatted,
-        dibuatOleh: {
-          nama: userName,
-          role: userRole, // admin, akuntan, ahli gizi, super admin
-        },
-        totalBayar: items.reduce(
-          (sum, item) => sum + parseInt(item.jumlahBayar, 10),
-          0
-        ),
-        suppliers: suppliersTree, // 🔑 simpan tree supplier → barang
-      });
-
-      alert("Dokumen & tree supplier-barang berhasil disimpan!");
-
-      // reset list & tabel preview
-      listBarang = [];
-      document.getElementById("tableBody").innerHTML = "";
-    }
+    alert("✅ Dokumen baru berhasil disimpan!");
   } catch (err) {
     console.error("Error simpan:", err);
-    alert("Gagal menyimpan dokumen.");
+    alert("❌ Gagal menyimpan dokumen.");
   }
 }
 // Simpan dokumen ke Firestore

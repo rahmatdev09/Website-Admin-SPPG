@@ -436,7 +436,6 @@ document
 
 async function downloadDokumen(docId) {
   try {
-    // 1. Ambil dokumen induk dari Firestore
     const docSnap = await getDoc(doc(db, "dokumenBarang", docId));
     if (!docSnap.exists()) {
       alert("Dokumen tidak ditemukan");
@@ -444,21 +443,12 @@ async function downloadDokumen(docId) {
     }
     const data = docSnap.data();
 
-    // 2. Format createdAt agar bisa ditampilkan
-    const createdAt = data.createdAt?.seconds
-      ? new Date(data.createdAt.seconds * 1000).toLocaleDateString()
-      : "";
-
-    // 3. Ambil suppliers tree dari dokumen
-
-    // 4. Load template Word
     const response = await fetch(
       "templates/SURAT_PERMINTAAN_PEMBAYARAN_TEMPLATE.docx"
     );
     const content = await response.arrayBuffer();
 
     const zip = new window.PizZip(content);
-
     const docx = new window.docxtemplater(zip, {
       paragraphLoop: true,
       linebreaks: true,
@@ -473,13 +463,14 @@ async function downloadDokumen(docId) {
         supplier: s.supplier,
         barang: s.barang.map((b, idx) => ({
           ...b,
-          no: String(counter++), // nomor global
-          supplier: idx === 0 ? s.supplier : "", // supplier sekali saja
+          no: String(counter++),
+          supplier: idx === 0 ? s.supplier : "",
           namaBank: idx === 0 ? b.namaBank : "",
           nomorRekening: idx === 0 ? b.nomorRekening : "",
           jumlahBayarFormatted: "Rp. " + b.jumlahBayar.toLocaleString("id-ID"),
         })),
-        totalSupplierFormatted: "Rp. " + totalSupplier.toLocaleString("id-ID"), // 🔑 untuk row jumlah manual
+        // 🔑 total per supplier
+        totalSupplierFormatted: "Rp. " + totalSupplier.toLocaleString("id-ID"),
       };
     });
 
@@ -490,7 +481,6 @@ async function downloadDokumen(docId) {
       suppliers,
     });
 
-    // 6. Render dan download
     docx.render();
 
     const out = docx.getZip().generate({ type: "blob" });

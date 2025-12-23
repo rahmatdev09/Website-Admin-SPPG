@@ -46,13 +46,17 @@ function renderCards() {
     const card = document.createElement("div");
     card.className = "bg-white rounded-lg shadow p-4 hover:shadow-md";
     card.innerHTML = `
-      <h3 class="text-lg font-bold">${barang.nama}</h3>
-      <p class="text-gray-600">Jumlah: ${barang.jumlah}</p>
-      <p class="text-xs text-gray-400">Terakhir update: ${
-        barang.riwayat?.length
-          ? formatTanggal(barang.riwayat[barang.riwayat.length - 1].tanggal)
-          : "-"
-      }</p>
+  <h3 class="text-lg font-bold">${barang.nama}</h3>
+  <p class="text-gray-600">Jumlah: ${barang.jumlah}</p>
+  <p class="text-gray-600">Expired Date: ${
+    barang.expiredDate ? formatTanggal(barang.expiredDate) : "-"
+  }</p>
+  <p class="text-xs text-gray-400">Terakhir update: ${
+    barang.riwayat?.length
+      ? formatTanggal(barang.riwayat[barang.riwayat.length - 1].tanggal)
+      : "-"
+  }</p>
+
       <div class="mt-2 flex space-x-2">
         <button class="bg-primary text-white px-2 py-1 rounded text-xs btnRiwayat">Riwayat</button>
         <button class="bg-yellow-500 text-white px-2 py-1 rounded text-xs btnEdit">Edit</button>
@@ -143,9 +147,10 @@ document
       document.getElementById("jumlahBarangTambah").value,
       10
     );
+    const expiredDate = document.getElementById("expiredDateTambah").value; // ambil ED
 
-    if (!nama || isNaN(jumlah)) {
-      alert("❌ Nama dan jumlah barang wajib diisi.");
+    if (!nama || isNaN(jumlah) || !expiredDate) {
+      showSuccess("❌ Nama, jumlah, dan expired date wajib diisi!");
       return;
     }
 
@@ -154,18 +159,19 @@ document
       (d) => d.data().nama.toLowerCase() === nama.toLowerCase()
     );
     if (exists) {
-      alert("⚠️ Barang dengan nama tersebut sudah ada di stok.");
+      showSuccess("⚠️ Barang dengan nama tersebut sudah ada di stok.");
       return;
     }
 
     await addDoc(collection(db, "stokBarang"), {
       nama,
       jumlah,
+      expiredDate: new Date(expiredDate), // simpan ke Firestore
       riwayat: [{ jumlah, tipe: "masuk", tanggal: new Date() }],
       createdAt: new Date(),
     });
 
-    showSuccess("✅ Barang baru berhasil ditambahkan!");
+    showSuccess("Barang baru berhasil ditambahkan!");
     document.getElementById("tambahBarangModal").classList.add("hidden");
     e.target.reset();
   });
@@ -280,16 +286,20 @@ function openRiwayat(index) {
     const div = document.createElement("div");
     div.className = "border p-2 rounded flex justify-between items-center";
     div.innerHTML = `
-      <div>
-        <p>${r.tipe === "masuk" ? "➕ Masuk" : "➖ Keluar"}: ${r.jumlah}</p>
-  <p class="text-xs text-gray-500">${formatTanggal(r.tanggal)}</p>
-
-      </div>
-      <button class="bg-red-500 text-white px-2 py-1 rounded text-xs hover:bg-red-600">
-        Hapus
-      </button>
-    `;
-
+  <div>
+    <p>
+      ${
+        r.tipe === "masuk"
+          ? '<i class="fa-solid fa-circle-plus text-green-600 mr-1 riwayat-icon"></i> Masuk'
+          : '<i class="fa-solid fa-circle-minus text-red-600 mr-1 riwayat-icon"></i> Keluar'
+      }: ${r.jumlah}
+    </p>
+    <p class="text-xs text-gray-500">${formatTanggal(r.tanggal)}</p>
+  </div>
+  <button class="bg-red-500 text-white px-2 py-1 rounded text-xs hover:bg-red-600">
+    Hapus
+  </button>
+`;
     // tombol hapus riwayat
     div.querySelector("button").onclick = async () => {
       // rollback jumlah
@@ -345,6 +355,18 @@ function openRiwayat(index) {
         riwayat: barang.riwayat,
       });
 
+      // trigger animasi pada ikon terakhir
+      setTimeout(() => {
+        const icons = document.querySelectorAll(".riwayat-icon");
+        const lastIcon = icons[icons.length - 1];
+        if (lastIcon) {
+          lastIcon.classList.add("spin-once");
+          // hapus class setelah animasi selesai
+          setTimeout(() => lastIcon.classList.remove("spin-once"), 600);
+        }
+      }, 100);
+
+      showSuccess("Riwayat berhasil ditambahkan!");
       document.getElementById("updateModal").classList.add("hidden");
       document.getElementById("riwayatModal").classList.add("hidden");
       renderCards();

@@ -4,6 +4,30 @@
     <meta charset="UTF-8" />
     <title>SPPG Naila Jasmin Web - Login</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/feather-icons"></script>
+
+    <link
+      rel="apple-touch-icon"
+      sizes="180x180"
+      href="favicon_io/apple-touch-icon.png"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="32x32"
+      href="favicon_io/favicon-32x32.png"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="16x16"
+      href="favicon_io/favicon-16x16.png"
+    />
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+      rel="stylesheet"
+    />
+
     <style>
       :root {
         --tw-color-primary: #061e49;
@@ -20,21 +44,45 @@
       .border-primary {
         border-color: #061e49;
       }
+
+      @keyframes fadeSlideUp {
+        0% {
+          opacity: 0;
+          transform: translateY(40px);
+        }
+        100% {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      .animate-fadeSlideUp {
+        animation: fadeSlideUp 0.3s ease-out forwards;
+      }
     </style>
   </head>
   <body class="bg-primary flex items-center justify-center min-h-screen">
-    <div class="bg-white p-8 rounded shadow max-w-md w-full">
-      <h1 class="text-2xl font-bold text-primary text-center mb-2">
-        SPPG Naila Jasmin
-      </h1>
-      <p class="text-center text-gray-600 mb-6">Kelola Dapur Lebih Mudah</p>
+    <div
+      class="bg-white m-10 p-6 rounded shadow w-full md:max-w-lg flex flex-col justify-center"
+    >
+      <div class="flex flex-col items-center">
+        <img
+          src="icon/Picture1__3_-removebg-preview.png"
+          alt="Logo"
+          class="w-48 rounded-full mb-6"
+        />
+        <h1 class="text-3xl font-bold mb-4 text-center">SPPG NAILA JASMIN</h1>
+      </div>
+
+      <p class="text-center text-gray-600 mb-8 text-xl">
+        Kelola Dapur Lebih Mudah
+      </p>
 
       <!-- Email -->
       <input
         type="email"
         id="email"
         placeholder="Email"
-        class="w-full border rounded p-2 mb-3 focus:ring-green-500 focus:border-green-500"
+        class="w-full border rounded p-4 mb-4 focus:ring-green-500 focus:border-green-500 text-lg"
       />
 
       <!-- Password -->
@@ -42,18 +90,18 @@
         type="password"
         id="password"
         placeholder="Password"
-        class="w-full border rounded p-2 mb-3 focus:ring-green-500 focus:border-green-500"
+        class="w-full border rounded p-4 mb-6 focus:ring-green-500 focus:border-green-500 text-lg"
       />
 
       <!-- Tombol Login -->
       <button
         id="btnLogin"
-        class="w-full bg-primary text-white py-2 rounded hover:bg-primary flex items-center justify-center space-x-2"
+        class="w-full bg-primary text-white py-4 rounded hover:bg-primary flex items-center justify-center space-x-2 text-lg font-semibold"
       >
         <span id="btnText">Login</span>
         <svg
           id="btnSpinner"
-          class="hidden animate-spin h-5 w-5 text-white"
+          class="hidden animate-spin h-6 w-6 text-white"
           xmlns="http://www.w3.org/2000/svg"
           fill="none"
           viewBox="0 0 24 24"
@@ -75,7 +123,7 @@
       </button>
 
       <!-- Footer -->
-      <p class="text-center text-xs text-gray-500 mt-6">
+      <p class="text-center text-sm text-gray-500 mt-8">
         © 2025 Rahmatullah. All rights reserved.
       </p>
     </div>

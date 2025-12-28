@@ -250,7 +250,8 @@ const supplierData = {
   koperasi: {
     supplier: "Koperasi AGUNA SAKTI SEJAHTERA",
     namaBank: "BRI",
-    nomorRekening: "227201000908562 A.n ANTONI",
+    nomorRekening:
+      "227201000908562 A.n Koperasi Konsumen Aguna Sakti Sejahterah",
   },
   yuliati: {
     supplier: "Yuliati",

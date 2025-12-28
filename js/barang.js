@@ -393,7 +393,37 @@ function sortData() {
 function renderPagination(totalItems) {
   pagination.innerHTML = "";
   const totalPages = Math.ceil(totalItems / itemsPerPage);
-  for (let i = 1; i <= totalPages; i++) {
+
+  if (totalPages <= 1) return; // tidak perlu pagination
+
+  // Tombol Sebelumnya
+  const prevBtn = document.createElement("button");
+  prevBtn.textContent = "« Prev";
+  prevBtn.className = `px-3 py-1 rounded ${
+    currentPage === 1
+      ? "bg-gray-300 cursor-not-allowed"
+      : "bg-gray-200 hover:bg-gray-300"
+  }`;
+  prevBtn.disabled = currentPage === 1;
+  prevBtn.addEventListener("click", () => {
+    if (currentPage > 1) {
+      currentPage--;
+      renderTable();
+      renderPagination(filteredData.length);
+    }
+  });
+  pagination.appendChild(prevBtn);
+
+  // Batasi jumlah nomor (misalnya 5)
+  const maxVisible = 5;
+  let startPage = Math.max(1, currentPage - Math.floor(maxVisible / 2));
+  let endPage = startPage + maxVisible - 1;
+  if (endPage > totalPages) {
+    endPage = totalPages;
+    startPage = Math.max(1, endPage - maxVisible + 1);
+  }
+
+  for (let i = startPage; i <= endPage; i++) {
     const btn = document.createElement("button");
     btn.textContent = i;
     btn.className = `px-3 py-1 rounded ${
@@ -408,6 +438,24 @@ function renderPagination(totalItems) {
     });
     pagination.appendChild(btn);
   }
+
+  // Tombol Berikutnya
+  const nextBtn = document.createElement("button");
+  nextBtn.textContent = "Next »";
+  nextBtn.className = `px-3 py-1 rounded ${
+    currentPage === totalPages
+      ? "bg-gray-300 cursor-not-allowed"
+      : "bg-gray-200 hover:bg-gray-300"
+  }`;
+  nextBtn.disabled = currentPage === totalPages;
+  nextBtn.addEventListener("click", () => {
+    if (currentPage < totalPages) {
+      currentPage++;
+      renderTable();
+      renderPagination(filteredData.length);
+    }
+  });
+  pagination.appendChild(nextBtn);
 }
 
 async function deleteBarang(id) {

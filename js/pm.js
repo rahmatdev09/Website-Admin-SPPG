@@ -36,6 +36,9 @@ let totalPM = 0,
   totalPorsiKecil = 0,
   totalSiswa = 0,
   totalB3 = 0,
+  totalBusui = 0,
+  totalBumil = 0,
+  totalBalita = 0,
   totalPIC = 0;
 
 document.getElementById("btnTambahPM").onclick = () => {
@@ -76,16 +79,22 @@ function updateRingkasan() {
     totalSiswa =
     totalB3 =
     totalPIC =
+    totalBusui =
+    totalBumil =
+    totalBalita =
       0;
 
   dataSekolah.forEach((s) => {
     if (!s.active) return;
 
     if (s.jenis === "SD") {
-      totalPM += s.k13 + s.k46 + (s.pic || 0);
-      totalSiswa += s.k13 + s.k46;
-      totalPorsiKecil += s.k13;
-      totalPorsiBesar += s.k46 + (s.pic || 0);
+      const k13 = s.nonaktif13 ? 0 : s.k13;
+      const k46 = s.nonaktif46 ? 0 : s.k46;
+
+      totalPM += k13 + k46 + (s.pic || 0);
+      totalSiswa += k13 + k46;
+      totalPorsiKecil += k13;
+      totalPorsiBesar += k46 + (s.pic || 0);
       totalPIC += s.pic || 0;
     } else if (s.jenis === "TK") {
       totalPM += s.total + (s.pic || 0);
@@ -99,19 +108,57 @@ function updateRingkasan() {
       totalPorsiBesar += s.total + (s.pic || 0);
       totalPIC += s.pic || 0;
     } else if (s.jenis === "B3") {
-      totalPM += s.total;
-      totalB3 += s.total;
-      totalPorsiBesar += s.total;
+      const busui = s.busui || 0;
+      const bumil = s.bumil || 0;
+      const balita = s.balita || 0;
+
+      totalPM += busui + bumil + balita;
+      totalB3 += busui + bumil + balita;
+
+      totalBusui += busui;
+      totalBumil += bumil;
+      totalBalita += balita;
+
+      totalPorsiKecil += balita;
+      totalPorsiBesar += busui + bumil;
     }
   });
 
+  // isi ringkasan utama
   document.getElementById("totalPM").textContent = totalPM;
   document.getElementById("porsiBesar").textContent = totalPorsiBesar;
   document.getElementById("porsiKecil").textContent = totalPorsiKecil;
   document.getElementById("totalSiswa").textContent = totalSiswa;
   document.getElementById("totalB3").textContent = totalB3;
   document.getElementById("totalPIC").textContent = totalPIC;
+
+  // isi detail B3
+  document.getElementById("totalBusui").textContent = totalBusui;
+  document.getElementById("totalBumil").textContent = totalBumil;
+  document.getElementById("totalBalita").textContent = totalBalita;
+
+  // hitung pagu
+  const paguKecil = totalPorsiKecil * 8000;
+  const paguBesar = totalPorsiBesar * 10000;
+
+  document.getElementById("paguKecil").textContent = formatRupiah(paguKecil);
+  document.getElementById("paguBesar").textContent = formatRupiah(paguBesar);
+
+  // total pagu dikali hari
+  const hari = parseInt(document.getElementById("selectHari").value, 10);
+  const totalPagu = (paguKecil + paguBesar) * hari;
+  document.getElementById("totalPagu").textContent = formatRupiah(totalPagu);
 }
+
+// helper format rupiah
+function formatRupiah(angka) {
+  return "Rp " + angka.toLocaleString("id-ID");
+}
+
+// event listener untuk dropdown hari
+document
+  .getElementById("selectHari")
+  .addEventListener("change", updateRingkasan);
 
 document.getElementById("listSekolah").addEventListener("click", (e) => {
   const btn = e.target.closest("button");
@@ -142,35 +189,56 @@ function renderSekolah() {
         : "<span class='text-green-600 font-semibold'>(Aktif)</span>";
 
     if (s.jenis === "SD") {
-      card.innerHTML = `
-        <h4 class="text-lg font-bold">${s.nama} (SD) ${statusLabel}</h4>
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mt-2">
-          <div class="text-center"><p class="font-semibold">Kelas 1-3</p><p>${
-            s.k13
-          }</p></div>
-          <div class="text-center"><p class="font-semibold">Kelas 4-6</p><p>${
-            s.k46
-          }</p></div>
-          <div class="text-center"><p class="font-semibold">Total</p><p>${
-            s.k13 + s.k46
-          }</p></div>
-          <div class="text-center"><p class="font-semibold">Total PIC</p><p>${
-            s.pic
-          }</p></div>
-        </div>
-        <div id="spinner-${index}" class="absolute inset-0 flex items-center justify-center bg-white/70 backdrop-blur-sm hidden">
-          <div class="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-600"></div>
-        </div>
-      <div class="mt-3 flex justify-end gap-2">
-    <button class="btn-status bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700" data-index="${index}">
-      Status
-    </button>
-    <button class="btn-hapus bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700" data-index="${index}">
-      Hapus
-    </button>
-  </div>
+      // label status sekolah
+      let statusLabelSekolah =
+        s.active === false
+          ? "<span class='text-gray-500 font-semibold'>(Nonaktif Sekolah)</span>"
+          : "<span class='text-green-600 font-semibold'>(Aktif Sekolah)</span>";
 
-      `;
+      // label status kelas 1-3
+      let statusLabel13 =
+        s.active13 === false
+          ? "<span class='text-gray-500 text-xs'>(Nonaktif)</span>"
+          : "<span class='text-green-600 text-xs'>(Aktif)</span>";
+
+      // label status kelas 4-6
+      let statusLabel46 =
+        s.active46 === false
+          ? "<span class='text-gray-500 text-xs'>(Nonaktif)</span>"
+          : "<span class='text-green-600 text-xs'>(Aktif)</span>";
+
+      card.innerHTML = `
+    <h4 class="text-lg font-bold">${s.nama} (SD) ${statusLabelSekolah}</h4>
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mt-2">
+      <div class="text-center">
+        <p class="font-semibold">Kelas 1-3 ${statusLabel13}</p>
+        <p>${s.active13 === false ? 0 : s.k13}</p>
+      </div>
+      <div class="text-center">
+        <p class="font-semibold">Kelas 4-6 ${statusLabel46}</p>
+        <p>${s.active46 === false ? 0 : s.k46}</p>
+      </div>
+      <div class="text-center">
+        <p class="font-semibold">Total</p>
+        <p>${
+          (s.active13 === false ? 0 : s.k13) +
+          (s.active46 === false ? 0 : s.k46)
+        }</p>
+      </div>
+      <div class="text-center">
+        <p class="font-semibold">Total PIC</p>
+        <p>${s.pic}</p>
+      </div>
+    </div>
+    <div id="spinner-${index}" class="absolute inset-0 flex items-center justify-center bg-white/70 backdrop-blur-sm hidden">
+      <div class="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-600"></div>
+    </div>
+    <div class="mt-3 flex flex-wrap justify-end gap-2">
+      <button class="btn-status bg-primary text-white px-3 py-1 rounded hover:bg-primary" data-index="${index}">Status Sekolah</button>
+    
+      <button class="btn-hapus bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700" data-index="${index}">Hapus</button>
+    </div>
+  `;
     } else if (s.jenis === "B3") {
       card.innerHTML = `
         <h4 class="text-lg font-bold">${s.nama} (B3) ${statusLabel}</h4>
@@ -184,7 +252,7 @@ function renderSekolah() {
           <div class="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-600"></div>
         </div>
       <div class="mt-3 flex justify-end gap-2">
-    <button class="btn-status bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700" data-index="${index}">
+    <button class="btn-status bg-primary text-white px-3 py-1 rounded hover:bg-primary" data-index="${index}">
       Status
     </button>
     <button class="btn-hapus bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700" data-index="${index}">
@@ -204,7 +272,7 @@ function renderSekolah() {
           <div class="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-600"></div>
         </div>
       <div class="mt-3 flex justify-end gap-2">
-    <button class="btn-status bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700" data-index="${index}">
+    <button class="btn-status bg-primary text-white px-3 py-1 rounded hover:bg-primary" data-index="${index}">
       Status
     </button>
     <button class="btn-hapus bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700" data-index="${index}">
@@ -401,28 +469,27 @@ async function nonaktifkan(index, tipe) {
 
   if (s.jenis === "SD") {
     if (tipe === "13") {
-      s.k13 = 0;
-      updateData.k13 = 0;
+      s.active13 = false;
+      updateData.nonaktif13 = true;
     } else if (tipe === "46") {
-      s.k46 = 0;
-      updateData.k46 = 0;
+      s.active46 = false;
+      updateData.nonaktif46 = true;
     } else if (tipe === "all") {
       s.active = false;
       updateData.active = false;
     } else if (tipe === "aktif") {
-      s.k13 = s.originalK13 || 0;
-      s.k46 = s.originalK46 || 0;
+      s.active13 = true;
+      s.active46 = true;
       s.active = true;
-      updateData = { k13: s.k13, k46: s.k46, active: true };
+      updateData = { nonaktif13: false, nonaktif46: false, active: true };
     }
   } else {
     if (tipe === "all") {
       s.active = false;
       updateData.active = false;
     } else if (tipe === "aktif") {
-      s.total = s.originalTotal || 0;
       s.active = true;
-      updateData = { total: s.total, active: true };
+      updateData.active = true;
     }
   }
 
@@ -438,42 +505,27 @@ async function nonaktifkan(index, tipe) {
 async function listenData() {
   showSpinner();
 
-  onSnapshot(collection(db, "penerimaManfaat"), async (snapshot) => {
-    dataSekolah = [];
+  onSnapshot(collection(db, "penerimaManfaat"), (snapshot) => {
     const temp = [];
 
-    for (const docSnap of snapshot.docs) {
+    snapshot.docs.forEach((docSnap) => {
       const data = docSnap.data();
       let sekolah = { id: docSnap.id, ...data };
 
-      temp.push(sekolah);
-
       if (data.jenis === "SD") {
-        // Ambil subcollection kelas
-        const kelasSnap = await getDocs(
-          collection(db, "penerimaManfaat", docSnap.id, "kelas")
-        );
-
-        sekolah.k13 =
-          kelasSnap.docs.find((k) => k.id === "k13")?.data().jumlah || 0;
-        sekolah.k46 =
-          kelasSnap.docs.find((k) => k.id === "k46")?.data().jumlah || 0;
+        sekolah.k13 = data.k13 || 0;
+        sekolah.k46 = data.k46 || 0;
         sekolah.total = sekolah.k13 + sekolah.k46;
         sekolah.originalK13 = sekolah.k13;
         sekolah.originalK46 = sekolah.k46;
         sekolah.originalTotal = sekolah.total;
+        sekolah.active13 = data.nonaktif13 === true ? false : true;
+        sekolah.active46 = data.nonaktif46 === true ? false : true;
       } else if (data.jenis === "B3") {
-        // Ambil subcollection kategori
-        const kategoriSnap = await getDocs(
-          collection(db, "penerimaManfaat", docSnap.id, "kategori")
-        );
-
-        sekolah.busui =
-          kategoriSnap.docs.find((k) => k.id === "busui")?.data().jumlah || 0;
-        sekolah.bumil =
-          kategoriSnap.docs.find((k) => k.id === "bumil")?.data().jumlah || 0;
-        sekolah.balita =
-          kategoriSnap.docs.find((k) => k.id === "balita")?.data().jumlah || 0;
+        // langsung ambil field dari dokumen utama
+        sekolah.busui = data.busui || 0;
+        sekolah.bumil = data.bumil || 0;
+        sekolah.balita = data.balita || 0;
         sekolah.total = sekolah.busui + sekolah.bumil + sekolah.balita;
         sekolah.originalTotal = sekolah.total;
       } else {
@@ -481,9 +533,11 @@ async function listenData() {
         sekolah.originalTotal = sekolah.total;
       }
 
-      dataSekolah.length = 0;
-      dataSekolah.push(...temp);
-    }
+      temp.push(sekolah);
+    });
+
+    dataSekolah.length = 0;
+    dataSekolah.push(...temp);
 
     updateRingkasan();
     renderSekolah();

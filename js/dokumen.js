@@ -135,14 +135,25 @@ function getJumlahBayarRawEdit() {
 }
 
 // Load dokumen dari Firestore
-async function loadDokumen() {
+let currentPage = 1;
+const itemsPerPage = 10;
+let allDocs = [];
+
+async function loadDokumen(page = 1) {
   const querySnapshot = await getDocs(collection(db, "dokumenBarang"));
+  allDocs = [];
+  querySnapshot.forEach((docSnap) => {
+    allDocs.push({ id: docSnap.id, data: docSnap.data() });
+  });
+
+  renderPage(page);
+}
+
+function renderPage(page) {
   const dokumenBody = document.getElementById("dokumenBody");
   dokumenBody.innerHTML = "";
 
-  let index = 1;
-
-  if (querySnapshot.empty) {
+  if (allDocs.length === 0) {
     dokumenBody.innerHTML = `
       <tr>
         <td colspan="6" class="text-center py-10">
@@ -153,22 +164,25 @@ async function loadDokumen() {
     return;
   }
 
-  querySnapshot.forEach((docSnap) => {
-    const data = docSnap.data();
+  currentPage = page;
+  const start = (page - 1) * itemsPerPage;
+  const end = start + itemsPerPage;
+  const docsToShow = allDocs.slice(start, end);
+
+  let index = start + 1;
+  docsToShow.forEach(({ id, data }) => {
     const row = document.createElement("tr");
     row.className = "cursor-pointer hover:bg-gray-100";
 
-    // 🔑 tombol download hanya jika status Publish
     const downloadBtn =
       data.status === "Publish"
         ? `<button class="bg-indigo-600 text-white px-3 py-2 rounded shadow hover:bg-indigo-700 text-sm"
-             onclick="downloadDokumen('${docSnap.id}')">Download</button>`
+             onclick="downloadDokumen('${id}')">Download</button>`
         : "";
 
-    // 🔑 tombol hapus selalu ada
     const deleteBtn = `
       <button class="bg-red-600 text-white px-3 py-2 rounded shadow hover:bg-red-700 text-sm"
-        onclick="openConfirmDelete('${docSnap.id}')">Hapus</button>
+        onclick="openConfirmDelete('${id}')">Hapus</button>
     `;
 
     row.innerHTML = `
@@ -185,21 +199,17 @@ async function loadDokumen() {
       </td>
     `;
 
-    // 🔑 klik baris → buka modal dengan data terisi
+    // klik baris → buka modal
     row.addEventListener("click", (ev) => {
       if (ev.target.tagName.toLowerCase() === "button") return;
 
-      // isi hidden id
-      document.getElementById("editDokumenId").value = docSnap.id;
-
-      // isi input dokumen
+      document.getElementById("editDokumenId").value = id;
       document.getElementById("namaDokumenEdit").value = data.namaDokumen || "";
       document.getElementById("tanggalDokumenEdit").value =
         data.createdAt || "";
       document.getElementById("statusDokumenEdit").value =
         data.status || "Draft";
 
-      // isi tabel barang
       const tableBody = document.getElementById("tableBodyEdit");
       tableBody.innerHTML = "";
       let i = 1;
@@ -220,13 +230,50 @@ async function loadDokumen() {
         });
       }
 
-      // tampilkan modal
       document.getElementById("editModal").classList.remove("hidden");
     });
 
     dokumenBody.appendChild(row);
     index++;
   });
+
+  renderPagination();
+}
+
+function renderPagination() {
+  const pagination = document.getElementById("pagination");
+  pagination.innerHTML = "";
+
+  const totalPages = Math.ceil(allDocs.length / itemsPerPage);
+
+  // tombol Prev
+  if (currentPage > 1) {
+    const prevBtn = document.createElement("button");
+    prevBtn.textContent = "Sebelumnya";
+    prevBtn.className = "px-3 py-1 bg-gray-200 rounded mx-1";
+    prevBtn.onclick = () => renderPage(currentPage - 1);
+    pagination.appendChild(prevBtn);
+  }
+
+  // nomor halaman
+  for (let i = 1; i <= totalPages; i++) {
+    const pageBtn = document.createElement("button");
+    pageBtn.textContent = i;
+    pageBtn.className =
+      "px-3 py-1 rounded mx-1 " +
+      (i === currentPage ? "bg-indigo-600 text-white" : "bg-gray-200");
+    pageBtn.onclick = () => renderPage(i);
+    pagination.appendChild(pageBtn);
+  }
+
+  // tombol Next
+  if (currentPage < totalPages) {
+    const nextBtn = document.createElement("button");
+    nextBtn.textContent = "Selanjutnya";
+    nextBtn.className = "px-3 py-1 bg-gray-200 rounded mx-1";
+    nextBtn.onclick = () => renderPage(currentPage + 1);
+    pagination.appendChild(nextBtn);
+  }
 }
 
 // Tombol Tutup modal
@@ -298,12 +345,12 @@ document.getElementById("formBarang").addEventListener("submit", (e) => {
   const tableBody = document.getElementById("tableBody");
   const row = document.createElement("tr");
   row.innerHTML = `
-    <td>${listBarang.length}</td>
-    <td>${namaBarang}</td>
-    <td>Rp. ${jumlahBayar}</td>
-    <td>${supplierInfo.supplier}</td>
-    <td>${supplierInfo.nomorRekening}</td>
-    <td>${supplierInfo.namaBank}</td>
+    <td class="text-center">${listBarang.length}</td>
+    <td class="text-center">${namaBarang}</td>
+    <td class="text-center">Rp. ${jumlahBayar}</td>
+    <td class="text-center">${supplierInfo.supplier}</td>
+    <td class="text-center">${supplierInfo.nomorRekening}</td>
+    <td class="text-center">${supplierInfo.namaBank}</td>
   `;
   tableBody.appendChild(row);
 
@@ -455,25 +502,43 @@ async function downloadDokumen(docId) {
       linebreaks: true,
     });
 
-    let counter = 1;
+    const groupedSuppliers = data.suppliers.reduce((acc, s) => {
+      if (!acc[s.supplier]) {
+        acc[s.supplier] = {
+          supplier: s.supplier,
+          namaBank: s.barang[0]?.namaBank || "",
+          nomorRekening: s.barang[0]?.nomorRekening || "",
+          barang: [],
+          totalSupplier: 0,
+        };
+      }
 
-    const suppliers = data.suppliers.map((s) => {
-      const totalSupplier = s.barang.reduce((sum, b) => sum + b.jumlahBayar, 0);
+      s.barang.forEach((b) => {
+        const jumlah = b.jumlahBayar || 0;
+        const idx = acc[s.supplier].barang.length;
 
-      return {
-        supplier: s.supplier,
-        barang: s.barang.map((b, idx) => ({
-          ...b,
-          no: String(counter++),
-          supplier: idx === 0 ? s.supplier : "",
-          namaBank: idx === 0 ? b.namaBank : "",
-          nomorRekening: idx === 0 ? b.nomorRekening : "",
-          jumlahBayarFormatted: "Rp. " + b.jumlahBayar.toLocaleString("id-ID"),
-        })),
-        // 🔑 total per supplier
-        totalSupplierFormatted: "Rp. " + totalSupplier.toLocaleString("id-ID"),
-      };
-    });
+        acc[s.supplier].barang.push({
+          no: String(idx + 1),
+          namaBarang: b.namaBarang || "",
+          jumlahBayarFormatted: "Rp. " + jumlah.toLocaleString("id-ID"),
+          // hanya isi di baris pertama
+          supplierCell: idx === 0 ? s.supplier : "",
+          namaBankCell: idx === 0 ? b.namaBank || acc[s.supplier].namaBank : "",
+          nomorRekeningCell:
+            idx === 0 ? b.nomorRekening || acc[s.supplier].nomorRekening : "",
+        });
+
+        acc[s.supplier].totalSupplier += jumlah;
+      });
+
+      return acc;
+    }, {});
+
+    const suppliers = Object.values(groupedSuppliers).map((s) => ({
+      ...s,
+      totalSupplierFormatted:
+        "Rp. " + (s.totalSupplier || 0).toLocaleString("id-ID"),
+    }));
 
     docx.setData({
       namaDokumen: data.namaDokumen,

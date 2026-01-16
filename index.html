@@ -201,32 +201,44 @@
         </div>
     </div>
 
-    <div id="modalEditProfile" class="hidden fixed inset-0 z-[70] flex items-center justify-center p-4">
-        <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="toggleEditProfile(false)"></div>
-        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full relative p-8">
-            <h3 class="text-xl font-bold text-gray-800 mb-6">Perbarui Profil</h3>
-            
-            <form id="formEditProfile" class="space-y-4">
-                <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-1">Nama Lengkap</label>
-                    <input type="text" id="editName" class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary outline-none transition" />
-                </div>
-                <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-1">Email (Tetap)</label>
-                    <input type="email" id="editEmail" disabled class="w-full border border-gray-200 bg-gray-50 text-gray-400 rounded-xl px-4 py-3 cursor-not-allowed" />
-                </div>
-                <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-1">URL Foto Profil</label>
-                    <input type="text" id="editImage" class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary outline-none transition" placeholder="https://..." />
-                </div>
+<div id="modalEditProfile" class="hidden fixed inset-0 z-[70] flex items-center justify-center p-4">
+    <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="toggleEditProfile(false)"></div>
+    <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full relative p-8">
+        <h3 class="text-xl font-bold text-gray-800 mb-6">Perbarui Profil</h3>
+        
+        <form id="formEditProfile" class="space-y-4">
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-1">Nama Lengkap</label>
+                <input type="text" id="editName" class="w-full border border-gray-300 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500" />
+            </div>
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-1">Email</label>
+                <input type="email" id="editEmail" disabled class="w-full border border-gray-200 bg-gray-50 text-gray-400 rounded-xl px-4 py-3 cursor-not-allowed" />
+            </div>
+            <div class="hidden"> <input type="text" id="editImage" />
+            </div>
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-1">Upload Foto Baru</label>
+                <input type="file" id="editImageFile" accept="image/*" class="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" />
                 
-                <div class="flex justify-end gap-3 mt-8">
-                    <button type="button" onclick="toggleEditProfile(false)" class="px-6 py-3 text-gray-600 font-medium">Batal</button>
-                    <button type="submit" class="px-8 py-3 bg-primary text-white rounded-xl font-bold shadow-lg shadow-blue-900/20 hover:scale-105 transition">Simpan</button>
-                </div>
-            </form>
-        </div>
+                <div id="previewImage" class="w-20 h-20 rounded-full bg-gray-100 mt-4 mx-auto border-2 border-dashed border-gray-300 bg-center bg-cover"></div>
+            </div>
+            
+            <div class="flex justify-end gap-3 mt-8">
+                <button type="button" onclick="toggleEditProfile(false)" class="px-6 py-3 text-gray-600 font-medium">Batal</button>
+                <button type="submit" class="px-8 py-3 bg-blue-900 text-white rounded-xl font-bold hover:bg-blue-800 transition shadow-lg">Simpan</button>
+            </div>
+        </form>
     </div>
+</div>
+
+<div id="alertDialog" class="hidden fixed inset-0 flex items-center justify-center z-[100] bg-black/30 backdrop-blur-sm">
+    <div id="alertBox" class="bg-white rounded-2xl shadow-2xl p-8 text-center transform scale-95 opacity-0 transition duration-300 ease-out max-w-xs w-full">
+        <div id="alertIcon" class="flex justify-center mb-4"></div>
+        <h2 id="alertTitle" class="text-xl font-bold mb-2"></h2>
+        <p id="alertMessage" class="text-gray-600"></p>
+    </div>
+</div>
 
     <script>
         // Loading Logic
@@ -291,3 +303,4 @@
     <script type="module" src="js/beranda.js"></script>
 </body>
 </html>
+

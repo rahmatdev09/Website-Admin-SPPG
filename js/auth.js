@@ -9,32 +9,7 @@ import {
 const userId = localStorage.getItem("userId");
 
 /**
- * 1. PREVIEW FOTO PROFIL
- * Menangani perubahan pada input file dan menampilkan preview secara instan.
- */
-const editImageFile = document.getElementById("editImageFile");
-if (editImageFile) {
-  editImageFile.addEventListener("change", (e) => {
-    const file = e.target.files[0];
-    const preview = document.getElementById("previewImage");
-
-    if (file && preview) {
-      const reader = new FileReader();
-      reader.onload = () => {
-        preview.style.backgroundImage = `url(${reader.result})`;
-        preview.style.backgroundSize = "cover";
-        preview.style.backgroundPosition = "center";
-      };
-      reader.readAsDataURL(file);
-    } else if (preview) {
-      preview.style.backgroundImage = "";
-    }
-  });
-}
-
-/**
- * 2. LOAD DATA USER
- * Mengambil data dari Firestore dan memperbarui UI di berbagai tempat.
+ * 1. FUNGSI LOAD PROFILE (FIRESTORE)
  */
 async function loadUserProfile() {
   if (!userId) return;
@@ -45,117 +20,109 @@ async function loadUserProfile() {
 
     if (userSnap.exists()) {
       const data = userSnap.data();
-      const userImg = data.foto || 'https://ui-avatars.com/api/?name=' + data.nama;
+      const userImg = data.foto || `https://ui-avatars.com/api/?name=${data.nama}&background=random`;
 
-      // Update UI Navbar & Welcome
-      const nameEl = document.getElementById("userName");
-      if (nameEl) nameEl.textContent = data.nama;
+      // Update Nama & Foto di Navbar
+      const elName = document.getElementById("userName");
+      if (elName) elName.textContent = data.nama;
 
-      const welcomeEl = document.getElementById("welcomeName");
-      if (welcomeEl) welcomeEl.textContent = data.nama;
+      const elWelcome = document.getElementById("welcomeName");
+      if (elWelcome) elWelcome.textContent = data.nama;
 
-      const photoWrapper = document.getElementById("userPhotoWrapper");
-      if (photoWrapper) {
-        photoWrapper.style.backgroundImage = `url(${userImg})`;
-        photoWrapper.style.backgroundSize = "cover";
-        photoWrapper.classList.remove('animate-pulse', 'bg-gray-200'); // Hapus loading state
+      const elPhotoWrap = document.getElementById("userPhotoWrapper");
+      if (elPhotoWrap) {
+        elPhotoWrap.style.backgroundImage = `url(${userImg})`;
+        elPhotoWrap.style.backgroundSize = "cover";
+        elPhotoWrap.innerHTML = ''; // Hapus loader
       }
 
-      // Update UI Modal Detail
-      const modalName = document.getElementById("userNameModal");
-      if (modalName) modalName.textContent = data.nama;
+      // Update Modal Detail
+      const elNameModal = document.getElementById("userNameModal");
+      if (elNameModal) elNameModal.textContent = data.nama;
 
-      const modalEmail = document.getElementById("userEmailModal");
-      if (modalEmail) modalEmail.textContent = data.email;
+      const elEmailModal = document.getElementById("userEmailModal");
+      if (elEmailModal) elEmailModal.textContent = data.email;
 
-      const photoModal = document.getElementById("userPhotoModal");
-      if (photoModal) {
-        photoModal.style.backgroundImage = `url(${userImg})`;
-        photoModal.style.backgroundSize = "cover";
+      const elPhotoModal = document.getElementById("userPhotoModal");
+      if (elPhotoModal) {
+        elPhotoModal.style.backgroundImage = `url(${userImg})`;
+        elPhotoModal.style.backgroundSize = "cover";
       }
 
       // Update Form Edit
-      const editName = document.getElementById("editName");
-      if (editName) editName.value = data.nama;
+      const elEditName = document.getElementById("editName");
+      if (elEditName) elEditName.value = data.nama;
 
-      const editEmail = document.getElementById("editEmail");
-      if (editEmail) editEmail.value = data.email;
-
-      const editImage = document.getElementById("editImage");
-      if (editImage) editImage.value = data.foto || "";
+      const elEditEmail = document.getElementById("editEmail");
+      if (elEditEmail) elEditEmail.value = data.email;
     }
-  } catch (error) {
-    console.error("Gagal memuat profil:", error);
+  } catch (err) {
+    console.error("Gagal memuat profil:", err);
   }
 }
 
 /**
- * 3. INTERAKSI MODAL
- * Mengekspos fungsi ke objek window agar bisa dipanggil dari HTML (onclick).
+ * 2. PREVIEW FOTO (LOCAL)
  */
-window.toggleUserCard = () => {
-  const card = document.getElementById("userCard");
-  if (card) card.classList.toggle("hidden");
-};
-
-window.toggleEditProfile = (show = true) => {
-  const modal = document.getElementById("modalEditProfile");
-  if (modal) {
-    show ? modal.classList.remove("hidden") : modal.classList.add("hidden");
-  }
-  // Tutup user card saat buka edit profile
-  if (show) window.toggleUserCard();
-};
-
-/**
- * 4. SIMPAN PERUBAHAN PROFIL
- */
-const formEditProfile = document.getElementById("formEditProfile");
-if (formEditProfile) {
-  formEditProfile.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    
-    // Animasi tombol loading
-    const submitBtn = e.target.querySelector('button[type="submit"]');
-    const originalBtnText = submitBtn.textContent;
-    submitBtn.disabled = true;
-    submitBtn.textContent = "Menyimpan...";
-
-    const nama = document.getElementById("editName").value;
-    const fotoFile = document.getElementById("editImageFile")?.files[0];
-
-    try {
-      let updateData = { nama };
-
-      // Jika ada file foto baru, konversi ke Base64
-      if (fotoFile) {
-        const reader = new FileReader();
-        const base64String = await new Promise((resolve, reject) => {
-          reader.onload = () => resolve(reader.result);
-          reader.onerror = reject;
-          reader.readAsDataURL(fotoFile);
-        });
-        updateData.foto = base64String;
-      }
-
-      // Update ke Firestore
-      await updateDoc(doc(db, "users", userId), updateData);
-
-      window.toggleEditProfile(false);
-      await loadUserProfile();
-      showAlert("Profil berhasil diperbarui!", "success");
-    } catch (err) {
-      console.error(err);
-      showAlert("Gagal memperbarui profil!", "error");
-    } finally {
-      submitBtn.disabled = false;
-      submitBtn.textContent = originalBtnText;
+const inputFoto = document.getElementById("editImageFile");
+if (inputFoto) {
+  inputFoto.addEventListener("change", (e) => {
+    const file = e.target.files[0];
+    const preview = document.getElementById("previewImage");
+    if (file && preview) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        preview.style.backgroundImage = `url(${reader.result})`;
+        preview.style.backgroundSize = "cover";
+      };
+      reader.readAsDataURL(file);
     }
   });
 }
 
 /**
- * 5. LOGOUT
+ * 3. SIMPAN EDIT PROFIL
+ */
+const formEdit = document.getElementById("formEditProfile");
+if (formEdit) {
+  formEdit.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const btnSubmit = e.target.querySelector('button[type="submit"]');
+    btnSubmit.disabled = true;
+    btnSubmit.textContent = "Menyimpan...";
+
+    const namaBaru = document.getElementById("editName").value;
+    const fileFoto = document.getElementById("editImageFile").files[0];
+
+    try {
+      let dataUpdate = { nama: namaBaru };
+
+      if (fileFoto) {
+        const base64 = await new Promise((resolve) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result);
+          reader.readAsDataURL(fileFoto);
+        });
+        dataUpdate.foto = base64;
+      }
+
+      await updateDoc(doc(db, "users", userId), dataUpdate);
+      if (window.toggleEditProfile) window.toggleEditProfile(false);
+      loadUserProfile();
+      alert("Profil diperbarui!"); 
+    } catch (err) {
+      console.error(err);
+      alert("Gagal memperbarui profil");
+    } finally {
+      btnSubmit.disabled = false;
+      btnSubmit.textContent = "Simpan";
+    }
+  });
+}
+
+/**
+ * 4. LOGOUT (PENYEBAB ERROR TADI)
+ * Menggunakan pengecekan IF agar tidak error jika tombol tidak ada
  */
 const btnLogout = document.getElementById("btnLogoutModal");
 if (btnLogout) {
@@ -167,41 +134,19 @@ if (btnLogout) {
 }
 
 /**
- * 6. ALERT SYSTEM
+ * 5. FUNGSI GLOBAL (Agar bisa dipanggil dari HTML onclick)
  */
-function showAlert(message, type = "success") {
-  const dialog = document.getElementById("alertDialog");
-  const box = document.getElementById("alertBox");
-  const title = document.getElementById("alertTitle");
-  const msg = document.getElementById("alertMessage");
-  const icon = document.getElementById("alertIcon");
+window.toggleUserCard = () => {
+  const card = document.getElementById("userCard");
+  if (card) card.classList.toggle("hidden");
+};
 
-  if (!dialog || !box) return;
-
-  msg.textContent = message;
-
-  if (type === "success") {
-    title.textContent = "Berhasil";
-    title.className = "text-xl font-bold mb-2 text-green-600";
-    icon.innerHTML = `<i class="fa-solid fa-circle-check text-5xl text-green-500 animate-bounce"></i>`;
-  } else {
-    title.textContent = "Gagal";
-    title.className = "text-xl font-bold mb-2 text-red-600";
-    icon.innerHTML = `<i class="fa-solid fa-circle-xmark text-5xl text-red-500 animate-shake"></i>`;
+window.toggleEditProfile = (show) => {
+  const modal = document.getElementById("modalEditProfile");
+  if (modal) {
+    show ? modal.classList.remove("hidden") : modal.classList.add("hidden");
   }
+};
 
-  dialog.classList.remove("hidden");
-  setTimeout(() => {
-    box.classList.remove("scale-95", "opacity-0");
-    box.classList.add("scale-100", "opacity-100");
-  }, 10);
-
-  setTimeout(() => {
-    box.classList.remove("scale-100", "opacity-100");
-    box.classList.add("scale-95", "opacity-0");
-    setTimeout(() => dialog.classList.add("hidden"), 300);
-  }, 2500);
-}
-
-// Jalankan load data saat halaman siap
+// Jalankan load profile saat startup
 loadUserProfile();

@@ -8,6 +8,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/feather-icons"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
 
     <style>
         :root {
@@ -20,18 +21,15 @@
         /* Custom Scrollbar */
         ::-webkit-scrollbar { width: 5px; }
         ::-webkit-scrollbar-track { background: #f1f1f1; }
-        ::-webkit-scrollbar-thumb { background: #061e49; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb { background: var(--primary); border-radius: 10px; }
 
-        .bg-primary { background-color: var(--primary); }
-        .text-primary { color: var(--primary); }
-        
-        /* Loading Animation */
+        /* Loading Screen */
         #loader {
-            display: flex;
             position: fixed;
             inset: 0;
             background: white;
             z-index: 9999;
+            display: flex;
             justify-content: center;
             align-items: center;
             transition: opacity 0.5s ease-out;
@@ -46,37 +44,26 @@
             animation: spin 1s linear infinite;
         }
 
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
         .nav-link {
             display: flex;
             align-items: center;
             padding: 0.75rem 1rem;
             border-radius: 0.5rem;
-            transition: all 0.3s;
+            transition: all 0.2s;
             margin-bottom: 0.25rem;
+            color: rgba(255,255,255,0.7);
         }
 
-        .nav-link:hover {
-            background: rgba(255, 255, 255, 0.1);
-            transform: translateX(5px);
-        }
+        .nav-link:hover { background: rgba(255, 255, 255, 0.1); color: white; }
+        .nav-link.active { background: white; color: var(--primary); font-weight: 600; shadow: 0 4px 6px rgba(0,0,0,0.1); }
 
-        .nav-link.active {
-            background: white;
-            color: var(--primary);
-            font-weight: 600;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        @keyframes fadeSlideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
         }
-
-        .glass-card {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
+        .animate-fadeSlideUp { animation: fadeSlideUp 0.3s ease-out forwards; }
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen">
@@ -84,18 +71,15 @@
     <div id="loader">
         <div class="text-center">
             <div class="spinner mx-auto mb-4"></div>
-            <p class="text-primary font-medium animate-pulse">Memuat data...</p>
+            <p class="text-primary font-semibold animate-pulse">Menyiapkan Dashboard...</p>
         </div>
     </div>
 
     <div class="flex overflow-hidden">
-        <aside id="sidebar" class="fixed inset-y-0 left-0 z-50 w-72 bg-primary text-white transform -translate-x-full transition-transform duration-300 md:translate-x-0 md:static md:h-screen flex flex-col shadow-2xl">
+        <aside id="sidebar" class="fixed inset-y-0 left-0 z-50 w-72 bg-[#061e49] text-white transform -translate-x-full transition-transform duration-300 md:translate-x-0 md:static md:h-screen flex flex-col shadow-2xl">
             <div class="p-8 text-center border-b border-white/10">
-                <div class="relative inline-block">
-                    <img src="icon/Picture1__3_-removebg-preview.png" alt="Logo" class="w-24 h-24 mx-auto mb-4 drop-shadow-lg" />
-                </div>
-                <h1 class="text-lg font-bold tracking-wider">SPPG NAILA JASMIN</h1>
-                <p class="text-xs text-blue-300 mt-1 uppercase tracking-tighter">Manajemen Sistem</p>
+                <img src="icon/Picture1__3_-removebg-preview.png" alt="Logo" class="w-20 h-20 mx-auto mb-4 drop-shadow-lg" />
+                <h1 class="text-lg font-bold tracking-wider uppercase">SPPG NAILA JASMIN</h1>
             </div>
 
             <nav class="flex-1 overflow-y-auto p-4 mt-4">
@@ -108,69 +92,52 @@
                 <a href="gizi.html" class="nav-link"><i class="fa-solid fa-apple-whole w-6"></i> Hitung Gizi</a>
                 <a href="survey-pasar.html" class="nav-link"><i class="fa-solid fa-chart-line w-6"></i> Survey Pasar</a>
             </nav>
-
-            <div class="p-4 border-t border-white/10">
-                <button onclick="logout()" class="flex items-center w-full px-4 py-3 text-red-300 hover:bg-red-500/10 rounded-lg transition">
-                    <i class="fa-solid fa-right-from-bracket mr-3"></i> Keluar
-                </button>
-            </div>
         </aside>
 
         <main class="flex-1 h-screen overflow-y-auto relative">
             <header class="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-gray-200 px-6 py-4 flex items-center justify-between">
-                <button id="btnSidebarToggle" class="md:hidden text-primary p-2 hover:bg-gray-100 rounded-lg">
+                <button id="btnSidebarToggle" class="md:hidden text-primary p-2">
                     <i class="fa-solid fa-bars-staggered text-xl"></i>
                 </button>
 
-                <h2 class="text-xl font-bold text-gray-800 hidden sm:block">Dashboard Utama</h2>
+                <h2 class="text-xl font-bold text-gray-800">Beranda</h2>
 
                 <div class="flex items-center gap-4">
                     <div class="text-right hidden md:block">
-                        <p id="userName" class="text-sm font-bold text-gray-800">Memuat...</p>
-                        <p class="text-xs text-gray-500">Administrator</p>
+                        <p id="userName" class="text-sm font-bold text-gray-800">Loading...</p>
+                        <p class="text-[10px] text-blue-600 font-bold uppercase tracking-widest">Administrator</p>
                     </div>
-                    <button onclick="toggleUserCard()" class="focus:outline-none group">
-                        <div id="userPhotoWrapper" class="w-10 h-10 rounded-full border-2 border-primary/20 overflow-hidden group-hover:border-primary transition-all">
-                            <div class="w-full h-full bg-gray-200 animate-pulse"></div>
-                        </div>
-                    </button>
+                    <div id="userPhotoWrapper" onclick="toggleUserCard()" class="w-10 h-10 rounded-full border-2 border-primary/20 cursor-pointer hover:border-primary transition-all bg-center bg-cover bg-gray-200 animate-pulse">
+                    </div>
                 </div>
             </header>
 
             <div class="p-6">
                 <div class="mb-8">
-                    <h3 class="text-2xl font-bold text-gray-800">Halo, <span class="text-primary" id="welcomeName">Admin</span>! 👋</h3>
-                    <p class="text-gray-500">Berikut adalah ringkasan data sistem Anda hari ini.</p>
+                    <h3 class="text-2xl font-bold text-gray-800">Selamat Datang, <span class="text-primary" id="welcomeName">Admin</span>! 👋</h3>
+                    <p class="text-gray-500 text-sm">Berikut adalah ringkasan data operasional hari ini.</p>
                 </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-                    <div class="bg-gradient-to-br from-blue-600 to-blue-700 p-6 rounded-2xl text-white shadow-lg shadow-blue-200 transition hover:-translate-y-1">
-                        <div class="flex justify-between items-start">
-                            <div>
-                                <p class="text-blue-100 text-sm font-medium">Total Barang</p>
-                                <h3 id="totalBarang" class="text-3xl font-bold mt-1">...</h3>
-                            </div>
-                            <div class="p-3 bg-white/20 rounded-xl"><i class="fa-solid fa-box text-xl"></i></div>
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4 transition hover:shadow-md">
+                        <div class="p-4 bg-blue-50 text-blue-600 rounded-xl"><i class="fa-solid fa-box text-2xl"></i></div>
+                        <div>
+                            <p class="text-gray-500 text-xs font-semibold uppercase">Total Barang</p>
+                            <h3 id="totalBarang" class="text-2xl font-bold text-gray-800">...</h3>
                         </div>
                     </div>
-
-                    <div class="bg-gradient-to-br from-purple-600 to-purple-700 p-6 rounded-2xl text-white shadow-lg shadow-purple-200 transition hover:-translate-y-1">
-                        <div class="flex justify-between items-start">
-                            <div>
-                                <p class="text-purple-100 text-sm font-medium">Total Dokumen</p>
-                                <h3 id="totalDokumen" class="text-3xl font-bold mt-1">...</h3>
-                            </div>
-                            <div class="p-3 bg-white/20 rounded-xl"><i class="fa-solid fa-file-invoice text-xl"></i></div>
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4 transition hover:shadow-md">
+                        <div class="p-4 bg-purple-50 text-purple-600 rounded-xl"><i class="fa-solid fa-file-invoice text-2xl"></i></div>
+                        <div>
+                            <p class="text-gray-500 text-xs font-semibold uppercase">Total Dokumen</p>
+                            <h3 id="totalDokumen" class="text-2xl font-bold text-gray-800">...</h3>
                         </div>
                     </div>
-
-                    <div class="bg-gradient-to-br from-emerald-600 to-emerald-700 p-6 rounded-2xl text-white shadow-lg shadow-emerald-200 transition hover:-translate-y-1">
-                        <div class="flex justify-between items-start">
-                            <div>
-                                <p class="text-emerald-100 text-sm font-medium">Penerima Manfaat</p>
-                                <h3 id="totalPm" class="text-3xl font-bold mt-1">...</h3>
-                            </div>
-                            <div class="p-3 bg-white/20 rounded-xl"><i class="fa-solid fa-users text-xl"></i></div>
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4 transition hover:shadow-md">
+                        <div class="p-4 bg-emerald-50 text-emerald-600 rounded-xl"><i class="fa-solid fa-users text-2xl"></i></div>
+                        <div>
+                            <p class="text-gray-500 text-xs font-semibold uppercase">Penerima Manfaat</p>
+                            <h3 id="totalPm" class="text-2xl font-bold text-gray-800">...</h3>
                         </div>
                     </div>
                 </div>
@@ -183,65 +150,55 @@
     <div id="userCard" class="hidden fixed inset-0 z-[60] flex items-center justify-center p-4">
         <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="toggleUserCard()"></div>
         <div class="bg-white rounded-3xl shadow-2xl max-w-sm w-full relative overflow-hidden animate-fadeSlideUp">
-            <div class="h-24 bg-primary"></div>
+            <div class="h-24 bg-[#061e49]"></div>
             <div class="px-6 pb-6 text-center">
-                <div id="userPhotoModal" class="w-24 h-24 rounded-full border-4 border-white mx-auto -mt-12 overflow-hidden bg-gray-200"></div>
+                <div id="userPhotoModal" class="w-24 h-24 rounded-full border-4 border-white mx-auto -mt-12 overflow-hidden bg-gray-200 bg-center bg-cover"></div>
                 <h3 id="userNameModal" class="text-xl font-bold mt-4 text-gray-800">User Name</h3>
                 <p id="userEmailModal" class="text-gray-500 text-sm mb-6">email@domain.com</p>
-                
                 <div class="grid grid-cols-2 gap-3">
-                    <button onclick="openEditProfile()" class="px-4 py-2.5 bg-blue-50 text-blue-600 rounded-xl font-semibold hover:bg-blue-100 transition">
-                        Edit Profil
-                    </button>
-                    <button onclick="logout()" class="px-4 py-2.5 bg-red-50 text-red-600 rounded-xl font-semibold hover:bg-red-100 transition">
-                        Keluar
-                    </button>
+                    <button onclick="toggleEditProfile(true)" class="px-4 py-2.5 bg-blue-50 text-blue-600 rounded-xl font-semibold hover:bg-blue-100 transition">Edit Profil</button>
+                    <button id="btnLogoutModal" class="px-4 py-2.5 bg-red-50 text-red-600 rounded-xl font-semibold hover:bg-red-100 transition">Keluar</button>
                 </div>
             </div>
         </div>
     </div>
 
-<div id="modalEditProfile" class="hidden fixed inset-0 z-[70] flex items-center justify-center p-4">
-    <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="toggleEditProfile(false)"></div>
-    <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full relative p-8">
-        <h3 class="text-xl font-bold text-gray-800 mb-6">Perbarui Profil</h3>
-        
-        <form id="formEditProfile" class="space-y-4">
-            <div>
-                <label class="block text-sm font-semibold text-gray-700 mb-1">Nama Lengkap</label>
-                <input type="text" id="editName" class="w-full border border-gray-300 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500" />
-            </div>
-            <div>
-                <label class="block text-sm font-semibold text-gray-700 mb-1">Email</label>
-                <input type="email" id="editEmail" disabled class="w-full border border-gray-200 bg-gray-50 text-gray-400 rounded-xl px-4 py-3 cursor-not-allowed" />
-            </div>
-            <div class="hidden"> <input type="text" id="editImage" />
-            </div>
-            <div>
-                <label class="block text-sm font-semibold text-gray-700 mb-1">Upload Foto Baru</label>
-                <input type="file" id="editImageFile" accept="image/*" class="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" />
-                
-                <div id="previewImage" class="w-20 h-20 rounded-full bg-gray-100 mt-4 mx-auto border-2 border-dashed border-gray-300 bg-center bg-cover"></div>
-            </div>
-            
-            <div class="flex justify-end gap-3 mt-8">
-                <button type="button" onclick="toggleEditProfile(false)" class="px-6 py-3 text-gray-600 font-medium">Batal</button>
-                <button type="submit" class="px-8 py-3 bg-blue-900 text-white rounded-xl font-bold hover:bg-blue-800 transition shadow-lg">Simpan</button>
-            </div>
-        </form>
+    <div id="modalEditProfile" class="hidden fixed inset-0 z-[70] flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="toggleEditProfile(false)"></div>
+        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full relative p-8">
+            <h3 class="text-xl font-bold text-gray-800 mb-6 text-center">Update Profil</h3>
+            <form id="formEditProfile" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Nama Lengkap</label>
+                    <input type="text" id="editName" required class="w-full border border-gray-300 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500" />
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Email</label>
+                    <input type="email" id="editEmail" disabled class="w-full border border-gray-200 bg-gray-50 text-gray-400 rounded-xl px-4 py-3 cursor-not-allowed" />
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Foto Profil Baru</label>
+                    <input type="file" id="editImageFile" accept="image/*" class="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" />
+                    <div id="previewImage" class="w-20 h-20 rounded-full bg-gray-100 mt-4 mx-auto border-2 border-dashed border-gray-300 bg-center bg-cover"></div>
+                </div>
+                <div class="flex justify-end gap-3 mt-8">
+                    <button type="button" onclick="toggleEditProfile(false)" class="px-6 py-3 text-gray-600 font-medium">Batal</button>
+                    <button type="submit" class="px-8 py-3 bg-[#061e49] text-white rounded-xl font-bold hover:bg-blue-900 transition shadow-lg">Simpan</button>
+                </div>
+            </form>
+        </div>
     </div>
-</div>
 
-<div id="alertDialog" class="hidden fixed inset-0 flex items-center justify-center z-[100] bg-black/30 backdrop-blur-sm">
-    <div id="alertBox" class="bg-white rounded-2xl shadow-2xl p-8 text-center transform scale-95 opacity-0 transition duration-300 ease-out max-w-xs w-full">
-        <div id="alertIcon" class="flex justify-center mb-4"></div>
-        <h2 id="alertTitle" class="text-xl font-bold mb-2"></h2>
-        <p id="alertMessage" class="text-gray-600"></p>
+    <div id="alertDialog" class="hidden fixed inset-0 flex items-center justify-center z-[100] bg-black/30 backdrop-blur-sm">
+        <div id="alertBox" class="bg-white rounded-2xl shadow-2xl p-8 text-center transform scale-95 opacity-0 transition duration-300 ease-out max-w-xs w-full">
+            <div id="alertIcon" class="flex justify-center mb-4 text-5xl"></div>
+            <h2 id="alertTitle" class="text-xl font-bold mb-2"></h2>
+            <p id="alertMessage" class="text-gray-600"></p>
+        </div>
     </div>
-</div>
 
     <script>
-        // Loading Logic
+        // Preloader Logic
         window.addEventListener('load', () => {
             const loader = document.getElementById('loader');
             setTimeout(() => {
@@ -250,7 +207,7 @@
             }, 800);
         });
 
-        // Sidebar Logic
+        // Sidebar Mobile Logic
         const sidebar = document.getElementById('sidebar');
         const overlay = document.getElementById('sidebarOverlay');
         const btnToggle = document.getElementById('btnSidebarToggle');
@@ -265,35 +222,7 @@
             overlay.classList.add('hidden');
         });
 
-        // Modal Logic
-        function toggleUserCard() {
-            document.getElementById('userCard').classList.toggle('hidden');
-        }
-
-        function toggleEditProfile(show) {
-            const modal = document.getElementById('modalEditProfile');
-            show ? modal.classList.remove('hidden') : modal.classList.add('hidden');
-            if(show) document.getElementById('userCard').classList.add('hidden');
-        }
-
-        function openEditProfile() {
-            const profile = {
-                name: document.getElementById('userNameModal').textContent,
-                email: document.getElementById('userEmailModal').textContent,
-                image: document.querySelector('#userPhotoModal img')?.src || ""
-            };
-            document.getElementById('editName').value = profile.name;
-            document.getElementById('editEmail').value = profile.email;
-            document.getElementById('editImage').value = profile.image;
-            toggleEditProfile(true);
-        }
-
-        function logout() {
-            localStorage.removeItem("isLoggedIn");
-            window.location.href = "login.html";
-        }
-
-        // Basic check
+        // Basic Check Login
         if (localStorage.getItem("isLoggedIn") !== "true") {
             window.location.href = "login.html";
         }
@@ -303,4 +232,3 @@
     <script type="module" src="js/beranda.js"></script>
 </body>
 </html>
-

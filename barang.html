@@ -1,968 +1,303 @@
 <!DOCTYPE html>
 <html lang="id">
-  <head>
+<head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Dashboard - Beranda</title>
+    <title>Barang Datang | SPPG NAILA JASMIN</title>
 
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/feather-icons"></script>
-
-    <link
-      rel="apple-touch-icon"
-      sizes="180x180"
-      href="favicon_io/apple-touch-icon.png"
-    />
-    <link
-      rel="icon"
-      type="image/png"
-      sizes="32x32"
-      href="favicon_io/favicon-32x32.png"
-    />
-    <link
-      rel="icon"
-      type="image/png"
-      sizes="16x16"
-      href="favicon_io/favicon-16x16.png"
-    />
-
-    <link
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
-      rel="stylesheet"
-    />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
 
     <style>
-      :root {
-        --tw-color-primary: #061e49;
-      }
+        :root {
+            --primary: #061e49;
+            --secondary: #1e40af;
+        }
+        
+        body { font-family: 'Inter', sans-serif; }
 
-      .bg-primary {
-        background-color: #061e49;
-      }
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: var(--primary); border-radius: 10px; }
 
-      .bg-primary-dark {
-        background-color: #021029;
-      }
+        /* Loading Screen */
+        #loader {
+            position: fixed; inset: 0; background: white; z-index: 9999;
+            display: flex; justify-content: center; align-items: center;
+            transition: opacity 0.5s ease-out;
+        }
+        .spinner {
+            width: 40px; height: 40px; border: 4px solid #f3f3f3;
+            border-top: 4px solid var(--primary); border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-      .text-primary {
-        color: #061e49;
-      }
-      .hover\:bg-primary:hover {
-        background-color: #03112b;
-      }
-      .border-primary {
-        border-color: #061e49;
-      }
+        /* Sidebar & Nav Styles */
+        .nav-link {
+            display: flex; align-items: center; padding: 0.75rem 1rem;
+            border-radius: 0.5rem; transition: all 0.2s; margin-bottom: 0.25rem;
+            color: rgba(255,255,255,0.7);
+        }
+        .nav-link:hover { background: rgba(255, 255, 255, 0.1); color: white; }
+        .nav-link.active { background: white; color: var(--primary); font-weight: 600; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+
+        /* Animations */
+        @keyframes fadeSlideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fadeSlideUp { animation: fadeSlideUp 0.3s ease-out forwards; }
     </style>
-  </head>
-  <body class="md:flex bg-gray-100">
-    <!-- Sidebar -->
-    <aside
-      id="sidebar"
-      class="fixed inset-y-0 left-0 w-64 bg-primary text-white flex flex-col p-4 space-y-4 transform -translate-x-full transition-transform duration-300 md:translate-x-0 md:static md:h-screen z-50"
-    >
-      <div class="flex flex-col mx-auto items-center">
-        <img
-          src="icon/Picture1__3_-removebg-preview.png"
-          alt=""
-          class="w-32 rounded-full"
-        />
-        <h1 class="text-xl font-bold mb-4 text-center">SPPG NAILA JASMIN</h1>
-      </div>
+</head>
+<body class="bg-gray-50 min-h-screen">
 
-      <nav class="flex flex-col space-y-3 text-sm font-medium">
-        <!-- Beranda -->
-        <a
-          href="index.html"
-          class="flex items-center px-4 py-2 rounded hover:bg-white/10 transition"
-        >
-          <i class="fa-solid fa-house mr-3"></i> Beranda
-        </a>
-
-        <!-- Barang -->
-        <a
-          href=""
-          class="flex items-center px-4 py-2 rounded bg-white text-primary font-semibold transition"
-        >
-          <i class="fa-solid fa-box mr-3"></i> Barang
-        </a>
-
-        <!-- Dokumen -->
-        <a
-          href="dokumen.html"
-          class="flex items-center px-4 py-2 rounded hover:bg-white/10 transition"
-        >
-          <i class="fa-solid fa-file-alt mr-3"></i> Dokumen
-        </a>
-
-        <!-- Stok Barang -->
-        <a
-          href="stok.html"
-          class="flex items-center px-4 py-2 rounded hover:bg-white/10 transition"
-        >
-          <i class="fa-solid fa-boxes-stacked mr-3"></i> Stok Barang
-        </a>
-
-        <!-- Penerima Manfaat -->
-        <a
-          href="pm.html"
-          class="flex items-center px-4 py-2 rounded hover:bg-white/10 transition"
-        >
-          <i class="fa-solid fa-users mr-3"></i> Penerima Manfaat
-        </a>
-
-        <!-- Absen -->
-        <a
-          href="absen.html"
-          class="flex items-center px-4 py-2 rounded hover:bg-white/10 transition"
-        >
-          <i class="fa-solid fa-clipboard-check mr-3"></i> Absen
-        </a>
-        <!-- Hitung Nilai Gizi -->
-        <a
-          href="gizi.html"
-          class="flex items-center px-4 py-2 rounded hover:bg-white/10 transition"
-        >
-          <i class="fa-solid fa-apple-whole mr-3"></i> Hitung Nilai Gizi
-        </a>
-        <!-- Survey Pasar -->
-        <a
-          href="survey-pasar.html"
-          class="flex items-center px-4 py-2 rounded hover:bg-white/10 transition"
-        >
-          <i class="fa-solid fa-chart-line mr-3"></i> Survey Pasar
-        </a>
-      </nav>
-    </aside>
-
-    <!-- Main Content -->
-    <main class="flex-1 p-6">
-      <!-- Navbar -->
-      <div
-        class="bg-white rounded-lg shadow-md border border-gray-200 p-4 flex items-center justify-between mb-6"
-      >
-        <!-- Tombol hamburger (mobile) -->
-        <button id="btnSidebarToggle" class="md:hidden text-primary">
-          <i class="fa-solid fa-bars text-xl"></i>
-        </button>
-
-        <!-- Judul -->
-        <h2 class="text-xl font-bold text-primary">Barang Datang</h2>
-
-        <!-- Foto + Nama -->
-        <div class="flex items-center space-x-3">
-          <div
-            id="userPhotoWrapper"
-            class="w-10 h-10 rounded-full bg-gray-200 bg-cover bg-center cursor-pointer"
-            onclick="toggleUserCard()"
-          ></div>
-          <span
-            id="userName"
-            class="hidden md:inline font-semibold text-gray-700"
-          >
-          </span>
+    <div id="loader">
+        <div class="text-center">
+            <div class="spinner mx-auto mb-4"></div>
+            <p class="text-primary font-semibold animate-pulse">Memuat Data Barang...</p>
         </div>
+    </div>
 
-        <!-- Modal Edit Profil -->
-        <div
-          id="modalEditProfile"
-          class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center"
-        >
-          <div class="bg-white rounded-lg shadow-md max-w-sm w-full mx-4 p-6">
-            <h3 class="text-lg font-bold text-primary mb-4">Edit Profil</h3>
+    <div class="flex overflow-hidden">
+        <aside id="sidebar" class="fixed inset-y-0 left-0 z-50 w-72 bg-[#061e49] text-white transform -translate-x-full transition-transform duration-300 md:translate-x-0 md:static md:h-screen flex flex-col shadow-2xl">
+            <div class="p-8 text-center border-b border-white/10">
+                <img src="icon/Picture1__3_-removebg-preview.png" alt="Logo" class="w-20 h-20 mx-auto mb-4 drop-shadow-lg" />
+                <h1 class="text-lg font-bold tracking-wider uppercase">SPPG NAILA JASMIN</h1>
+            </div>
 
-            <form id="formEditProfile" class="space-y-3">
-              <div>
-                <label class="block text-sm font-medium text-gray-700"
-                  >Nama</label
-                >
-                <input
-                  type="text"
-                  id="editName"
-                  class="w-full border border-gray-300 rounded px-3 py-2"
-                />
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-700"
-                  >Email</label
-                >
-                <input
-                  type="email"
-                  id="editEmail"
-                  disabled
-                  class="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
-                />
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-700"
-                  >Foto</label
-                >
-                <input
-                  type="file"
-                  id="editImageFile"
-                  accept="image/*"
-                  class="w-full border border-gray-300 rounded px-3 py-2"
-                />
-                <!-- Preview Foto -->
-                <div
-                  id="previewImage"
-                  class="w-20 h-20 rounded-full bg-gray-200 mt-3 mx-auto bg-center bg-cover border"
-                ></div>
-              </div>
+            <nav class="flex-1 overflow-y-auto p-4 mt-4 text-sm">
+                <a href="index.html" class="nav-link"><i class="fa-solid fa-house w-6"></i> Beranda</a>
+                <a href="barang.html" class="nav-link active"><i class="fa-solid fa-box w-6"></i> Barang</a>
+                <a href="dokumen.html" class="nav-link"><i class="fa-solid fa-file-alt w-6"></i> Dokumen</a>
+                <a href="stok.html" class="nav-link"><i class="fa-solid fa-boxes-stacked w-6"></i> Stok Barang</a>
+                <a href="pm.html" class="nav-link"><i class="fa-solid fa-users w-6"></i> Penerima Manfaat</a>
+                <a href="absen.html" class="nav-link"><i class="fa-solid fa-clipboard-check w-6"></i> Presensi</a>
+                <a href="gizi.html" class="nav-link"><i class="fa-solid fa-apple-whole w-6"></i> Hitung Gizi</a>
+                <a href="survey-pasar.html" class="nav-link"><i class="fa-solid fa-chart-line w-6"></i> Survey Pasar</a>
+            </nav>
+        </aside>
 
-              <div class="flex justify-end space-x-2 mt-4">
-                <button
-                  type="button"
-                  onclick="toggleEditProfile(false)"
-                  class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
-                >
-                  Batal
-                </button>
-                <button
-                  type="submit"
-                  class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-                >
-                  Simpan
-                </button>
-              </div>
+        <main class="flex-1 h-screen overflow-y-auto relative">
+            <header class="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-gray-200 px-6 py-4 flex items-center justify-between">
+                <div class="flex items-center gap-4">
+                    <button id="btnSidebarToggle" class="md:hidden text-primary p-2">
+                        <i class="fa-solid fa-bars-staggered text-xl"></i>
+                    </button>
+                    <h2 class="text-xl font-bold text-gray-800">Barang Datang</h2>
+                </div>
+
+                <div class="flex items-center gap-4">
+                    <div class="text-right hidden md:block">
+                        <p id="userName" class="text-sm font-bold text-gray-800">Loading...</p>
+                        <p class="text-[10px] text-blue-600 font-bold uppercase tracking-widest">Administrator</p>
+                    </div>
+                    <div id="userPhotoWrapper" onclick="toggleUserCard()" class="w-10 h-10 rounded-full border-2 border-primary/20 cursor-pointer hover:border-primary transition-all bg-center bg-cover bg-gray-200 animate-pulse">
+                    </div>
+                </div>
+            </header>
+
+            <div class="p-6">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+                    <div class="flex gap-2 w-full md:w-auto">
+                        <button id="tambahBarangBtn" class="flex-1 md:flex-none px-5 py-2.5 bg-[#061e49] text-white rounded-xl font-semibold hover:bg-blue-900 transition flex items-center justify-center gap-2 shadow-md">
+                            <i class="fa-solid fa-plus"></i> Tambah Barang
+                        </button>
+                        <button id="kolaseBtn" class="flex-1 md:flex-none px-5 py-2.5 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition flex items-center justify-center gap-2 shadow-md">
+                            <i class="fa-solid fa-grip"></i> Kolase
+                        </button>
+                    </div>
+
+                    <div class="flex flex-wrap gap-2 w-full md:w-auto">
+                        <div class="relative flex-1 md:w-64">
+                            <i class="fa-solid fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                            <input type="text" id="searchInput" placeholder="Cari barang..." class="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-sm shadow-sm" />
+                        </div>
+                        <input type="date" id="filterTanggal" class="px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 outline-none shadow-sm" />
+                        <select id="filterStatus" class="px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 outline-none shadow-sm bg-white">
+                            <option value="">Semua Status</option>
+                            <option value="diverifikasi">✅ Diverifikasi</option>
+                            <option value="menunggu">⏳ Menunggu</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-gray-50/50 border-b border-gray-100">
+                                    <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-center">No</th>
+                                    <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Foto</th>
+                                    <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Nama & Tanggal</th>
+                                    <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-center">Kebutuhan</th>
+                                    <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-center">Datang</th>
+                                    <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Satuan</th>
+                                    <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Status</th>
+                                    <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-center">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="barangTable" class="divide-y divide-gray-50">
+                                </tbody>
+                        </table>
+                    </div>
+                    <div id="pagination" class="p-6 flex justify-center gap-2 border-t border-gray-50"></div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div id="sidebarOverlay" class="fixed inset-0 bg-black/50 z-40 hidden"></div>
+
+    <div id="userCard" class="hidden fixed inset-0 z-[60] flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="toggleUserCard()"></div>
+        <div class="bg-white rounded-3xl shadow-2xl max-w-sm w-full relative overflow-hidden animate-fadeSlideUp">
+            <div class="h-24 bg-[#061e49]"></div>
+            <div class="px-6 pb-6 text-center">
+                <div id="userPhotoModal" class="w-24 h-24 rounded-full border-4 border-white mx-auto -mt-12 overflow-hidden bg-gray-200 bg-center bg-cover"></div>
+                <h3 id="userNameModal" class="text-xl font-bold mt-4 text-gray-800">User Name</h3>
+                <p id="userEmailModal" class="text-gray-500 text-sm mb-6">email@domain.com</p>
+                <div class="grid grid-cols-2 gap-3">
+                    <button onclick="toggleEditProfile(true)" class="px-4 py-2.5 bg-blue-50 text-blue-600 rounded-xl font-semibold hover:bg-blue-100 transition">Edit Profil</button>
+                    <button id="btnLogoutModal" class="px-4 py-2.5 bg-red-50 text-red-600 rounded-xl font-semibold hover:bg-red-100 transition">Keluar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="tambahBarangModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[70] hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden animate-fadeSlideUp">
+            <div class="p-6 border-b border-gray-100 flex justify-between items-center">
+                <h3 class="text-xl font-bold text-gray-800">Tambah Barang Baru</h3>
+                <button id="closeTambahBarang" class="text-gray-400 hover:text-red-500 transition"><i class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+            <form id="tambahBarangForm" class="p-6 space-y-4">
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Nama Barang</label>
+                    <input type="text" id="namaBarangBaru" required class="w-full border border-gray-200 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-500 outline-none" />
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Jumlah Kebutuhan</label>
+                    <input type="text" id="jumlahKebutuhanBaru" required class="w-full border border-gray-200 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-500 outline-none" />
+                </div>
+                <label class="flex items-center gap-3 p-3 bg-gray-50 rounded-xl cursor-pointer">
+                    <input type="checkbox" id="tambahanBaru" class="w-5 h-5 accent-primary" />
+                    <span class="text-sm font-medium text-gray-700">Tandai sebagai Barang Tambahan</span>
+                </label>
+                <div class="flex justify-end gap-3 pt-4">
+                    <button type="reset" class="px-6 py-2.5 text-gray-500 font-semibold">Reset</button>
+                    <button type="submit" id="btnSimpanKelas" class="px-8 py-2.5 bg-primary text-white rounded-xl font-bold shadow-lg flex items-center gap-2">
+                        <span id="btnTextKelas">Simpan Barang</span>
+                        <div id="btnSpinnerKelas" class="hidden spinner w-4 h-4 !border-white !border-t-transparent"></div>
+                    </button>
+                </div>
             </form>
-          </div>
         </div>
-
-        <!-- Modal Edit Profil -->
-        <div
-          id="modalEditProfile"
-          class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center"
-        >
-          <div class="bg-white rounded-lg shadow-md max-w-sm w-full mx-4 p-6">
-            <h3 class="text-lg font-bold text-primary mb-4">Edit Profil</h3>
-
-            <form id="formEditProfile" class="space-y-3">
-              <div>
-                <label class="block text-sm font-medium text-gray-700"
-                  >Nama</label
-                >
-                <input
-                  type="text"
-                  id="editName"
-                  class="w-full border border-gray-300 rounded px-3 py-2"
-                />
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-700"
-                  >Email</label
-                >
-                <input
-                  type="email"
-                  id="editEmail"
-                  disabled
-                  class="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
-                />
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-700"
-                  >Foto URL</label
-                >
-                <input
-                  type="text"
-                  id="editImage"
-                  class="w-full border border-gray-300 rounded px-3 py-2"
-                />
-                <!-- Preview Foto -->
-                <div
-                  id="previewImage"
-                  class="w-20 h-20 bg-center bg-cover rounded-full bg-gray-200 mt-3 mx-auto bg-center bg-cover border"
-                ></div>
-              </div>
-
-              <div class="flex justify-end space-x-2 mt-4">
-                <button
-                  type="button"
-                  onclick="toggleEditProfile(false)"
-                  class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
-                >
-                  Batal
-                </button>
-                <button
-                  type="submit"
-                  class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-                >
-                  Simpan
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-
-        <!-- Card Detail User -->
-        <div
-          id="userCard"
-          class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center"
-        >
-          <div
-            class="bg-white rounded-lg shadow-md max-w-sm w-full mx-4 p-6 text-center animate-fadeSlideUp"
-          >
-            <div
-              id="userPhotoModal"
-              class="w-16 h-16 bg-cover bg-center rounded-full bg-gray-200 mx-auto mb-4"
-            ></div>
-            <h3 id="userNameModal" class="text-lg font-bold text-primary mb-2">
-              Nama User
-            </h3>
-            <!-- Tambahkan email di sini -->
-            <p id="userEmailModal" class="text-sm text-gray-600 mb-4">
-              email@email.com
-            </p>
-
-            <div class="space-y-2">
-              <button
-                class="w-full px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-              >
-                Edit Profil
-              </button>
-              <button
-                id="btnLogoutModal"
-                class="w-full px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
-              >
-                Keluar
-              </button>
-            </div>
-
-            <button
-              onclick="toggleUserCard()"
-              class="mt-4 text-sm text-gray-500 hover:text-red-500"
-            >
-              Tutup
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Halaman Kelas -->
-      <section id="halaman-kelas" class="space-y-4">
-        <div
-          class="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-2"
-        >
-          <div class="flex space-x-2">
-            <button
-              id="tambahBarangBtn"
-              class="bg-primary text-white px-4 py-2 rounded hover:bg-primary"
-            >
-              Tambah Barang
-            </button>
-            <button
-              id="kolaseBtn"
-              class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-            >
-              Kolase
-            </button>
-          </div>
-
-          <input
-            type="text"
-            id="searchInput"
-            placeholder="Cari barang..."
-            class="border border-gray-300 rounded px-3 py-2 w-full sm:w-64 focus:outline-none focus:ring-2 focus:ring-primary"
-          />
-        </div>
-
-        <div class="flex space-x-4 mb-4">
-          <!-- ✅ Filter tanggal -->
-          <div>
-            <input
-              type="date"
-              id="filterTanggal"
-              class="border rounded-lg px-3 py-2 shadow"
-            />
-          </div>
-
-          <!-- ✅ Filter status -->
-          <div>
-            <select
-              id="filterStatus"
-              class="border rounded-lg px-3 py-2 shadow"
-            >
-              <option value="">Semua</option>
-              <option value="diverifikasi">✅ Diverifikasi</option>
-              <option value="menunggu">⏳ Menunggu</option>
-            </select>
-          </div>
-        </div>
-
-        <div
-          class="overflow-x-auto bg-white rounded-lg shadow-md border border-gray-200"
-        >
-          <table
-            class="min-w-full divide-y divide-gray-200 rounded-t-lg text-xs sm:text-sm"
-          >
-            <thead class="bg-blue-50 text-center">
-              <tr>
-                <th
-                  class="px-4 py-5 text-center text-xs font-bold text-primary uppercase"
-                >
-                  No
-                </th>
-                <th
-                  class="px-4 py-5 text-center text-xs font-bold text-primary uppercase"
-                >
-                  Foto
-                </th>
-                <th
-                  class="px-4 py-5 text-center text-xs font-bold text-primary uppercase"
-                >
-                  Nama & Tanggal
-                </th>
-                <th
-                  class="px-4 py-5 text-center text-xs font-bold text-primary uppercase"
-                >
-                  Jumlah Kebutuhan
-                </th>
-                <th
-                  class="px-4 py-5 text-center text-xs font-bold text-primary uppercase"
-                >
-                  Jumlah Datang
-                </th>
-                <th
-                  class="px-4 py-5 text-center text-xs font-bold text-primary uppercase"
-                >
-                  Satuan
-                </th>
-
-                <th
-                  class="px-4 py-5 text-center text-xs font-bold text-primary uppercase"
-                >
-                  Status
-                </th>
-                <th
-                  class="px-4 py-5 text-center text-xs font-bold text-primary uppercase"
-                >
-                  Verifikasi Admin
-                </th>
-                <th
-                  class="px-4 py-5 text-center text-xs font-bold text-primary uppercase"
-                >
-                  Kategori
-                </th>
-                <th
-                  class="px-4 py-5 text-center text-xs font-bold text-primary uppercase"
-                >
-                  Aksi
-                </th>
-              </tr>
-            </thead>
-            <tbody
-              id="barangTable"
-              class="divide-y divide-gray-100 bg-white space-y-4"
-            ></tbody>
-          </table>
-          <div
-            id="pagination"
-            class="flex justify-center items-center space-x-1 my-4 text-sm"
-          ></div>
-        </div>
-      </section>
-    </main>
-
-    <!-- Overlay untuk mobile -->
-    <div
-      id="sidebarOverlay"
-      class="fixed inset-0 bg-black bg-opacity-50 hidden md:hidden"
-    ></div>
-
-    <div
-      id="modalKonfirmasi"
-      class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden"
-    >
-      <div
-        class="bg-white p-6 rounded shadow-md max-w-sm mx-auto mt-32 text-center"
-      >
-        <h2 class="text-lg font-semibold text-gray-800 mb-2">
-          Konfirmasi Penyelesaian
-        </h2>
-        <p class="text-sm text-gray-600 mb-4">
-          Apakah Anda yakin ingin menyelesaikan semua perkuliahan hari
-          <span id="namaHariSpan" class="font-semibold text-blue-600"></span>?
-        </p>
-        <div class="flex justify-center space-x-2">
-          <button
-            id="btnBatalKonfirmasi"
-            class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
-          >
-            Batal
-          </button>
-          <button
-            id="btnSelesaikanHari"
-            class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 flex items-center space-x-2"
-          >
-            <span id="btnTextSelesaikan">Selesaikan</span>
-            <svg
-              id="btnSpinnerSelesaikan"
-              class="hidden animate-spin h-5 w-5 text-white"
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-            >
-              <circle
-                class="opacity-25"
-                cx="12"
-                cy="12"
-                r="10"
-                stroke="currentColor"
-                stroke-width="4"
-              ></circle>
-              <path
-                class="opacity-75"
-                fill="currentColor"
-                d="M4 12a8 8 0 018-8v8H4z"
-              ></path>
-            </svg>
-          </button>
-        </div>
-      </div>
     </div>
 
-    <div
-      id="tambahBarangModal"
-      class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 md:p-0 z-50 hidden"
-    >
-      <!-- Kontainer tetap fix dan rounded -->
-      <div class="bg-white rounded-lg shadow w-full max-w-lg relative">
-        <!-- Scroll hanya di isi -->
-        <div class="max-h-[90vh] overflow-y-auto p-6">
-          <!-- Tombol close -->
-          <button
-            id="closeTambahBarang"
-            class="absolute top-3 right-3 text-gray-500 hover:text-red-500"
-          >
-            <i data-feather="x" class="w-5 h-5"></i>
-          </button>
-
-          <!-- Judul -->
-          <h2 class="text-xl font-bold mb-4 text-primary">Tambah Barang</h2>
-
-          <!-- Form -->
-
-          <form id="tambahBarangForm" class="space-y-4">
-            <div>
-              <label class="block text-sm font-medium text-gray-700"
-                >Nama Barang</label
-              >
-              <input
-                type="text"
-                id="namaBarangBaru"
-                class="mt-1 block w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                required
-              />
+    <div id="detailModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[70] hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-fadeSlideUp">
+            <div class="p-6 border-b border-gray-100">
+                <h3 class="text-xl font-bold text-gray-800 text-center">Detail Transaksi Barang</h3>
             </div>
-
-            <div>
-              <label class="block text-sm font-medium text-gray-700"
-                >Jumlah Kebutuhan</label
-              >
-              <input
-                type="text"
-                id="jumlahKebutuhanBaru"
-                class="mt-1 block w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                required
-              />
+            <div class="p-6 space-y-4">
+                <div class="flex justify-center gap-3 mb-4">
+                    <img id="detailFoto1" class="w-24 h-24 object-cover rounded-xl border-2 border-gray-100 shadow-sm" src="" alt="F1">
+                    <img id="detailFoto2" class="w-24 h-24 object-cover rounded-xl border-2 border-gray-100 shadow-sm" src="" alt="F2">
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="col-span-2">
+                        <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Nama Barang</label>
+                        <input type="text" id="detailNama" disabled class="w-full bg-gray-50 border-none rounded-lg p-2 font-bold text-gray-800" />
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Kebutuhan</label>
+                        <input type="text" id="detailKebutuhan" disabled class="w-full bg-gray-50 border-none rounded-lg p-2" />
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Kategori</label>
+                        <div id="detailTambahan" class="text-sm font-semibold p-2"></div>
+                    </div>
+                </div>
+                <hr class="border-gray-50">
+                <form id="detailForm" class="space-y-3">
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-600 mb-1">Jumlah Datang</label>
+                            <input type="number" id="detailDatang" class="w-full border border-gray-200 rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500" />
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-600 mb-1">Satuan</label>
+                            <input type="text" id="detailSatuan" class="w-full border border-gray-200 rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500" />
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-600 mb-1">Jam Kedatangan</label>
+                        <input type="time" id="detailJam" class="w-full border border-gray-200 rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500" />
+                    </div>
+                    <div class="flex gap-2 pt-4">
+                        <button type="button" id="updateBtn" class="flex-1 py-3 bg-blue-600 text-white rounded-xl font-bold shadow-md hover:bg-blue-700 transition">Update</button>
+                        <button type="button" id="verifikasiBtn" class="flex-1 py-3 bg-emerald-600 text-white rounded-xl font-bold shadow-md hover:bg-emerald-700 transition">Verifikasi</button>
+                    </div>
+                    <button type="button" id="closeDetail" class="w-full py-2 text-gray-400 font-semibold text-sm">Tutup</button>
+                </form>
             </div>
-
-            <!-- ✅ Checkbox tambahan -->
-            <label class="flex items-center space-x-2 text-sm text-gray-700">
-              <input
-                type="checkbox"
-                id="tambahanBaru"
-                class="rounded border-gray-300"
-              />
-              <span>Barang Tambahan</span>
-            </label>
-
-            <div class="flex justify-end space-x-2 pt-4">
-              <button
-                type="reset"
-                class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
-              >
-                Reset
-              </button>
-              <button
-                type="submit"
-                id="btnSimpanKelas"
-                class="px-4 py-2 bg-primary text-white rounded hover:bg-primary/90 flex items-center space-x-2"
-              >
-                <span id="btnTextKelas">Simpan</span>
-                <svg
-                  id="btnSpinnerKelas"
-                  class="animate-spin h-5 w-5 text-white hidden"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                >
-                  <circle
-                    class="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    stroke-width="4"
-                  ></circle>
-                  <path
-                    class="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8v8H4z"
-                  ></path>
-                </svg>
-              </button>
-            </div>
-          </form>
         </div>
-      </div>
     </div>
 
-    <div
-      id="kolaseModal"
-      class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center"
-    >
-      <div
-        class="bg-white rounded-lg shadow-lg w-[900px] h-[600px] p-6 relative flex"
-      >
-        <button
-          id="closeKolase"
-          class="absolute top-2 right-2 text-gray-500 hover:text-red-500"
-        >
-          ✖
-        </button>
-        <h2 class="absolute top-2 left-6 text-xl font-bold text-gray-800">
-          Pilih Foto Barang (max 4)
-        </h2>
-
-        <!-- Daftar barang -->
-        <div class="w-1/2 pr-4 mt-7 overflow-y-auto">
-          <div class="mb-4">
-            <label class="text-sm text-gray-700">Filter Tanggal:</label>
-            <input
-              type="date"
-              id="kolaseFilterTanggal"
-              class="border rounded-lg px-3 py-2 shadow w-full"
-            />
-          </div>
-          <div id="kolaseList" class="grid grid-cols-2 gap-4"></div>
-        </div>
-
-        <!-- Preview kolase -->
-        <div class="w-1/2 pl-4 mt-10 flex flex-col">
-          <div
-            id="kolasePreview"
-            class="grid grid-cols-2 grid-rows-2 w-full h-full gap-0 hidden"
-          ></div>
-          <div class="mt-4 flex flex-col">
-            <button
-              id="buatKolaseBtn"
-              class="btn bg-green-600 text-white px-4 py-2 rounded shadow"
-            >
-              Buat Kolase
-            </button>
-            <div class="mt-4 flex flex-col w-full">
-              <input
-                type="text"
-                id="kolaseFileName"
-                placeholder="Nama file kolase (tanpa .png)"
-                class="border rounded px-3 py-2 shadow flex-1"
-              />
-
-              <button
-                id="downloadKolaseBtn"
-                class="btn bg-blue-600 mt-3 text-white px-4 py-2 rounded shadow hover:shadow-md hidden"
-              >
-                Download Kolase
-              </button>
+    <div id="modalConfirmDelete" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[80] hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl p-8 max-w-sm w-full text-center animate-fadeSlideUp">
+            <div class="w-20 h-20 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl">
+                <i class="fa-solid fa-trash-can"></i>
             </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div
-      id="fotoSelectModal"
-      class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
-    >
-      <div class="bg-white rounded-lg shadow-lg p-6 w-[400px]">
-        <h2 class="text-lg font-semibold mb-4">Pilih Foto</h2>
-        <div id="fotoSelectOptions" class="flex space-x-4 justify-center"></div>
-        <div class="mt-4 flex justify-end space-x-2">
-          <button id="fotoSelectCancel" class="px-4 py-2 bg-gray-300 rounded">
-            Batal
-          </button>
-          <button
-            id="fotoSelectOk"
-            class="px-4 py-2 bg-blue-600 text-white rounded"
-          >
-            OK
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <div
-      id="detailModal"
-      class="fixed md:p-0 p-5 inset-0 bg-black/50 flex items-center justify-center hidden z-50"
-    >
-      <div class="bg-white rounded-lg p-6 w-full max-w-md">
-        <h2 class="text-lg font-bold mb-4">Detail Barang</h2>
-        <form id="detailForm" class="space-y-3">
-          <div>
-            <label class="block text-sm font-medium text-gray-700"
-              >Foto Barang</label
-            >
-            <div class="flex space-x-4 mb-4">
-              <img
-                id="detailFoto1"
-                class="w-32 h-32 object-cover rounded border"
-                alt="Foto 1"
-              />
-              <img
-                id="detailFoto2"
-                class="w-32 h-32 object-cover rounded border"
-                alt="Foto 2"
-              />
+            <h3 class="text-xl font-bold text-gray-800 mb-2">Hapus Data?</h3>
+            <p class="text-gray-500 text-sm mb-6">Data yang dihapus tidak dapat dikembalikan. Lanjutkan?</p>
+            <div class="flex gap-3">
+                <button onclick="document.getElementById('modalConfirmDelete').classList.add('hidden')" class="flex-1 py-3 bg-gray-100 text-gray-600 rounded-xl font-bold">Batal</button>
+                <button id="btnDeleteConfirm" class="flex-1 py-3 bg-red-600 text-white rounded-xl font-bold shadow-lg hover:bg-red-700 transition">Ya, Hapus</button>
             </div>
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-700"
-              >Nama Barang</label
-            >
-            <input
-              type="text"
-              id="detailNama"
-              class="input w-full border rounded-lg p-2 bg-gray-100 shadow-sm"
-              disabled
-            />
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-700"
-              >Jumlah Kebutuhan</label
-            >
-            <input
-              type="text"
-              id="detailKebutuhan"
-              class="input w-full border rounded-lg p-2 bg-gray-100 shadow-sm"
-              disabled
-            />
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-700"
-              >Jumlah Datang</label
-            >
-            <input
-              type="number"
-              id="detailDatang"
-              class="input w-full border rounded-lg p-2 shadow-sm"
-            />
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-700"
-              >Satuan</label
-            >
-            <input
-              type="text"
-              id="detailSatuan"
-              class="input w-full border rounded-lg p-2 shadow-sm"
-            />
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-700"> Jam </label>
-            <input
-              type="time"
-              id="detailJam"
-              class="input w-full border rounded-lg p-2 shadow-sm"
-            />
-          </div>
-          <!-- ✅ Tambahan -->
-          <p><strong>Kategori:</strong> <span id="detailTambahan"></span></p>
-
-          <div class="flex justify-between mt-4">
-            <div class="flex space-x-2">
-              <button
-                type="button"
-                id="updateBtn"
-                class="btn bg-blue-600 text-white px-4 py-2 rounded shadow hover:shadow-md"
-              >
-                Update
-              </button>
-              <button
-                type="button"
-                id="verifikasiBtn"
-                class="btn bg-green-600 text-white px-4 py-2 rounded shadow hover:shadow-md"
-              >
-                Verifikasi
-              </button>
-            </div>
-            <button
-              type="button"
-              id="closeDetail"
-              class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
-            >
-              Batal
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-
-    <!-- Modal Konfirmasi Hapus -->
-    <div
-      id="modalConfirmDelete"
-      class="md:p-0 p-5 fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50"
-    >
-      <div class="bg-white p-6 rounded shadow w-full max-w-sm relative">
-        <button
-          onclick="document.getElementById('modalConfirmDelete').classList.add('hidden')"
-          class="absolute top-3 right-3 text-gray-500 hover:text-red-500"
-        >
-          <i data-feather="x" class="w-5 h-5"></i>
-        </button>
-        <h2 class="text-lg font-bold text-primary mb-4">Konfirmasi Hapus</h2>
-        <p class="text-sm text-gray-700 mb-6">
-          Apakah kamu yakin ingin menghapus data ini? Tindakan ini tidak dapat
-          dibatalkan.
-        </p>
-        <div class="flex justify-end space-x-2">
-          <button
-            onclick="document.getElementById('modalConfirmDelete').classList.add('hidden')"
-            class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
-          >
-            Batal
-          </button>
-          <button
-            id="btnDeleteConfirm"
-            onclick="confirmDeleteKelas()"
-            class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 flex items-center justify-center space-x-2"
-          >
-            <span id="btnDeleteText">Hapus</span>
-            <svg
-              id="btnDeleteSpinner"
-              class="hidden animate-spin h-5 w-5 text-white"
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-            >
-              <circle
-                class="opacity-25"
-                cx="12"
-                cy="12"
-                r="10"
-                stroke="currentColor"
-                stroke-width="4"
-              ></circle>
-              <path
-                class="opacity-75"
-                fill="currentColor"
-                d="M4 12a8 8 0 018-8v8H4z"
-              ></path>
-            </svg>
-          </button>
         </div>
-      </div>
     </div>
+
+    <script>
+        // Loader Logic
+        window.addEventListener('load', () => {
+            const loader = document.getElementById('loader');
+            setTimeout(() => {
+                loader.style.opacity = '0';
+                setTimeout(() => loader.style.display = 'none', 500);
+            }, 800);
+        });
+
+        // Sidebar Toggle
+        const btnSidebar = document.getElementById('btnSidebarToggle');
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('sidebarOverlay');
+
+        btnSidebar.addEventListener('click', () => {
+            sidebar.classList.remove('-translate-x-full');
+            overlay.classList.remove('hidden');
+        });
+
+        overlay.addEventListener('click', () => {
+            sidebar.classList.add('-translate-x-full');
+            overlay.classList.add('hidden');
+        });
+
+        // Global Modals functions
+        window.toggleUserCard = () => {
+            const card = document.getElementById('userCard');
+            card.classList.toggle('hidden');
+        };
+    </script>
 
     <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
-
-    <!-- Script -->
-    <script>
-      document.addEventListener("DOMContentLoaded", () => {
-        feather.replace();
-      });
-
-      // Toggle modal edit profil
-      function toggleEditProfile(show = true, profile = null) {
-        const modal = document.getElementById("modalEditProfile");
-        if (show) {
-          modal.classList.remove("hidden");
-          if (profile) {
-            document.getElementById("editName").value = profile.name;
-            document.getElementById("editEmail").value = profile.email;
-            document.getElementById("editImage").value = profile.image;
-          }
-        } else {
-          modal.classList.add("hidden");
-        }
-      }
-
-      // Event klik tombol Edit Profil di modal detail user
-      document
-        .querySelector("#userCard button.bg-blue-600")
-        .addEventListener("click", async () => {
-          // ambil data dari modal detail
-          const profile = {
-            name: document.getElementById("userNameModal").textContent,
-            email: document.getElementById("userEmailModal").textContent,
-            image: document.querySelector("#userPhotoModal img")?.src || "",
-          };
-          toggleEditProfile(true, profile);
-        });
-
-      // Submit form edit profil
-      document
-        .getElementById("formEditProfile")
-        .addEventListener("submit", async (e) => {
-          e.preventDefault();
-
-          const newName = document.getElementById("editName").value;
-          const newImage = document.getElementById("editImage").value;
-          const email = document.getElementById("editEmail").value;
-
-          // update ke Firestore
-          await updateAdminProfileByEmail(email, {
-            name: newName,
-            image: newImage,
-          });
-
-          // update tampilan navbar & modal detail
-          document.getElementById("userName").textContent = newName;
-          document.getElementById("userNameModal").textContent = newName;
-          document.getElementById("userPhotoWrapper").innerHTML = `
-    <img src="${newImage}" alt="User Photo"
-         class="w-10 h-10 rounded-full border border-gray-300 cursor-pointer">
-  `;
-          document.getElementById("userPhotoModal").innerHTML = `
-    <img src="${newImage}" alt="User Photo"
-         class="w-16 h-16 rounded-full border border-gray-300">
-  `;
-
-          toggleEditProfile(false);
-        });
-    </script>
-
-    <!-- Dialog Sukses -->
-    <div
-      id="successModal"
-      class="fixed top-4 right-4 bg-green-500 text-white px-4 py-3 rounded shadow-lg flex items-center space-x-2 hidden animate-fade-in"
-    >
-      <i data-feather="check-circle" class="w-5 h-5"></i>
-      <span id="dialogText">Berhasil disimpan!</span>
-    </div>
-
-    <script>
-      if (localStorage.getItem("isLoggedIn") !== "true") {
-        alert("Anda harus login terlebih dahulu!");
-        window.location.href = "login.html";
-      }
-
-      function logout() {
-        localStorage.removeItem("isLoggedIn");
-        window.location.href = "login.html";
-      }
-    </script>
-
-    <!-- Script -->
-    <script>
-      document.addEventListener("DOMContentLoaded", () => {
-        feather.replace();
-      });
-    </script>
     <script type="module" src="js/auth.js"></script>
-    <script type="module" src="js/utils.js"></script>
     <script type="module" src="js/barang.js"></script>
     <script type="module" src="js/detailBarang.js"></script>
     <script type="module" src="js/tambahBarang.js"></script>
-  </body>
+</body>
 </html>

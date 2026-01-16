@@ -1,119 +1,174 @@
 import { db } from "./firebase.js";
 import {
-  getFirestore,
   doc,
   getDoc,
   updateDoc,
 } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
 
-// ambil userId dari localStorage (saat login disimpan)
+// Ambil userId dari localStorage
 const userId = localStorage.getItem("userId");
 
-// preview foto dari file komputer
-document.getElementById("editImageFile").addEventListener("change", (e) => {
-  const file = e.target.files[0];
-  const preview = document.getElementById("previewImage");
+/**
+ * 1. PREVIEW FOTO PROFIL
+ * Menangani perubahan pada input file dan menampilkan preview secara instan.
+ */
+const editImageFile = document.getElementById("editImageFile");
+if (editImageFile) {
+  editImageFile.addEventListener("change", (e) => {
+    const file = e.target.files[0];
+    const preview = document.getElementById("previewImage");
 
-  if (file) {
-    const reader = new FileReader();
-    reader.onload = () => {
-      preview.style.backgroundImage = `url(${reader.result})`;
-      preview.style.backgroundSize = "cover";
-      preview.style.backgroundPosition = "center";
-    };
-    reader.readAsDataURL(file);
-  } else {
-    preview.style.backgroundImage = "";
-  }
-});
+    if (file && preview) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        preview.style.backgroundImage = `url(${reader.result})`;
+        preview.style.backgroundSize = "cover";
+        preview.style.backgroundPosition = "center";
+      };
+      reader.readAsDataURL(file);
+    } else if (preview) {
+      preview.style.backgroundImage = "";
+    }
+  });
+}
 
-// fungsi load data user
+/**
+ * 2. LOAD DATA USER
+ * Mengambil data dari Firestore dan memperbarui UI di berbagai tempat.
+ */
 async function loadUserProfile() {
   if (!userId) return;
 
-  const userRef = doc(db, "users", userId);
-  const userSnap = await getDoc(userRef);
+  try {
+    const userRef = doc(db, "users", userId);
+    const userSnap = await getDoc(userRef);
 
-  if (userSnap.exists()) {
-    const data = userSnap.data();
+    if (userSnap.exists()) {
+      const data = userSnap.data();
+      const userImg = data.foto || 'https://ui-avatars.com/api/?name=' + data.nama;
 
-    // navbar
-    document.getElementById("userName").textContent = data.nama;
-    document.getElementById(
-      "userPhotoWrapper"
-    ).style.backgroundImage = `url(${data.foto})`;
-    document.getElementById("userPhotoWrapper").style.backgroundSize = "cover";
+      // Update UI Navbar & Welcome
+      const nameEl = document.getElementById("userName");
+      if (nameEl) nameEl.textContent = data.nama;
 
-    // modal
-    document.getElementById("userNameModal").textContent = data.nama;
-    document.getElementById("userEmailModal").textContent = data.email;
-    document.getElementById(
-      "userPhotoModal"
-    ).style.backgroundImage = `url(${data.foto})`;
-    document.getElementById("userPhotoModal").style.backgroundSize = "cover";
+      const welcomeEl = document.getElementById("welcomeName");
+      if (welcomeEl) welcomeEl.textContent = data.nama;
 
-    // form edit
-    document.getElementById("editName").value = data.nama;
-    document.getElementById("editEmail").value = data.email;
-    document.getElementById("editImage").value = data.foto;
+      const photoWrapper = document.getElementById("userPhotoWrapper");
+      if (photoWrapper) {
+        photoWrapper.style.backgroundImage = `url(${userImg})`;
+        photoWrapper.style.backgroundSize = "cover";
+        photoWrapper.classList.remove('animate-pulse', 'bg-gray-200'); // Hapus loading state
+      }
+
+      // Update UI Modal Detail
+      const modalName = document.getElementById("userNameModal");
+      if (modalName) modalName.textContent = data.nama;
+
+      const modalEmail = document.getElementById("userEmailModal");
+      if (modalEmail) modalEmail.textContent = data.email;
+
+      const photoModal = document.getElementById("userPhotoModal");
+      if (photoModal) {
+        photoModal.style.backgroundImage = `url(${userImg})`;
+        photoModal.style.backgroundSize = "cover";
+      }
+
+      // Update Form Edit
+      const editName = document.getElementById("editName");
+      if (editName) editName.value = data.nama;
+
+      const editEmail = document.getElementById("editEmail");
+      if (editEmail) editEmail.value = data.email;
+
+      const editImage = document.getElementById("editImage");
+      if (editImage) editImage.value = data.foto || "";
+    }
+  } catch (error) {
+    console.error("Gagal memuat profil:", error);
   }
 }
 
-// toggle modal user card
-function toggleUserCard() {
-  document.getElementById("userCard").classList.toggle("hidden");
-}
-window.toggleUserCard = toggleUserCard;
+/**
+ * 3. INTERAKSI MODAL
+ * Mengekspos fungsi ke objek window agar bisa dipanggil dari HTML (onclick).
+ */
+window.toggleUserCard = () => {
+  const card = document.getElementById("userCard");
+  if (card) card.classList.toggle("hidden");
+};
 
-// toggle modal edit profile
-function toggleEditProfile(show = true) {
+window.toggleEditProfile = (show = true) => {
   const modal = document.getElementById("modalEditProfile");
-  if (show) modal.classList.remove("hidden");
-  else modal.classList.add("hidden");
-}
-window.toggleEditProfile = toggleEditProfile;
+  if (modal) {
+    show ? modal.classList.remove("hidden") : modal.classList.add("hidden");
+  }
+  // Tutup user card saat buka edit profile
+  if (show) window.toggleUserCard();
+};
 
-// simpan edit profil
-document
-  .getElementById("formEditProfile")
-  .addEventListener("submit", async (e) => {
+/**
+ * 4. SIMPAN PERUBAHAN PROFIL
+ */
+const formEditProfile = document.getElementById("formEditProfile");
+if (formEditProfile) {
+  formEditProfile.addEventListener("submit", async (e) => {
     e.preventDefault();
+    
+    // Animasi tombol loading
+    const submitBtn = e.target.querySelector('button[type="submit"]');
+    const originalBtnText = submitBtn.textContent;
+    submitBtn.disabled = true;
+    submitBtn.textContent = "Menyimpan...";
+
     const nama = document.getElementById("editName").value;
-    const fotoFile = document.getElementById("editImageFile").files[0];
+    const fotoFile = document.getElementById("editImageFile")?.files[0];
 
     try {
-      let fotoBase64 = null;
+      let updateData = { nama };
+
+      // Jika ada file foto baru, konversi ke Base64
       if (fotoFile) {
         const reader = new FileReader();
-        fotoBase64 = await new Promise((resolve, reject) => {
+        const base64String = await new Promise((resolve, reject) => {
           reader.onload = () => resolve(reader.result);
           reader.onerror = reject;
           reader.readAsDataURL(fotoFile);
         });
+        updateData.foto = base64String;
       }
 
-      // update Firestore
-      await updateDoc(doc(db, "users", userId), {
-        nama,
-        ...(fotoBase64 && { foto: fotoBase64 }),
-      });
+      // Update ke Firestore
+      await updateDoc(doc(db, "users", userId), updateData);
 
-      toggleEditProfile(false);
-      loadUserProfile();
+      window.toggleEditProfile(false);
+      await loadUserProfile();
       showAlert("Profil berhasil diperbarui!", "success");
     } catch (err) {
       console.error(err);
-      showAlert("Gagal update profil!", "error");
+      showAlert("Gagal memperbarui profil!", "error");
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = originalBtnText;
     }
   });
+}
 
-// logout
-document.getElementById("btnLogoutModal").addEventListener("click", () => {
-  localStorage.removeItem("isLoggedIn");
-  localStorage.removeItem("userId");
-  window.location.href = "login.html";
-});
+/**
+ * 5. LOGOUT
+ */
+const btnLogout = document.getElementById("btnLogoutModal");
+if (btnLogout) {
+  btnLogout.addEventListener("click", () => {
+    localStorage.removeItem("isLoggedIn");
+    localStorage.removeItem("userId");
+    window.location.href = "login.html";
+  });
+}
 
+/**
+ * 6. ALERT SYSTEM
+ */
 function showAlert(message, type = "success") {
   const dialog = document.getElementById("alertDialog");
   const box = document.getElementById("alertBox");
@@ -121,43 +176,26 @@ function showAlert(message, type = "success") {
   const msg = document.getElementById("alertMessage");
   const icon = document.getElementById("alertIcon");
 
+  if (!dialog || !box) return;
+
   msg.textContent = message;
 
-  // set warna & ikon sesuai type
   if (type === "success") {
-    title.textContent = "Sukses";
-    title.className = "text-lg font-bold mb-2 text-green-600";
-    icon.innerHTML = `
-      <svg class="w-12 h-12 text-green-500 animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-          d="M5 13l4 4L19 7" />
-      </svg>`;
-  } else if (type === "error") {
-    title.textContent = "Error";
-    title.className = "text-lg font-bold mb-2 text-red-600";
-    icon.innerHTML = `
-      <svg class="w-12 h-12 text-red-500 animate-ping" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-          d="M6 18L18 6M6 6l12 12" />
-      </svg>`;
-  } else if (type === "warning") {
-    title.textContent = "Peringatan";
-    title.className = "text-lg font-bold mb-2 text-yellow-600";
-    icon.innerHTML = `
-      <svg class="w-12 h-12 text-yellow-500 animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-          d="M12 9v2m0 4h.01M12 5a7 7 0 100 14a7 7 0 000-14z" />
-      </svg>`;
+    title.textContent = "Berhasil";
+    title.className = "text-xl font-bold mb-2 text-green-600";
+    icon.innerHTML = `<i class="fa-solid fa-circle-check text-5xl text-green-500 animate-bounce"></i>`;
+  } else {
+    title.textContent = "Gagal";
+    title.className = "text-xl font-bold mb-2 text-red-600";
+    icon.innerHTML = `<i class="fa-solid fa-circle-xmark text-5xl text-red-500 animate-shake"></i>`;
   }
 
-  // tampilkan dialog dengan animasi
   dialog.classList.remove("hidden");
   setTimeout(() => {
     box.classList.remove("scale-95", "opacity-0");
     box.classList.add("scale-100", "opacity-100");
-  }, 50);
+  }, 10);
 
-  // auto hide setelah 2.5 detik
   setTimeout(() => {
     box.classList.remove("scale-100", "opacity-100");
     box.classList.add("scale-95", "opacity-0");
@@ -165,5 +203,5 @@ function showAlert(message, type = "success") {
   }, 2500);
 }
 
-// jalankan saat halaman load
+// Jalankan load data saat halaman siap
 loadUserProfile();

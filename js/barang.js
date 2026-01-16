@@ -8,7 +8,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
 import { openDetailModal } from "./detailBarang.js";
 
-// --- Inisialisasi DOM ---
+// DOM Elements
 const barangTable = document.getElementById("barangTable");
 const pagination = document.getElementById("pagination");
 const searchInput = document.getElementById("searchInput");
@@ -20,7 +20,6 @@ const buatKolaseBtn = document.getElementById("buatKolaseBtn");
 const kolasePreview = document.getElementById("kolasePreview");
 const downloadKolaseBtn = document.getElementById("downloadKolaseBtn");
 
-// --- State Aplikasi ---
 let barangData = [];
 let filteredData = [];
 let currentPage = 1;
@@ -29,225 +28,156 @@ let selectedItems = [];
 let currentSelectItem = null;
 let kolaseSelectedDate = "";
 
-// --- Fungsi Utilitas ---
-function toISODateOnly(dateInput) {
-  if (!dateInput) return "";
-  const d = new Date(dateInput);
-  return d.toISOString().split('T')[0];
-}
+// Utils
+const formatTanggalHari = (tgl) => {
+  if (!tgl) return "-";
+  return new Date(tgl).toLocaleDateString("id-ID", { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+};
 
-function formatTanggalHari(tanggalStr) {
-  if (!tanggalStr) return "-";
-  const date = new Date(tanggalStr);
-  return date.toLocaleDateString("id-ID", {
-    weekday: "long",
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  });
-}
-
-// --- Logika Filter & Tabel ---
+// Functions
 function applyFilters() {
-  const filterTanggal = document.getElementById("filterTanggal")?.value || "";
-  const filterStatus = document.getElementById("filterStatus")?.value || "";
-  const keyword = searchInput.value.toLowerCase();
+  const keyword = searchInput?.value.toLowerCase() || "";
+  const fTgl = document.getElementById("filterTanggal")?.value;
+  const fStat = document.getElementById("filterStatus")?.value;
 
-  filteredData = barangData.filter((item) => {
+  filteredData = barangData.filter(item => {
     let match = item.nama.toLowerCase().includes(keyword);
-    if (filterTanggal) match = match && item.tanggal === filterTanggal;
-    if (filterStatus === "diverifikasi") match = match && item.verifikasi === true;
-    else if (filterStatus === "menunggu") match = match && item.verifikasi === false;
+    if (fTgl) match = match && item.tanggal === fTgl;
+    if (fStat === "diverifikasi") match = match && item.verifikasi === true;
+    if (fStat === "menunggu") match = match && item.verifikasi === false;
     return match;
   });
 
-  // Urutkan terbaru
   filteredData.sort((a, b) => new Date(b.tanggal || 0) - new Date(a.tanggal || 0));
-
-  currentPage = 1;
   renderTable();
-  renderPagination(filteredData.length);
 }
 
 function renderTable() {
+  if (!barangTable) return;
   barangTable.innerHTML = "";
   const start = (currentPage - 1) * itemsPerPage;
   const pageData = filteredData.slice(start, start + itemsPerPage);
 
   pageData.forEach((data, index) => {
     const tr = document.createElement("tr");
-    tr.className = data.verifikasi ? "bg-green-50 hover:bg-green-100 cursor-pointer" : "bg-white hover:bg-gray-50 cursor-pointer";
+    tr.className = "border-b hover:bg-gray-50 cursor-pointer";
     tr.innerHTML = `
-      <td class="px-4 py-2">${start + index + 1}</td>
-      <td class="px-4 py-2">
-        <img src="${data.foto1 || 'https://via.placeholder.com/150'}" class="w-16 h-16 object-cover rounded border">
-      </td>
-      <td class="px-4 py-2">
-        <div class="font-medium">${data.nama}</div>
-        <div class="text-xs text-gray-500">${formatTanggalHari(data.tanggal)}</div>
-      </td>
-      <td class="px-4 py-2">${data.jumlahKebutuhan}</td>
-      <td class="px-4 py-2">${data.jumlahDatang}</td>
-      <td class="px-4 py-2">${data.satuan || "-"}</td>
-      <td class="px-4 py-2">${data.verifikasi ? "✅ Diverifikasi" : "⏳ Menunggu"}</td>
-      <td class="px-4 py-2">${data.verifikasiAdmin ? "👨‍💼 Admin ✔️" : "❌ Belum"}</td>
-      <td class="px-4 py-2">${data.tambahan ? "<span class='text-blue-600 font-semibold'>Tambahan</span>" : "<span class='text-gray-500'>Utama</span>"}</td>
-      <td class="px-4 py-2">
-        <button class="hapusBtn bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700" data-id="${data.id}">Hapus</button>
-      </td>
+      <td class="p-3">${start + index + 1}</td>
+      <td class="p-3"><img src="${data.foto1 || ''}" class="w-12 h-12 object-cover rounded"></td>
+      <td class="p-3 font-medium">${data.nama}</td>
+      <td class="p-3">${data.jumlahKebutuhan}</td>
+      <td class="p-3">${data.jumlahDatang}</td>
+      <td class="p-3">${data.satuan || '-'}</td>
+      <td class="p-3">${data.verifikasi ? '✅' : '⏳'}</td>
+      <td class="p-3">${data.verifikasiAdmin ? '👨‍💼✔️' : '❌'}</td>
+      <td class="p-3">${data.tambahan ? 'Tambahan' : 'Utama'}</td>
+      <td class="p-3"><button class="btn-del bg-red-500 text-white px-2 py-1 rounded" data-id="${data.id}">Hapus</button></td>
     `;
-    tr.addEventListener("click", (e) => {
-      if (!e.target.classList.contains("hapusBtn")) openDetailModal(data);
-    });
+    tr.onclick = (e) => { if(!e.target.classList.contains('btn-del')) openDetailModal(data) };
     barangTable.appendChild(tr);
   });
-}
-
-// --- Logika Kolase ---
-function openFotoSelectModal(item) {
-  currentSelectItem = item;
-  const options = document.getElementById("fotoSelectOptions");
-  options.innerHTML = `
-    <label class="flex flex-col items-center cursor-pointer">
-      <input type="radio" name="fotoChoice" value="foto1" checked>
-      <img src="${item.foto1}" class="w-24 h-24 object-cover rounded border">
-      <span class="text-xs mt-1">Foto 1</span>
-    </label>
-    <label class="flex flex-col items-center cursor-pointer">
-      <input type="radio" name="fotoChoice" value="foto2">
-      <img src="${item.foto2 || item.foto1}" class="w-24 h-24 object-cover rounded border">
-      <span class="text-xs mt-1">Foto 2</span>
-    </label>
-  `;
-  document.getElementById("fotoSelectModal").classList.remove("hidden");
-}
-
-document.getElementById("fotoSelectOk").addEventListener("click", () => {
-  const choice = document.querySelector("input[name='fotoChoice']:checked").value;
-  const itemInSelected = selectedItems.find(i => i.id === currentSelectItem.id);
-  if (itemInSelected) itemInSelected.selectedFoto = choice;
   
-  // Update thumbnail di list kolase
-  const thumb = document.getElementById(`thumb-${currentSelectItem.id}`);
-  if (thumb) thumb.src = choice === "foto2" ? currentSelectItem.foto2 : currentSelectItem.foto1;
-
-  document.getElementById("fotoSelectModal").classList.add("hidden");
-});
-
-function toggleSelect(item, div) {
-  const idx = selectedItems.findIndex((i) => i.id === item.id);
-  if (idx >= 0) {
-    selectedItems.splice(idx, 1);
-    div.classList.remove("bg-blue-100");
-    div.querySelector(".orderBadge").classList.add("hidden");
-  } else {
-    if (selectedItems.length >= 4) return alert("Maksimal 4 item!");
-    selectedItems.push({ ...item, selectedFoto: "foto1" });
-    div.classList.add("bg-blue-100");
-    div.querySelector(".orderBadge").classList.remove("hidden");
-  }
-  updateOrderBadges();
-}
-
-function updateOrderBadges() {
-  const allCards = kolaseList.querySelectorAll("[data-id]");
-  allCards.forEach(card => {
-    const id = card.getAttribute("data-id");
-    const foundIdx = selectedItems.findIndex(si => si.id === id);
-    const badge = card.querySelector(".orderBadge");
-    if (foundIdx >= 0) {
-      badge.textContent = foundIdx + 1;
-      badge.classList.remove("hidden");
-    } else {
-      badge.classList.add("hidden");
-    }
+  // Tombol Hapus
+  document.querySelectorAll('.btn-del').forEach(btn => {
+    btn.onclick = async (e) => {
+        e.stopPropagation();
+        if(confirm("Hapus barang?")) await deleteDoc(doc(db, "barang", btn.dataset.id));
+    };
   });
 }
 
+// Kolase Logic
 function renderKolaseList() {
   kolaseList.innerHTML = "";
-  let verifiedItems = barangData.filter(item => item.verifikasi && item.verifikasiAdmin);
-  
-  if (kolaseSelectedDate) {
-    verifiedItems = verifiedItems.filter(item => toISODateOnly(item.tanggal) === kolaseSelectedDate);
-  }
+  let verified = barangData.filter(item => item.verifikasi && item.verifikasiAdmin);
+  if (kolaseSelectedDate) verified = verified.filter(i => i.tanggal === kolaseSelectedDate);
 
-  verifiedItems.forEach((item) => {
+  verified.forEach(item => {
+    const isSelected = selectedItems.find(s => s.id === item.id);
     const div = document.createElement("div");
-    div.setAttribute("data-id", item.id);
-    div.className = "border rounded-lg p-2 hover:bg-blue-50 relative cursor-pointer";
+    div.className = `p-2 border rounded relative cursor-pointer ${isSelected ? 'bg-blue-100 border-blue-500' : ''}`;
     div.innerHTML = `
-      <img src="${item.foto1}" id="thumb-${item.id}" class="w-full h-32 object-cover rounded-lg mb-2">
-      <p class="text-sm font-medium truncate">${item.nama}</p>
-      <p class="text-[10px] text-gray-500">${formatTanggalHari(item.tanggal)}</p>
-      <span class="orderBadge absolute top-2 left-2 bg-blue-600 text-white text-xs font-bold w-6 h-6 flex items-center justify-center rounded-full hidden"></span>
+      <img src="${item.foto1}" id="img-${item.id}" class="w-full h-24 object-cover rounded mb-1">
+      <p class="text-xs font-bold truncate">${item.nama}</p>
+      <span class="badge absolute top-1 left-1 bg-blue-600 text-white text-[10px] w-5 h-5 flex items-center justify-center rounded-full ${isSelected ? '' : 'hidden'}"></span>
     `;
+    
+    div.onclick = () => {
+      const idx = selectedItems.findIndex(s => s.id === item.id);
+      if (idx > -1) {
+        selectedItems.splice(idx, 1);
+      } else {
+        if (selectedItems.length >= 4) return alert("Maksimal 4!");
+        selectedItems.push({...item, selectedFoto: 'foto1'});
+      }
+      renderKolaseList();
+    };
 
-    div.querySelector(`#thumb-${item.id}`).addEventListener("click", (e) => {
+    // Klik gambar untuk ganti foto1/foto2
+    div.querySelector(`#img-${item.id}`).onclick = (e) => {
       e.stopPropagation();
-      openFotoSelectModal(item);
-    });
+      currentSelectItem = item;
+      document.getElementById("fotoSelectOptions").innerHTML = `
+        <label><input type="radio" name="fc" value="foto1" checked> <img src="${item.foto1}" class="w-20 h-20 object-cover"></label>
+        <label><input type="radio" name="fc" value="foto2"> <img src="${item.foto2 || item.foto1}" class="w-20 h-20 object-cover"></label>
+      `;
+      document.getElementById("fotoSelectModal").classList.remove("hidden");
+    };
 
-    div.addEventListener("click", () => toggleSelect(item, div));
     kolaseList.appendChild(div);
   });
+  updateBadges();
 }
 
-// --- Pembuatan Kolase Akhir ---
-buatKolaseBtn.addEventListener("click", () => {
+function updateBadges() {
+    selectedItems.forEach((item, i) => {
+        const el = kolaseList.querySelector(`[id="img-${item.id}"]`)?.parentElement.querySelector('.badge');
+        if(el) { el.textContent = i + 1; el.classList.remove('hidden'); }
+    });
+}
+
+// Event Listeners
+buatKolaseBtn?.addEventListener("click", () => {
   if (selectedItems.length !== 4) return alert("Pilih tepat 4 item!");
-
   kolasePreview.innerHTML = "";
-  selectedItems.forEach((item) => {
-    const imgSrc = item.selectedFoto === "foto2" ? item.foto2 : item.foto1;
-    const timestamp = `${formatTanggalHari(item.tanggal)} ${item.jam || ""}`;
-    
-    const wrapper = document.createElement("div");
-    wrapper.className = "relative w-full h-full";
-    wrapper.innerHTML = `
-      <img src="${imgSrc}" crossorigin="anonymous" class="w-full h-full object-cover">
-      <div class="absolute bottom-1 left-1 bg-black/50 text-white text-[9px] px-1 rounded">
-        ${timestamp}<br>SPPG Naila Jasmin 📍
-      </div>
-    `;
-    kolasePreview.appendChild(wrapper);
+  selectedItems.forEach(item => {
+    const src = item.selectedFoto === 'foto2' ? item.foto2 : item.foto1;
+    const wrap = document.createElement("div");
+    wrap.className = "relative";
+    wrap.innerHTML = `<img src="${src}" crossorigin="anonymous" class="w-full h-full object-cover">
+      <div class="absolute bottom-1 left-1 bg-black/50 text-white text-[8px] p-1 rounded">
+        ${formatTanggalHari(item.tanggal)} ${item.jam || ''}<br>SPPG Naila Jasmin 📍
+      </div>`;
+    kolasePreview.appendChild(wrap);
   });
-
-  kolasePreview.className = "grid grid-cols-2 grid-rows-2 w-full h-[400px] gap-0 overflow-hidden border";
+  kolasePreview.className = "grid grid-cols-2 grid-rows-2 w-[400px] h-[400px] hidden"; // Hidden but rendered for canvas
   kolasePreview.classList.remove("hidden");
   downloadKolaseBtn.classList.remove("hidden");
 });
 
-// --- Download dengan html2canvas ---
-downloadKolaseBtn.addEventListener("click", async () => {
-  const canvas = await html2canvas(kolasePreview, { useCORS: true, scale: 2 });
-  const fileName = document.getElementById("kolaseFileName").value || "kolase-barang";
-  const link = document.createElement("a");
-  link.download = `${fileName}.png`;
-  link.href = canvas.toDataURL("image/png");
-  link.click();
+downloadKolaseBtn?.addEventListener("click", async () => {
+    const canvas = await html2canvas(kolasePreview, { useCORS: true });
+    const link = document.createElement("a");
+    link.download = `${document.getElementById("kolaseFileName").value || 'kolase'}.png`;
+    link.href = canvas.toDataURL();
+    link.click();
 });
 
-// --- Sinkronisasi Firebase ---
-onSnapshot(collection(db, "barang"), (snapshot) => {
-  barangData = snapshot.docs.map(docSnap => ({ id: docSnap.id, ...docSnap.data() }));
+// Init
+onSnapshot(collection(db, "barang"), (snap) => {
+  barangData = snap.docs.map(d => ({ id: d.id, ...d.data() }));
   applyFilters();
 });
 
-// --- Event Listeners Umum ---
-searchInput.addEventListener("input", applyFilters);
-document.getElementById("filterTanggal").addEventListener("change", applyFilters);
-document.getElementById("filterStatus").addEventListener("change", applyFilters);
-kolaseBtn.addEventListener("click", () => {
-  kolaseModal.classList.replace("hidden", "flex");
-  renderKolaseList();
+searchInput?.addEventListener("input", applyFilters);
+kolaseBtn?.addEventListener("click", () => { kolaseModal.classList.replace("hidden", "flex"); renderKolaseList(); });
+closeKolase?.addEventListener("click", () => { kolaseModal.classList.replace("flex", "hidden"); selectedItems = []; });
+document.getElementById("kolaseFilterTanggal")?.addEventListener("change", (e) => { kolaseSelectedDate = e.target.value; renderKolaseList(); });
+document.getElementById("fotoSelectOk")?.addEventListener("click", () => {
+    const choice = document.querySelector('input[name="fc"]:checked').value;
+    const itm = selectedItems.find(s => s.id === currentSelectItem.id);
+    if(itm) itm.selectedFoto = choice;
+    document.getElementById("fotoSelectModal").classList.add("hidden");
+    renderKolaseList();
 });
-closeKolase.addEventListener("click", () => {
-  kolaseModal.classList.replace("flex", "hidden");
-  selectedItems = [];
-  kolasePreview.classList.add("hidden");
-});
-document.getElementById("kolaseFilterTanggal").addEventListener("change", (e) => {
-  kolaseSelectedDate = e.target.value;
-  renderKolaseList();
-});
+document.getElementById("fotoSelectCancel")?.addEventListener("click", () => document.getElementById("fotoSelectModal").classList.add("hidden"));

@@ -233,6 +233,98 @@
         </div>
     </div>
 
+    <div id="detailModal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl shadow-2xl max-w-2xl w-full p-6 overflow-y-auto max-h-[90vh]">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-xl font-bold text-primary">Detail Barang</h3>
+            <button id="closeDetail" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark text-2xl"></i></button>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <div>
+                <label class="block text-xs font-bold text-gray-500 mb-1">Nama Barang</label>
+                <input type="text" id="detailNama" readonly class="w-full border rounded-xl px-3 py-2 bg-gray-50 outline-none">
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-gray-500 mb-1">Jam Datang</label>
+                <input type="time" id="detailJam" class="w-full border rounded-xl px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-gray-500 mb-1">Jumlah Kebutuhan</label>
+                <input type="number" id="detailKebutuhan" readonly class="w-full border rounded-xl px-3 py-2 bg-gray-50 outline-none">
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-gray-500 mb-1">Jumlah Datang</label>
+                <input type="number" id="detailDatang" class="w-full border rounded-xl px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-gray-500 mb-1">Satuan</label>
+                <input type="text" id="detailSatuan" class="w-full border rounded-xl px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-gray-500 mb-1">Status</label>
+                <span id="detailTambahan" class="inline-block px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-bold"></span>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4 mb-6">
+            <div class="text-center">
+                <p class="text-[10px] font-bold text-gray-400 mb-1 uppercase">Foto 1</p>
+                <img id="detailFoto1" src="" class="w-full h-32 object-cover rounded-xl border border-gray-200">
+            </div>
+            <div class="text-center">
+                <p class="text-[10px] font-bold text-gray-400 mb-1 uppercase">Foto 2</p>
+                <img id="detailFoto2" src="" class="w-full h-32 object-cover rounded-xl border border-gray-200">
+            </div>
+        </div>
+
+        <div class="flex gap-3">
+            <button id="updateBtn" class="flex-1 bg-primary text-white py-3 rounded-2xl font-bold hover:bg-primary-dark transition">Simpan Perubahan</button>
+            <button id="verifikasiBtn" class="flex-1 bg-green-600 text-white py-3 rounded-2xl font-bold hover:bg-green-700 transition">Verifikasi Admin</button>
+        </div>
+    </div>
+</div>
+
+<div id="kolaseModal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl shadow-2xl max-w-4xl w-full p-6 flex flex-col h-[90vh]">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-xl font-bold text-primary">Buat Kolase 4 Foto</h3>
+            <button id="closeKolase" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark text-2xl"></i></button>
+        </div>
+
+        <div class="flex flex-wrap gap-4 mb-4">
+            <input type="date" id="kolaseFilterTanggal" class="border rounded-xl px-3 py-2 outline-none">
+            <input type="text" id="kolaseFileName" placeholder="Nama File Kolase" class="border rounded-xl px-3 py-2 outline-none flex-1">
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 overflow-hidden flex-1">
+            <div id="kolaseList" class="grid grid-cols-2 gap-3 overflow-y-auto pr-2 border-r">
+                </div>
+
+            <div class="flex flex-col items-center justify-center bg-gray-50 rounded-2xl p-4">
+                <div id="kolasePreview" class="hidden shadow-xl bg-white leading-[0]"></div>
+                <p id="kolasePlaceholder" class="text-gray-400 text-sm">Pilih 4 item lalu klik "Generate Kolase"</p>
+            </div>
+        </div>
+
+        <div class="flex gap-3 mt-6">
+            <button id="buatKolaseBtn" class="flex-1 bg-blue-600 text-white py-3 rounded-2xl font-bold hover:bg-blue-700 transition">Generate Kolase</button>
+            <button id="downloadKolaseBtn" class="hidden flex-1 bg-green-600 text-white py-3 rounded-2xl font-bold hover:bg-green-700 transition">Download PNG</button>
+        </div>
+    </div>
+</div>
+
+<div id="fotoSelectModal" class="hidden fixed inset-0 bg-black/80 z-[110] flex items-center justify-center">
+    <div class="bg-white p-6 rounded-3xl max-w-xs w-full text-center">
+        <h4 class="font-bold mb-4">Pilih Foto Kolase</h4>
+        <div id="fotoSelectOptions" class="flex justify-around mb-6"></div>
+        <div class="flex gap-2">
+            <button id="fotoSelectCancel" class="flex-1 py-2 bg-gray-200 rounded-xl">Batal</button>
+            <button id="fotoSelectOk" class="flex-1 py-2 bg-primary text-white rounded-xl">Pilih</button>
+        </div>
+    </div>
+</div>
+
     <script>
         // 1. Loading Screen Logic
         window.addEventListener('load', () => {
@@ -298,3 +390,4 @@
     <script type="module" src="js/tambahBarang.js"></script>
 </body>
 </html>
+

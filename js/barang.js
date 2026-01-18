@@ -539,6 +539,28 @@ function renderTable() {
             </tr>
         `;
     }).join('');
+
+    tr.addEventListener("click", () => {
+            openDetailModal(data);
+        });
+
+    // B. Klik Tombol Hapus -> Hapus Item
+        const btnHapus = tr.querySelector(".btn-hapus");
+        btnHapus.addEventListener("click", async (e) => {
+            e.stopPropagation(); // Mencegah modal detail terbuka saat klik hapus
+            
+            const konfirmasi = confirm(`Apakah Anda yakin ingin menghapus "${data.nama}"?`);
+            if (konfirmasi) {
+                try {
+                    await deleteDoc(doc(db, "barang", data.id));
+                    // Tidak perlu panggil renderTable() lagi jika pakai onSnapshot
+                    showSuccessToast("Data berhasil dihapus!");
+                } catch (error) {
+                    console.error("Gagal menghapus:", error);
+                    alert("Gagal menghapus data.");
+                }
+            }
+        });
 }
 
 // Tambahkan fungsi pembantu agar klik baris membuka detail

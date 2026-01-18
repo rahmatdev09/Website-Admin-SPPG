@@ -12,9 +12,6 @@ const tambahBarangForm = document.getElementById("tambahBarangForm");
 tambahBarangBtn.addEventListener("click", () =>
   tambahBarangModal.classList.remove("hidden")
 );
-closeTambahBarang.addEventListener("click", () =>
-  tambahBarangModal.classList.add("hidden")
-);
 
 function showSuccess() {
   const box = document.getElementById("successModal").firstElementChild;
@@ -66,3 +63,4 @@ tambahBarangForm.addEventListener("submit", async (e) => {
   tambahBarangModal.classList.add("hidden");
   showSuccess();
 });
+

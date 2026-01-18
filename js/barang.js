@@ -598,7 +598,7 @@ detailModal.addEventListener("click", (e) => {
     if (e.target === detailModal) {
         closeDetail();
     }else if(e.target === tambahModal){
-    closeTambah():
+    closeTambah();
     }
 });
 
@@ -651,6 +651,7 @@ function formatTanggalHari(tanggalStr) {
   });
   return `${hari}, ${tglFormat}`;
 }
+
 
 
 

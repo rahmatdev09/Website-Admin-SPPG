@@ -325,6 +325,43 @@
     </div>
 </div>
 
+    <div id="tambahBarangModal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl shadow-2xl max-w-md w-full p-8">
+        <div class="flex justify-between items-center mb-6">
+            <h3 class="text-xl font-bold text-primary flex items-center gap-2">
+                <i class="fa-solid fa-box-open"></i> Tambah Barang Baru
+            </h3>
+            <button id="closeTambah" class="text-gray-400 hover:text-gray-600">
+                <i class="fa-solid fa-xmark text-2xl"></i>
+            </button>
+        </div>
+
+        <form id="tambahBarangForm" class="space-y-5">
+            <div>
+                <label class="block text-xs font-bold text-gray-500 uppercase mb-1 ml-1">Nama Barang</label>
+                <input type="text" id="namaBarangBaru" required placeholder="Contoh: Telur Ayam" 
+                    class="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 outline-none transition" />
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-gray-500 uppercase mb-1 ml-1">Jumlah Kebutuhan</label>
+                <input type="number" id="jumlahKebutuhanBaru" required placeholder="0" 
+                    class="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 outline-none transition" />
+            </div>
+
+            <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
+                <input type="checkbox" id="tambahanBaru" class="w-5 h-5 accent-blue-600 cursor-pointer" />
+                <label for="tambahanBaru" class="text-sm font-semibold text-gray-700 cursor-pointer">Barang Tambahan (Opsional)</label>
+            </div>
+
+            <div class="flex gap-3 pt-4">
+                <button type="button" id="btnBatalTambah" class="flex-1 px-4 py-3 bg-gray-100 text-gray-600 rounded-2xl font-bold hover:bg-gray-200 transition">Batal</button>
+                <button type="submit" class="flex-1 px-4 py-3 bg-primary text-white rounded-2xl font-bold shadow-lg shadow-blue-900/20 hover:bg-primary-dark transition">Simpan</button>
+            </div>
+        </form>
+    </div>
+</div>
+
     <script>
         // 1. Loading Screen Logic
         window.addEventListener('load', () => {
@@ -390,4 +427,5 @@
     <script type="module" src="js/tambahBarang.js"></script>
 </body>
 </html>
+
 

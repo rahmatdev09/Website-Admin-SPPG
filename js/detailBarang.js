@@ -44,10 +44,7 @@ export function openDetailModal(data) {
   detailModal.classList.add("flex");
 }
 
-closeDetail.addEventListener("click", () => {
-  detailModal.classList.add("hidden");
-  detailModal.classList.remove("flex");
-});
+
 
 // Update data barang
 updateBtn.addEventListener("click", async () => {
@@ -94,3 +91,4 @@ verifikasiBtn.addEventListener("click", async () => {
     alert("Gagal memverifikasi barang.");
   }
 });
+

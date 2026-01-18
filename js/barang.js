@@ -480,77 +480,72 @@ async function updateTambahan(id, isTambahan) {
 }
 
 function renderTable() {
-  barangTable.innerHTML = "";
-  const start = (currentPage - 1) * itemsPerPage;
-  const end = start + itemsPerPage;
-  const pageData = filteredData.slice(start, end);
+    barangTable.innerHTML = "";
+    const start = (currentPage - 1) * itemsPerPage;
+    const end = start + itemsPerPage;
+    const pageData = filteredData.slice(start, end);
 
-  pageData.forEach((data, index) => {
-    const tr = document.createElement("tr");
-    tr.className = data.verifikasi
-      ? "bg-green-50 hover:bg-green-100 cursor-pointer"
-      : "bg-white hover:bg-gray-50 cursor-pointer";
+    barangTable.innerHTML = pageData.map((data, index) => {
+        // Logika Badge Status User
+        const statusBadge = data.verifikasi 
+            ? `<span class="px-2 py-1 rounded-full text-[10px] font-bold bg-green-100 text-green-700 uppercase">✅ Diverifikasi</span>`
+            : `<span class="px-2 py-1 rounded-full text-[10px] font-bold bg-amber-100 text-amber-700 uppercase">⏳ Menunggu</span>`;
 
-    tr.innerHTML = `
-      <td class="px-4 py-2">${start + index + 1}</td>
-      <td class="px-4 py-2">
-        ${
-          data.foto1
-            ? `<img src="${data.foto1}" class="w-16 h-16 object-cover rounded border">`
-            : "❌"
-        }
-      </td>
-      <td class="px-4 py-2">
-        <div class="font-medium">${data.nama}</div>
-        <div class="text-xs text-gray-500">${formatTanggalHari(
-          data.tanggal
-        )}</div>
-      </td>
-      <td class="px-4 py-2">${data.jumlahKebutuhan}</td>
-      <td class="px-4 py-2">${data.jumlahDatang}</td>
-      <td class="px-4 py-2">${data.satuan || "-"}</td>
-      <td class="px-4 py-2">${
-        data.verifikasi ? "✅ Diverifikasi" : "⏳ Menunggu"
-      }</td>
-      <td class="px-4 py-2">${
-        data.verifikasiAdmin ? "👨‍💼 Admin ✔️" : "❌ Belum"
-      }</td>
-      <td class="px-4 py-2">
-        ${
-          data.tambahan
-            ? "<span class='text-blue-600 font-semibold'>Tambahan</span>"
-            : "<span class='text-gray-500'>Utama</span>"
-        }
-      </td>
-      <td class="px-4 py-2">
-        <button class="hapusBtn bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700" data-id="${
-          data.id
-        }">
-          Hapus
-        </button>
-      </td>
-    `;
+        // Logika Badge Admin
+        const adminBadge = data.verifikasiAdmin
+            ? `<span class="px-2 py-1 rounded-full text-[10px] font-bold bg-blue-100 text-blue-700 uppercase"><i class="fa-solid fa-user-check mr-1"></i>Approved</span>`
+            : `<span class="px-2 py-1 rounded-full text-[10px] font-bold bg-gray-100 text-gray-400 uppercase">Pending</span>`;
 
-    // klik baris buka detail, kecuali tombol hapus
-    tr.addEventListener("click", (e) => {
-      if (!e.target.classList.contains("hapusBtn")) {
-        openDetailModal(data);
-      }
-    });
+        // Logika Tipe Barang
+        const tipeBadge = data.tambahan
+            ? `<span class="text-blue-600 font-medium bg-blue-50 px-2 py-0.5 rounded text-[11px] border border-blue-100">Tambahan</span>`
+            : `<span class="text-gray-500 font-medium bg-gray-50 px-2 py-0.5 rounded text-[11px] border border-gray-100">Utama</span>`;
 
-    barangTable.appendChild(tr);
-  });
+        return `
+            <tr class="hover:bg-gray-50/80 transition-colors group cursor-pointer" onclick="handleRowClick('${data.id}')">
+                <td class="px-6 py-4 text-gray-400 font-medium">${start + index + 1}</td>
+                <td class="px-6 py-4">
+                    <div class="relative w-12 h-12">
+                        ${data.foto1 
+                            ? `<img src="${data.foto1}" class="w-12 h-12 object-cover rounded-xl shadow-sm border border-gray-200" alt="foto">`
+                            : `<div class="w-12 h-12 bg-gray-100 rounded-xl flex items-center justify-center text-gray-400"><i class="fa-solid fa-image"></i></div>`
+                        }
+                    </div>
+                </td>
+                <td class="px-6 py-4">
+                    <div class="font-bold text-gray-800">${data.nama}</div>
+                    <div class="text-[11px] text-gray-400 flex items-center gap-1">
+                        <i class="fa-regular fa-calendar-check"></i> ${formatTanggalHari(data.tanggal)}
+                    </div>
+                </td>
+                <td class="px-6 py-4 text-center">
+                    <div class="flex items-center justify-center gap-2">
+                        <span class="font-semibold text-gray-700">${data.jumlahKebutuhan}</span>
+                        <span class="text-gray-300">/</span>
+                        <span class="font-bold text-blue-600">${data.jumlahDatang}</span>
+                        <span class="text-[10px] text-gray-400 uppercase font-bold">${data.satuan || '-'}</span>
+                    </div>
+                </td>
+                <td class="px-6 py-4">${tipeBadge}</td>
+                <td class="px-6 py-4">${statusBadge}</td>
+                <td class="px-6 py-4">${adminBadge}</td>
+                <td class="px-6 py-4 text-center">
+                    <button onclick="event.stopPropagation(); deleteBarang('${data.id}')" 
+                        class="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
+                        title="Hapus Data">
+                        <i class="fa-solid fa-trash-can"></i>
+                    </button>
+                </td>
+            </tr>
+        `;
+    }).join('');
+}
 
-  // Event listener tombol hapus
-  document.querySelectorAll(".hapusBtn").forEach((btn) => {
-    btn.addEventListener("click", async (e) => {
-      e.stopPropagation();
-      const id = btn.getAttribute("data-id");
-      if (confirm("Yakin ingin menghapus barang ini?")) {
-        await deleteBarang(id);
-      }
-    });
-  });
+// Tambahkan fungsi pembantu agar klik baris membuka detail
+function handleRowClick(id) {
+    // Cari data berdasarkan ID dan panggil fungsi openDetailModal dari detailBarang.js
+    const data = filteredData.find(item => item.id === id);
+    if (data) openDetailModal(data);
 }
 
 // Firestore listener
@@ -602,5 +597,6 @@ function formatTanggalHari(tanggalStr) {
   });
   return `${hari}, ${tglFormat}`;
 }
+
 
 

@@ -570,11 +570,18 @@ function handleRowClick(id) {
 
 // --- FUNGSI TUTUP DETAIL ---
 const closeDetailBtn = document.getElementById("closeDetail");
+const closeTambahBtn = document.getElementById("closeTambah");
 const detailModal = document.getElementById("detailModal");
+const tambahModal = document.getElementById("tambahBarangModal");
 
 function closeDetail() {
     detailModal.classList.add("hidden");
     detailModal.classList.remove("flex");
+}
+
+function closeTambah() {
+    tambahModal.classList.add("hidden");
+    tambahModal.classList.remove("flex");
 }
 
 // Tutup saat tombol X diklik
@@ -582,10 +589,16 @@ if (closeDetailBtn) {
     closeDetailBtn.addEventListener("click", closeDetail);
 }
 
+if (closeTambahBtn) {
+    closeTambahBtn.addEventListener("click", closeTambah);
+}
+
 // Tutup saat area di luar modal (overlay) diklik
 detailModal.addEventListener("click", (e) => {
     if (e.target === detailModal) {
         closeDetail();
+    }else if(e.target === tambahModal){
+    closeTambah():
     }
 });
 
@@ -638,6 +651,7 @@ function formatTanggalHari(tanggalStr) {
   });
   return `${hari}, ${tglFormat}`;
 }
+
 
 
 

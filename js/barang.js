@@ -479,38 +479,29 @@ async function updateTambahan(id, isTambahan) {
   }
 }
 
+// 1. Fungsi Utama Render
 function renderTable() {
-    barangTable.innerHTML = "";
+    const barangTable = document.getElementById("barangTable");
     const start = (currentPage - 1) * itemsPerPage;
     const end = start + itemsPerPage;
     const pageData = filteredData.slice(start, end);
 
     barangTable.innerHTML = pageData.map((data, index) => {
-        // Logika Badge Status User
+        // ... (Logika Badge Status, Admin, Tipe tetap sama seperti kode kamu) ...
         const statusBadge = data.verifikasi 
             ? `<span class="px-2 py-1 rounded-full text-[10px] font-bold bg-green-100 text-green-700 uppercase">✅ Diverifikasi</span>`
             : `<span class="px-2 py-1 rounded-full text-[10px] font-bold bg-amber-100 text-amber-700 uppercase">⏳ Menunggu</span>`;
-
-        // Logika Badge Admin
+        
         const adminBadge = data.verifikasiAdmin
-            ? `<span class="px-2 py-1 rounded-full text-[10px] font-bold bg-blue-100 text-blue-700 uppercase"><i class="fa-solid fa-user-check mr-1"></i>Approved</span>`
+            ? `<span class="px-2 py-1 rounded-full text-[10px] font-bold bg-blue-100 text-blue-700 uppercase">Approved</span>`
             : `<span class="px-2 py-1 rounded-full text-[10px] font-bold bg-gray-100 text-gray-400 uppercase">Pending</span>`;
 
-        // Logika Tipe Barang
-        const tipeBadge = data.tambahan
-            ? `<span class="text-blue-600 font-medium bg-blue-50 px-2 py-0.5 rounded text-[11px] border border-blue-100">Tambahan</span>`
-            : `<span class="text-gray-500 font-medium bg-gray-50 px-2 py-0.5 rounded text-[11px] border border-gray-100">Utama</span>`;
-
         return `
-            <tr class="hover:bg-gray-50/80 transition-colors group cursor-pointer" onclick="handleRowClick('${data.id}')">
+            <tr class="row-barang hover:bg-gray-50/80 transition-colors group cursor-pointer border-b border-gray-100" 
+                data-id="${data.id}">
                 <td class="px-6 py-4 text-gray-400 font-medium">${start + index + 1}</td>
                 <td class="px-6 py-4">
-                    <div class="relative w-12 h-12">
-                        ${data.foto1 
-                            ? `<img src="${data.foto1}" class="w-12 h-12 object-cover rounded-xl shadow-sm border border-gray-200" alt="foto">`
-                            : `<div class="w-12 h-12 bg-gray-100 rounded-xl flex items-center justify-center text-gray-400"><i class="fa-solid fa-image"></i></div>`
-                        }
-                    </div>
+                    ${data.foto1 ? `<img src="${data.foto1}" class="w-12 h-12 object-cover rounded-xl border border-gray-200 shadow-sm">` : `<div class="w-12 h-12 bg-gray-100 rounded-xl flex items-center justify-center text-gray-300"><i class="fa-solid fa-image"></i></div>`}
                 </td>
                 <td class="px-6 py-4">
                     <div class="font-bold text-gray-800">${data.nama}</div>
@@ -523,45 +514,52 @@ function renderTable() {
                         <span class="font-semibold text-gray-700">${data.jumlahKebutuhan}</span>
                         <span class="text-gray-300">/</span>
                         <span class="font-bold text-blue-600">${data.jumlahDatang}</span>
-                        <span class="text-[10px] text-gray-400 uppercase font-bold">${data.satuan || '-'}</span>
                     </div>
                 </td>
-                <td class="px-6 py-4">${tipeBadge}</td>
+                <td class="px-6 py-4">${data.tambahan ? `<span class="bg-blue-50 text-blue-600 text-[10px] font-bold px-2 py-1 rounded border border-blue-100">TAMBAHAN</span>` : `<span class="text-gray-400 text-[10px] font-bold">UTAMA</span>`}</td>
                 <td class="px-6 py-4">${statusBadge}</td>
                 <td class="px-6 py-4">${adminBadge}</td>
                 <td class="px-6 py-4 text-center">
-                    <button onclick="event.stopPropagation(); deleteBarang('${data.id}')" 
-                        class="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
-                        title="Hapus Data">
-                        <i class="fa-solid fa-trash-can"></i>
+                    <button class="btn-hapus p-2 text-gray-300 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all" 
+                            data-id="${data.id}" data-nama="${data.nama}">
+                        <i class="fa-solid fa-trash-can pointer-events-none"></i>
                     </button>
                 </td>
             </tr>
         `;
     }).join('');
-
-    tr.addEventListener("click", () => {
-            openDetailModal(data);
-        });
-
-    // B. Klik Tombol Hapus -> Hapus Item
-        const btnHapus = tr.querySelector(".btn-hapus");
-        btnHapus.addEventListener("click", async (e) => {
-            e.stopPropagation(); // Mencegah modal detail terbuka saat klik hapus
-            
-            const konfirmasi = confirm(`Apakah Anda yakin ingin menghapus "${data.nama}"?`);
-            if (konfirmasi) {
-                try {
-                    await deleteDoc(doc(db, "barang", data.id));
-                    // Tidak perlu panggil renderTable() lagi jika pakai onSnapshot
-                    showSuccessToast("Data berhasil dihapus!");
-                } catch (error) {
-                    console.error("Gagal menghapus:", error);
-                    alert("Gagal menghapus data.");
-                }
-            }
-        });
 }
+
+// 2. Pasang Listener Sekali saja (Letakkan di luar renderTable atau di inisialisasi script)
+document.getElementById("barangTable").addEventListener("click", async (e) => {
+    const target = e.target;
+    
+    // A. Logika Klik Tombol Hapus
+    const btnHapus = target.closest(".btn-hapus");
+    if (btnHapus) {
+        e.stopPropagation();
+        const id = btnHapus.dataset.id;
+        const nama = btnHapus.dataset.nama;
+        
+        if (confirm(`Hapus barang "${nama}"?`)) {
+            try {
+                await deleteDoc(doc(db, "barang", id));
+                // Jika pakai onSnapshot, tabel auto-update
+            } catch (err) {
+                alert("Gagal menghapus data");
+            }
+        }
+        return; // Berhenti agar klik baris tidak terpicu
+    }
+
+    // B. Logika Klik Baris (Buka Detail)
+    const row = target.closest(".row-barang");
+    if (row) {
+        const id = row.dataset.id;
+        const data = filteredData.find(item => item.id === id);
+        if (data) openDetailModal(data);
+    }
+});
 
 // Tambahkan fungsi pembantu agar klik baris membuka detail
 function handleRowClick(id) {
@@ -619,6 +617,7 @@ function formatTanggalHari(tanggalStr) {
   });
   return `${hari}, ${tglFormat}`;
 }
+
 
 
 

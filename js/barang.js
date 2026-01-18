@@ -568,6 +568,27 @@ function handleRowClick(id) {
     if (data) openDetailModal(data);
 }
 
+// --- FUNGSI TUTUP DETAIL ---
+const closeDetailBtn = document.getElementById("closeDetail");
+const detailModal = document.getElementById("detailModal");
+
+function closeDetail() {
+    detailModal.classList.add("hidden");
+    detailModal.classList.remove("flex");
+}
+
+// Tutup saat tombol X diklik
+if (closeDetailBtn) {
+    closeDetailBtn.addEventListener("click", closeDetail);
+}
+
+// Tutup saat area di luar modal (overlay) diklik
+detailModal.addEventListener("click", (e) => {
+    if (e.target === detailModal) {
+        closeDetail();
+    }
+});
+
 // Firestore listener
 onSnapshot(collection(db, "barang"), (snapshot) => {
   barangData = snapshot.docs.map((docSnap) => ({
@@ -617,6 +638,7 @@ function formatTanggalHari(tanggalStr) {
   });
   return `${hari}, ${tglFormat}`;
 }
+
 
 
 

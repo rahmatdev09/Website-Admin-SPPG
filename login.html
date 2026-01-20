@@ -1,303 +1,225 @@
 <!DOCTYPE html>
 <html lang="id">
-  <head>
+<head>
     <meta charset="UTF-8" />
-    <title>SPPG Naila Jasmin Web - Login</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SPPG Naila Jasmin - Login</title>
+    
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/feather-icons"></script>
-
-    <link
-      rel="apple-touch-icon"
-      sizes="180x180"
-      href="favicon_io/apple-touch-icon.png"
-    />
-    <link
-      rel="icon"
-      type="image/png"
-      sizes="32x32"
-      href="favicon_io/favicon-32x32.png"
-    />
-    <link
-      rel="icon"
-      type="image/png"
-      sizes="16x16"
-      href="favicon_io/favicon-16x16.png"
-    />
-    <link
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
-      rel="stylesheet"
-    />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet" />
 
     <style>
-      :root {
-        --tw-color-primary: #061e49;
-      }
-      .bg-primary {
-        background-color: #061e49;
-      }
-      .text-primary {
-        color: #061e49;
-      }
-      .hover\:bg-primary:hover {
-        background-color: #03112b;
-      }
-      .border-primary {
-        border-color: #061e49;
-      }
+        body { font-family: 'Inter', sans-serif; }
+        :root { --primary: #061e49; }
+        
+        .bg-primary-custom { background-color: #061e49; }
+        .text-primary-custom { color: #061e49; }
 
-      @keyframes fadeSlideUp {
-        0% {
-          opacity: 0;
-          transform: translateY(40px);
+        /* Glassmorphism Effect */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
-        100% {
-          opacity: 1;
-          transform: translateY(0);
+
+        /* Animation */
+        @keyframes fadeSlideUp {
+            0% { opacity: 0; transform: translateY(20px); }
+            100% { opacity: 1; transform: translateY(0); }
         }
-      }
-      .animate-fadeSlideUp {
-        animation: fadeSlideUp 0.3s ease-out forwards;
-      }
+        .animate-fadeSlideUp {
+            animation: fadeSlideUp 0.5s ease-out forwards;
+        }
+
+        /* Input Focus Glow */
+        input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+        }
     </style>
-  </head>
-  <body class="bg-primary flex items-center justify-center min-h-screen">
-    <div
-      class="bg-white m-10 p-6 rounded shadow w-full md:max-w-lg flex flex-col justify-center"
-    >
-      <div class="flex flex-col items-center">
-        <img
-          src="icon/Picture1__3_-removebg-preview.png"
-          alt="Logo"
-          class="w-48 rounded-full mb-6"
-        />
-        <h1 class="text-3xl font-bold mb-4 text-center">SPPG NAILA JASMIN</h1>
-      </div>
+</head>
+<body class="bg-primary-custom bg-[radial-gradient(circle_at_top_right,_#1e3a8a,_#061e49,_#000)] min-h-screen flex items-center justify-center p-4">
 
-      <p class="text-center text-gray-600 mb-8 text-xl">
-        Kelola Dapur Lebih Mudah
-      </p>
-
-      <!-- Email -->
-      <input
-        type="email"
-        id="email"
-        placeholder="Email"
-        class="w-full border rounded p-4 mb-4 focus:ring-green-500 focus:border-green-500 text-lg"
-      />
-
-      <!-- Password -->
-      <input
-        type="password"
-        id="password"
-        placeholder="Password"
-        class="w-full border rounded p-4 mb-6 focus:ring-green-500 focus:border-green-500 text-lg"
-      />
-
-      <!-- Tombol Login -->
-      <button
-        id="btnLogin"
-        class="w-full bg-primary text-white py-4 rounded hover:bg-primary flex items-center justify-center space-x-2 text-lg font-semibold"
-      >
-        <span id="btnText">Login</span>
-        <svg
-          id="btnSpinner"
-          class="hidden animate-spin h-6 w-6 text-white"
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none"
-          viewBox="0 0 24 24"
-        >
-          <circle
-            class="opacity-25"
-            cx="12"
-            cy="12"
-            r="10"
-            stroke="currentColor"
-            stroke-width="4"
-          ></circle>
-          <path
-            class="opacity-75"
-            fill="currentColor"
-            d="M4 12a8 8 0 018-8v8H4z"
-          ></path>
-        </svg>
-      </button>
-
-      <!-- Footer -->
-      <p class="text-center text-sm text-gray-500 mt-8">
-        © 2025 Rahmatullah. All rights reserved.
-      </p>
-    </div>
-
-    <!-- Modal sukses -->
-    <div
-      id="successModal"
-      class="fixed top-4 right-4 bg-green-500 text-white px-4 py-3 rounded shadow-lg flex items-center space-x-2 hidden animate-fade-in"
-    >
-      <span id="dialogText">Login berhasil!</span>
-    </div>
-
-    <!-- Alert Box -->
-    <!-- Dialog Alert -->
-    <!-- Dialog Alert -->
-    <div
-      id="alertDialog"
-      class="hidden fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-30"
-    >
-      <div
-        id="alertBox"
-        class="bg-white rounded-lg shadow-lg p-6 text-center transform scale-95 opacity-0 transition duration-300 ease-out"
-      >
-        <!-- Icon -->
-        <div id="alertIcon" class="flex justify-center mb-3">
-          <svg
-            class="w-12 h-12 text-green-500 animate-bounce"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M5 13l4 4L19 7"
-            />
-          </svg>
+    <div class="glass-card w-full max-w-md rounded-[2.5rem] shadow-2xl overflow-hidden p-8 md:p-12 animate-fadeSlideUp">
+        
+        <div class="text-center mb-10">
+            <div class="inline-block p-4 bg-blue-50 rounded-3xl mb-4 shadow-inner">
+                <img src="icon/Picture1__3_-removebg-preview.png" alt="Logo" class="w-20 h-auto mx-auto" />
+            </div>
+            <h1 class="text-3xl font-black text-primary-custom tracking-tight italic">NAILA JASMIN</h1>
+            <p class="text-gray-500 font-medium mt-1">Sistem Pengelolaan Pangan & Gizi</p>
         </div>
-        <!-- Title -->
-        <h2 id="alertTitle" class="text-lg font-bold mb-2 text-green-600">
-          Sukses
-        </h2>
-        <!-- Message -->
-        <p id="alertMessage" class="text-gray-700">Login berhasil!</p>
-      </div>
+
+        <div class="space-y-5">
+            <div class="space-y-1.5">
+                <label class="text-[11px] font-bold uppercase tracking-[0.1em] text-gray-400 ml-1">Alamat Email</label>
+                <div class="relative group">
+                    <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-blue-600 transition-colors">
+                        <i class="fa-regular fa-envelope text-lg"></i>
+                    </span>
+                    <input type="email" id="email" placeholder="nama@email.com" 
+                        class="w-full bg-gray-50 border border-gray-200 rounded-2xl py-4 pl-12 pr-4 transition-all duration-200 text-gray-700">
+                </div>
+            </div>
+
+            <div class="space-y-1.5">
+                <label class="text-[11px] font-bold uppercase tracking-[0.1em] text-gray-400 ml-1">Kata Sandi</label>
+                <div class="relative group">
+                    <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-blue-600 transition-colors">
+                        <i class="fa-solid fa-lock text-lg"></i>
+                    </span>
+                    <input type="password" id="password" placeholder="••••••••" 
+                        class="w-full bg-gray-50 border border-gray-200 rounded-2xl py-4 pl-12 pr-12 transition-all duration-200 text-gray-700">
+                    <button type="button" id="togglePasswordBtn" class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-primary-custom transition-colors">
+                        <i id="eyeIcon" class="fa-regular fa-eye"></i>
+                    </button>
+                </div>
+            </div>
+
+            <button id="btnLogin" class="w-full bg-primary-custom hover:bg-blue-900 text-white py-4 mt-4 rounded-2xl font-bold text-lg shadow-xl shadow-blue-900/20 transition-all active:scale-[0.98] flex items-center justify-center gap-3">
+                <span id="btnText">Masuk ke Dashboard</span>
+                <div id="btnSpinner" class="hidden h-5 w-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+            </button>
+        </div>
+
+        <footer class="mt-12 text-center">
+            <p class="text-gray-400 text-[10px] leading-relaxed tracking-wide">
+                &copy; 2026 <span class="text-primary-custom font-bold">RAHMATULLAH</span><br>
+                EXCELLENCE IN KITCHEN MANAGEMENT
+            </p>
+        </footer>
+    </div>
+
+    <div id="alertDialog" class="hidden fixed inset-0 flex items-center justify-center z-[100] bg-black/40 backdrop-blur-sm p-4">
+        <div id="alertBox" class="bg-white rounded-[2.5rem] shadow-2xl p-8 max-w-sm w-full text-center transform scale-95 opacity-0 transition-all duration-300">
+            <div id="alertIcon" class="mb-4"></div>
+            <h2 id="alertTitle" class="text-xl font-black mb-2 italic"></h2>
+            <p id="alertMessage" class="text-gray-500 font-medium leading-relaxed"></p>
+        </div>
     </div>
 
     <script type="module">
-      import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
-      import {
-        getFirestore,
-        collection,
-        query,
-        where,
-        getDocs,
-      } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
+        import { getFirestore, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
 
-      // 🔑 Firebase config
-      const firebaseConfig = {
-        apiKey: "AIzaSyBC598epFdcqsFp9cg3y9-Fi40PvpGX44I",
-        authDomain: "nailajasmin-c3d98.firebaseapp.com",
-        projectId: "nailajasmin-c3d98",
-        storageBucket: "nailajasmin-c3d98.firebasestorage.app",
-        messagingSenderId: "179905162603",
-        appId: "1:179905162603:web:f39f966d49b4719eeb302e",
-        measurementId: "G-V7220VWRK2",
-      };
+        // 🔑 Firebase config
+        const firebaseConfig = {
+            apiKey: "AIzaSyBC598epFdcqsFp9cg3y9-Fi40PvpGX44I",
+            authDomain: "nailajasmin-c3d98.firebaseapp.com",
+            projectId: "nailajasmin-c3d98",
+            storageBucket: "nailajasmin-c3d98.firebasestorage.app",
+            messagingSenderId: "179905162603",
+            appId: "1:179905162603:web:f39f966d49b4719eeb302e",
+            measurementId: "G-V7220VWRK2",
+        };
 
-      const app = initializeApp(firebaseConfig);
-      const db = getFirestore(app);
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
 
-      const btnLogin = document.getElementById("btnLogin");
-      const btnText = document.getElementById("btnText");
-      const btnSpinner = document.getElementById("btnSpinner");
+        const btnLogin = document.getElementById("btnLogin");
+        const btnText = document.getElementById("btnText");
+        const btnSpinner = document.getElementById("btnSpinner");
+        const togglePasswordBtn = document.getElementById("togglePasswordBtn");
 
-      btnLogin.addEventListener("click", async () => {
-        const email = document.getElementById("email").value.toLowerCase();
-        const password = document.getElementById("password").value;
-
-        if (!email || !password) {
-          showAlert("Email dan password wajib diisi!", "error");
-          return;
-        }
-
-        btnText.textContent = "Memproses...";
-        btnSpinner.classList.remove("hidden");
-
-        try {
-          // cari user berdasarkan email
-          const q = query(collection(db, "users"), where("email", "==", email));
-          const querySnapshot = await getDocs(q);
-
-          if (querySnapshot.empty) {
-            showAlert("Email tidak ditemukan!", "error");
-          } else {
-            const userData = querySnapshot.docs[0].data();
-
-            if (userData.password === password) {
-              // ⚠️ sebaiknya hash
-              localStorage.setItem("isLoggedIn", "true");
-              localStorage.setItem("userId", querySnapshot.docs[0].id);
-              localStorage.setItem("userRole", userData.role);
-              localStorage.setItem("userName", userData.nama);
-
-              const successModal = document.getElementById("successModal");
-              successModal.classList.remove("hidden");
-              setTimeout(() => successModal.classList.add("hidden"), 2000);
-
-              setTimeout(() => {
-                window.location.href = "index.html";
-              }, 2000);
+        // Feature: Show/Hide Password
+        togglePasswordBtn.addEventListener("click", () => {
+            const pwdInput = document.getElementById("password");
+            const eyeIcon = document.getElementById("eyeIcon");
+            if (pwdInput.type === "password") {
+                pwdInput.type = "text";
+                eyeIcon.classList.replace("fa-eye", "fa-eye-slash");
             } else {
-              showAlert("Password salah!", "error");
+                pwdInput.type = "password";
+                eyeIcon.classList.replace("fa-eye-slash", "fa-eye");
             }
-          }
-        } catch (err) {
-          console.error("Error login:", err);
-          showAlert("Terjadi kesalahan saat login.", "error");
-        } finally {
-          btnText.textContent = "Login";
-          btnSpinner.classList.add("hidden");
+        });
+
+        // Feature: Login
+        btnLogin.addEventListener("click", async () => {
+            const email = document.getElementById("email").value.toLowerCase().trim();
+            const password = document.getElementById("password").value;
+
+            if (!email || !password) {
+                showAlert("Email dan password wajib diisi!", "warning");
+                return;
+            }
+
+            // State: Loading
+            btnText.textContent = "Menghubungkan...";
+            btnSpinner.classList.remove("hidden");
+            btnLogin.disabled = true;
+
+            try {
+                const q = query(collection(db, "users"), where("email", "==", email));
+                const querySnapshot = await getDocs(q);
+
+                if (querySnapshot.empty) {
+                    showAlert("Email tidak ditemukan!", "error");
+                } else {
+                    const userData = querySnapshot.docs[0].data();
+
+                    if (userData.password === password) {
+                        localStorage.setItem("isLoggedIn", "true");
+                        localStorage.setItem("userId", querySnapshot.docs[0].id);
+                        localStorage.setItem("userRole", userData.role);
+                        localStorage.setItem("userName", userData.nama);
+
+                        showAlert("Login Berhasil! Mengalihkan...", "success");
+
+                        setTimeout(() => {
+                            window.location.href = "index.html";
+                        }, 1500);
+                    } else {
+                        showAlert("Password salah, silakan coba lagi.", "error");
+                    }
+                }
+            } catch (err) {
+                console.error(err);
+                showAlert("Terjadi gangguan koneksi.", "error");
+            } finally {
+                btnText.textContent = "Masuk ke Dashboard";
+                btnSpinner.classList.add("hidden");
+                btnLogin.disabled = false;
+            }
+        });
+
+        // Modern Alert Function
+        function showAlert(message, type = "success") {
+            const dialog = document.getElementById("alertDialog");
+            const box = document.getElementById("alertBox");
+            const title = document.getElementById("alertTitle");
+            const msg = document.getElementById("alertMessage");
+            const icon = document.getElementById("alertIcon");
+
+            const configs = {
+                success: { title: "SUKSES", color: "text-green-600", icon: "fa-circle-check text-green-500" },
+                error: { title: "GAGAL", color: "text-red-600", icon: "fa-circle-xmark text-red-500" },
+                warning: { title: "PERINGATAN", color: "text-amber-600", icon: "fa-triangle-exclamation text-amber-500" }
+            };
+
+            const config = configs[type];
+            title.textContent = config.title;
+            title.className = `text-xl font-black mb-2 italic ${config.color}`;
+            msg.textContent = message;
+            icon.innerHTML = `<i class="fa-solid ${config.icon} text-6xl"></i>`;
+
+            dialog.classList.remove("hidden");
+            setTimeout(() => {
+                box.classList.replace("opacity-0", "opacity-100");
+                box.classList.replace("scale-95", "scale-100");
+            }, 10);
+
+            // Hide automatically unless it's a redirecting success
+            if (type !== "success" || !message.includes("Mengalihkan")) {
+                setTimeout(() => {
+                    box.classList.replace("opacity-100", "opacity-0");
+                    box.classList.replace("scale-100", "scale-95");
+                    setTimeout(() => dialog.classList.add("hidden"), 300);
+                }, 2500);
+            }
         }
-      });
-      function showAlert(message, type = "success") {
-        const dialog = document.getElementById("alertDialog");
-        const box = document.getElementById("alertBox");
-        const title = document.getElementById("alertTitle");
-        const msg = document.getElementById("alertMessage");
-        const icon = document.getElementById("alertIcon");
-
-        msg.textContent = message;
-
-        // set warna & ikon sesuai type
-        if (type === "success") {
-          title.textContent = "Sukses";
-          title.className = "text-lg font-bold mb-2 text-green-600";
-          icon.innerHTML = `
-      <svg class="w-12 h-12 text-green-500 animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-          d="M5 13l4 4L19 7" />
-      </svg>`;
-        } else if (type === "error") {
-          title.textContent = "Error";
-          title.className = "text-lg font-bold mb-2 text-red-600";
-          icon.innerHTML = `
-      <svg class="w-12 h-12 text-red-500 animate-ping" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-          d="M6 18L18 6M6 6l12 12" />
-      </svg>`;
-        } else if (type === "warning") {
-          title.textContent = "Peringatan";
-          title.className = "text-lg font-bold mb-2 text-yellow-600";
-          icon.innerHTML = `
-      <svg class="w-12 h-12 text-yellow-500 animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-          d="M12 9v2m0 4h.01M12 5a7 7 0 100 14a7 7 0 000-14z" />
-      </svg>`;
-        }
-
-        // tampilkan dialog dengan animasi
-        dialog.classList.remove("hidden");
-        setTimeout(() => {
-          box.classList.remove("scale-95", "opacity-0");
-          box.classList.add("scale-100", "opacity-100");
-        }, 50);
-
-        // auto hide setelah 2.5 detik
-        setTimeout(() => {
-          box.classList.remove("scale-100", "opacity-100");
-          box.classList.add("scale-95", "opacity-0");
-          setTimeout(() => dialog.classList.add("hidden"), 300);
-        }, 2500);
-      }
     </script>
-  </body>
+</body>
 </html>

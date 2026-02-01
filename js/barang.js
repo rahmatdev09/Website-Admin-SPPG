@@ -480,6 +480,7 @@ async function updateTambahan(id, isTambahan) {
 }
 
 function showLoading() {
+    console.log("loading");
     const barangTable = document.getElementById("barangTable");
     const skeletonRow = `
         <tr class="animate-pulse border-b border-gray-100">
@@ -632,11 +633,12 @@ detailModal.addEventListener("click", (e) => {
 
 // Firestore listener
 onSnapshot(collection(db, "barang"), (snapshot) => {
+      showLoading();
   barangData = snapshot.docs.map((docSnap) => ({
     id: docSnap.id,
     ...docSnap.data(),
   }));
-    showLoading();
+  
   applyFilters(); // ✅ langsung pakai filter + sort terbaru
 });
 
@@ -680,6 +682,7 @@ function formatTanggalHari(tanggalStr) {
   });
   return `${hari}, ${tglFormat}`;
 }
+
 
 
 

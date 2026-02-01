@@ -223,26 +223,36 @@ function updateBadges() {
 }
 
 // FUNGSI UTAMA GENERATE
+// --- Perbaikan Fungsi Generate Agar Tidak Melewati Kontainer ---
 buatKolaseBtn.onclick = () => {
   if (selectedItems.length !== 4) return alert("Pilih tepat 4 item!");
   
   kolasePreview.innerHTML = "";
-  kolasePreview.className = "grid grid-cols-2 grid-rows-2 w-[500px] h-[500px] bg-white";
+  
+  // Gunakan aspect-square dan w-full agar mengikuti lebar modal (max-w-md atau lg)
+  // Hilangkan ukuran fixed seperti w-[500px]
+  kolasePreview.className = "grid grid-cols-2 grid-rows-2 w-full aspect-square bg-white border border-gray-200 shadow-inner overflow-hidden mx-auto";
   
   selectedItems.forEach(item => {
     const src = item.selectedFoto === "foto2" ? item.foto2 : item.foto1;
     const wrap = document.createElement("div");
-    wrap.className = "relative border-[0.5px] border-white";
+    // Gunakan border tipis antar gambar
+    wrap.className = "relative w-full h-full border-[0.5px] border-white overflow-hidden";
+    
     wrap.innerHTML = `
       <img src="${src}" class="w-full h-full object-cover" crossorigin="anonymous">
-      <div class="absolute bottom-1 left-1 bg-black/50 text-white text-[9px] p-1 rounded">
-        ${formatTanggalHari(item.tanggal)}<br>SPPG NAILA JASMIN
+      <div class="absolute bottom-1 left-1 bg-black/50 text-white text-[8px] md:text-[10px] p-1 rounded leading-tight pointer-events-none">
+        ${formatTanggalHari(item.tanggal)}<br>
+        SPPG NAILA JASMIN 📍
       </div>`;
     kolasePreview.appendChild(wrap);
   });
   
   kolasePreview.classList.remove("hidden");
   downloadKolaseBtn.classList.remove("hidden");
+  
+  // Scroll halus ke bawah agar hasil terlihat
+  kolasePreview.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 };
 
 // --- 5. FOTO SELECT MODAL ---
@@ -320,6 +330,7 @@ document.getElementById("closeDetail").onclick = () => {
 document.getElementById("closeTambah").onclick = () => {
     tambahModal.classList.add("hidden");
 };
+
 
 
 

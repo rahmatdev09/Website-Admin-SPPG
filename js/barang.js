@@ -20,6 +20,13 @@ const buatKolaseBtn = document.getElementById("buatKolaseBtn");
 const tambahModal = document.getElementById("tambahBarangModal");
 const detailModal = document.getElementById("detailModal");
 
+let transformState = [
+  { scale: 1, x: 0, y: 0 },
+  { scale: 1, x: 0, y: 0 },
+  { scale: 1, x: 0, y: 0 },
+  { scale: 1, x: 0, y: 0 }
+];
+
 let isInitialLoad = true; 
 let barangData = [];
 let filteredData = [];
@@ -228,31 +235,76 @@ buatKolaseBtn.onclick = () => {
   if (selectedItems.length !== 4) return alert("Pilih tepat 4 item!");
   
   kolasePreview.innerHTML = "";
-  
-  // Gunakan aspect-square dan w-full agar mengikuti lebar modal (max-w-md atau lg)
-  // Hilangkan ukuran fixed seperti w-[500px]
   kolasePreview.className = "grid grid-cols-2 grid-rows-2 w-full aspect-square bg-white border border-gray-200 shadow-inner overflow-hidden mx-auto";
   
-  selectedItems.forEach(item => {
+  // Reset transformasi setiap kali generate ulang
+  transformState = transformState.map(() => ({ scale: 1, x: 0, y: 0 }));
+
+  selectedItems.forEach((item, index) => {
     const src = item.selectedFoto === "foto2" ? item.foto2 : item.foto1;
     const wrap = document.createElement("div");
-    // Gunakan border tipis antar gambar
-    wrap.className = "relative w-full h-full border-[0.5px] border-white overflow-hidden";
-    
+    wrap.className = "relative w-full h-full border-[0.5px] border-white overflow-hidden cursor-move bg-gray-100";
+    wrap.dataset.index = index; // Simpan index untuk identifikasi saat edit
+
     wrap.innerHTML = `
-      <img src="${src}" class="w-full h-full object-cover" crossorigin="anonymous">
-      <div class="absolute bottom-1 left-1 bg-black/50 text-white text-[8px] md:text-[10px] p-1 rounded leading-tight pointer-events-none">
+      <img src="${src}" 
+           id="img-edit-${index}"
+           class="absolute w-full h-full object-cover origin-center transition-transform duration-75" 
+           style="transform: scale(1) translate(0px, 0px);"
+           crossorigin="anonymous">
+      <div class="absolute bottom-1 left-1 bg-black/50 text-white text-[8px] p-1 rounded pointer-events-none z-10">
         ${formatTanggalHari(item.tanggal)}<br>
         SPPG NAILA JASMIN 📍
+      </div>
+      <div class="absolute top-1 right-1 flex gap-1 z-20">
+         <button onclick="changeZoom(${index}, 0.1)" class="bg-white/80 hover:bg-white p-1 rounded shadow text-[10px]">➕</button>
+         <button onclick="changeZoom(${index}, -0.1)" class="bg-white/80 hover:bg-white p-1 rounded shadow text-[10px]">➖</button>
       </div>`;
+
+    // Fitur Geser (Drag to Pan)
+    let isDragging = false;
+    let startX, startY;
+
+    wrap.onmousedown = (e) => {
+      isDragging = true;
+      startX = e.clientX - transformState[index].x;
+      startY = e.clientY - transformState[index].y;
+      wrap.style.cursor = 'grabbing';
+    };
+
+    window.onmousemove = (e) => {
+      if (!isDragging) return;
+      transformState[index].x = e.clientX - startX;
+      transformState[index].y = e.clientY - startY;
+      updateImageTransform(index);
+    };
+
+    window.onmouseup = () => {
+      isDragging = false;
+      wrap.style.cursor = 'move';
+    };
+
     kolasePreview.appendChild(wrap);
   });
   
   kolasePreview.classList.remove("hidden");
   downloadKolaseBtn.classList.remove("hidden");
-  
-  // Scroll halus ke bawah agar hasil terlihat
-  kolasePreview.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+};
+
+// Fungsi untuk memperbarui tampilan gambar
+window.updateImageTransform = (index) => {
+  const img = document.getElementById(`img-edit-${index}`);
+  if (img) {
+    const { scale, x, y } = transformState[index];
+    // Translate harus dibagi scale agar pergerakan mouse sinkron dengan gambar
+    img.style.transform = `scale(${scale}) translate(${x / scale}px, ${y / scale}px)`;
+  }
+};
+
+// Fungsi untuk Zoom
+window.changeZoom = (index, delta) => {
+  transformState[index].scale = Math.max(1, transformState[index].scale + delta);
+  updateImageTransform(index);
 };
 
 // --- 5. FOTO SELECT MODAL ---
@@ -273,7 +325,11 @@ document.getElementById("fotoSelectOk").onclick = () => {
 
 // --- 6. DOWNLOAD ---
 downloadKolaseBtn.onclick = async () => {
-  const canvas = await html2canvas(kolasePreview, { useCORS: true });
+  const canvas = await html2canvas(kolasePreview, { 
+  useCORS: true, 
+  scale: 3, // Meningkatkan kualitas gambar hasil download meskipun preview di web terlihat kecil
+  logging: false 
+});
   const link = document.createElement("a");
   link.download = "kolase.png";
   link.href = canvas.toDataURL();
@@ -330,6 +386,7 @@ document.getElementById("closeDetail").onclick = () => {
 document.getElementById("closeTambah").onclick = () => {
     tambahModal.classList.add("hidden");
 };
+
 
 
 

@@ -8,7 +8,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
 import { openDetailModal } from "./detailBarang.js";
 
-// --- STATE & VARIABEL GLOBAL ---
+// --- 1. STATE & VARIABEL GLOBAL ---
 const barangTable = document.getElementById("barangTable");
 const pagination = document.getElementById("pagination");
 const searchInput = document.getElementById("searchInput");
@@ -16,19 +16,20 @@ const kolaseModal = document.getElementById("kolaseModal");
 const kolaseList = document.getElementById("kolaseList");
 const kolasePreview = document.getElementById("kolasePreview");
 const downloadKolaseBtn = document.getElementById("downloadKolaseBtn");
+const buatKolaseBtn = document.getElementById("buatKolaseBtn");
 const tambahModal = document.getElementById("tambahBarangModal");
 const detailModal = document.getElementById("detailModal");
 
 let isInitialLoad = true; 
 let barangData = [];
 let filteredData = [];
-let selectedItems = [];
+let selectedItems = []; // Menyimpan 4 item terpilih untuk kolase
 let currentPage = 1;
 const itemsPerPage = 5;
 let currentSelectItem = null;
 let kolaseSelectedDate = "";
 
-// --- 1. FIRESTORE LISTENER (SKELETON LOADING) ---
+// --- 2. FIRESTORE LISTENER (SKELETON LOADING) ---
 onSnapshot(collection(db, "barang"), (snapshot) => {
   if (isInitialLoad) {
     showLoading(); 
@@ -64,7 +65,7 @@ function showLoading() {
   barangTable.innerHTML = skeletonRow.repeat(5);
 }
 
-// --- 2. RENDER TABEL & PAGINATION (FIXED) ---
+// --- 3. RENDER TABEL & PAGINATION ---
 function renderTable() {
   const start = (currentPage - 1) * itemsPerPage;
   const end = start + itemsPerPage;
@@ -119,29 +120,21 @@ function renderPagination(totalItems) {
   const createBtn = (text, target, active = false, disabled = false) => {
     const btn = document.createElement("button");
     btn.textContent = text;
-    btn.className = `px-3 py-1 rounded transition-all ${active ? "bg-blue-600 text-white shadow-md" : "bg-gray-200 hover:bg-gray-300 text-gray-700"} ${disabled ? "opacity-40 cursor-not-allowed" : "cursor-pointer"}`;
+    btn.className = `px-3 py-1 rounded ${active ? "bg-blue-600 text-white" : "bg-gray-200 hover:bg-gray-300"} ${disabled ? "opacity-40 cursor-not-allowed" : "cursor-pointer"}`;
     btn.disabled = disabled;
     btn.onclick = () => { currentPage = target; renderTable(); renderPagination(totalItems); };
     return btn;
   };
 
-  // Tombol Prev
   pagination.appendChild(createBtn("« Prev", currentPage - 1, false, currentPage === 1));
-
-  // Logika Batasan Nomor Halaman (Max 5 nomor)
   let startPage = Math.max(1, currentPage - 2);
   let endPage = Math.min(totalPages, startPage + 4);
   if (endPage - startPage < 4) startPage = Math.max(1, endPage - 4);
-
-  for (let i = startPage; i <= endPage; i++) {
-    pagination.appendChild(createBtn(i, i, i === currentPage));
-  }
-
-  // Tombol Next
+  for (let i = startPage; i <= endPage; i++) pagination.appendChild(createBtn(i, i, i === currentPage));
   pagination.appendChild(createBtn("Next »", currentPage + 1, false, currentPage === totalPages));
 }
 
-// --- 3. FILTER & SEARCH ---
+// --- 4. FILTER & MODAL CLOSE ---
 function applyFilters() {
   const filterTanggal = document.getElementById("filterTanggal")?.value || "";
   const filterStatus = document.getElementById("filterStatus")?.value || "";
@@ -156,23 +149,18 @@ function applyFilters() {
   });
 
   filteredData.sort((a, b) => new Date(b.tanggal || 0) - new Date(a.tanggal || 0));
-  currentPage = 1; // Reset ke halaman 1 saat filter berubah
   renderTable();
   renderPagination(filteredData.length);
 }
 
-// --- 4. MODAL CLOSE LOGIC ---
-const closeDetail = () => { detailModal.classList.add("hidden"); detailModal.classList.remove("flex"); };
-const closeTambah = () => { tambahModal.classList.add("hidden"); tambahModal.classList.remove("flex"); };
+document.getElementById("closeDetail")?.addEventListener("click", () => { detailModal.classList.add("hidden"); detailModal.classList.remove("flex"); });
+document.getElementById("closeTambah")?.addEventListener("click", () => { tambahModal.classList.add("hidden"); tambahModal.classList.remove("flex"); });
 
-document.getElementById("closeDetail")?.addEventListener("click", closeDetail);
-document.getElementById("closeTambah")?.addEventListener("click", closeTambah);
-
-// --- 5. KOLASE LOGIC (PILIH GAMBAR & TOGGLE SELECT) ---
+// --- 5. LOGIKA KOLASE (PILIH & GANTI FOTO) ---
 document.getElementById("kolaseBtn").addEventListener("click", () => {
   kolaseModal.classList.remove("hidden");
   kolaseModal.classList.add("flex");
-  selectedItems = []; // Reset pilihan saat buka
+  selectedItems = [];
   renderKolaseList();
 });
 
@@ -188,25 +176,20 @@ function renderKolaseList() {
 
   vItems.forEach((item) => {
     const div = document.createElement("div");
-    div.className = "border rounded-lg p-2 hover:bg-blue-50 relative cursor-pointer group";
+    div.className = "border rounded-lg p-2 hover:bg-blue-50 relative cursor-pointer";
     div.innerHTML = `
-      <div class="relative overflow-hidden rounded-lg mb-2">
-        <img src="${item.foto1 || ""}" class="w-full h-32 object-cover" id="thumb-${item.id}">
-        <div class="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 flex items-center justify-center text-white text-[10px] font-bold">GANTI FOTO</div>
-      </div>
+      <img src="${item.foto1 || ""}" class="w-full h-32 object-cover rounded-lg mb-2" id="thumb-${item.id}">
       <p class="text-sm font-medium text-gray-700 truncate">${item.nama}</p>
       <span class="orderBadge absolute top-2 left-2 bg-blue-600 text-white text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full hidden"></span>
     `;
-
-    // Klik gambar = Ganti sumber foto
-    div.querySelector("img").addEventListener("click", (e) => {
-      e.stopPropagation();
-      currentSelectItem = item;
-      openFotoSelectModal(item);
-    });
-
-    // Klik div = Pilih untuk kolase
-    div.addEventListener("click", () => toggleSelect(item, div));
+    // Tombol ganti foto tersembunyi (klik pada gambar)
+    div.querySelector("img").onclick = (e) => { 
+      e.stopPropagation(); 
+      currentSelectItem = item; 
+      openFotoSelectModal(item); 
+    };
+    // Seleksi item
+    div.onclick = () => toggleSelect(item, div);
     kolaseList.appendChild(div);
   });
 }
@@ -214,7 +197,6 @@ function renderKolaseList() {
 function toggleSelect(item, div) {
   const idx = selectedItems.findIndex(i => i.id === item.id);
   const badge = div.querySelector(".orderBadge");
-
   if (idx >= 0) {
     selectedItems.splice(idx, 1);
     div.classList.remove("ring-2", "ring-blue-600", "bg-blue-50");
@@ -230,8 +212,7 @@ function toggleSelect(item, div) {
 
 function updateOrderBadges() {
   const divs = [...kolaseList.children];
-  divs.forEach(d => d.querySelector(".orderBadge").classList.add("hidden")); // Reset semua dulu
-
+  divs.forEach(d => d.querySelector(".orderBadge").classList.add("hidden"));
   selectedItems.forEach((item, index) => {
     const targetDiv = divs.find(d => d.querySelector("p").textContent === item.nama);
     if (targetDiv) {
@@ -259,7 +240,46 @@ document.getElementById("fotoSelectOk").onclick = () => {
   document.getElementById("fotoSelectModal").classList.add("hidden");
 };
 
-// --- 6. EVENT & LISTENERS ---
+// --- 6. GENERATE KOLASE (FIXED) ---
+buatKolaseBtn.addEventListener("click", () => {
+  if (selectedItems.length !== 4) {
+    alert(`Pilih tepat 4 item! (Baru terpilih: ${selectedItems.length})`);
+    return;
+  }
+
+  kolasePreview.innerHTML = "";
+  kolasePreview.className = "grid grid-cols-2 grid-rows-2 w-[500px] h-[500px] gap-0 border-2 border-white shadow-xl bg-white";
+
+  selectedItems.forEach(item => {
+    const imgSrc = item.selectedFoto === "foto2" ? item.foto2 : item.foto1;
+    const wrapper = document.createElement("div");
+    wrapper.className = "relative w-full h-full overflow-hidden border-[0.5px] border-white";
+    wrapper.innerHTML = `
+      <img src="${imgSrc}" class="w-full h-full object-cover" crossorigin="anonymous">
+      <div class="absolute bottom-1 left-1 bg-black/60 text-white text-[9px] p-1 leading-tight rounded">
+        ${formatTanggalHari(item.tanggal)} ${item.jam || ""}<br>
+        SPPG NAILA JASMIN 📍
+      </div>`;
+    kolasePreview.appendChild(wrapper);
+  });
+
+  kolasePreview.classList.remove("hidden");
+  downloadKolaseBtn.classList.remove("hidden");
+});
+
+// --- 7. DOWNLOAD (HTML2CANVAS) ---
+downloadKolaseBtn.addEventListener("click", async () => {
+  if (typeof html2canvas === "undefined") return alert("Library html2canvas belum dimuat!");
+  
+  const canvas = await html2canvas(kolasePreview, { useCORS: true, scale: 2 });
+  const fileName = document.getElementById("kolaseFileName")?.value || "kolase-sppg";
+  const link = document.createElement("a");
+  link.download = fileName + ".png";
+  link.href = canvas.toDataURL("image/png");
+  link.click();
+});
+
+// --- 8. UTILS & EVENT DELEGATION ---
 barangTable.addEventListener("click", async (e) => {
   const btnHapus = e.target.closest(".btn-hapus");
   if (btnHapus) {
@@ -274,14 +294,6 @@ barangTable.addEventListener("click", async (e) => {
   }
 });
 
-searchInput.addEventListener("input", applyFilters);
-document.getElementById("filterTanggal")?.addEventListener("change", applyFilters);
-document.getElementById("kolaseFilterTanggal")?.addEventListener("change", (e) => {
-  kolaseSelectedDate = e.target.value;
-  renderKolaseList();
-});
-
-// Utils
 function formatTanggalHari(t) {
   if (!t) return "-";
   const d = new Date(t);
@@ -292,3 +304,10 @@ function toISODateOnly(dateStr) {
   const d = new Date(dateStr);
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
+
+searchInput.addEventListener("input", applyFilters);
+document.getElementById("filterTanggal")?.addEventListener("change", applyFilters);
+document.getElementById("kolaseFilterTanggal")?.addEventListener("change", (e) => {
+  kolaseSelectedDate = e.target.value;
+  renderKolaseList();
+});

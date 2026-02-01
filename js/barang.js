@@ -245,7 +245,7 @@ buatKolaseBtn.onclick = () => {
     const wrap = document.createElement("div");
     wrap.className = "relative w-full h-full border-[0.5px] border-white overflow-hidden cursor-move bg-gray-100";
     
-    wrap.innerHTML = `
+  wrap.innerHTML = `
       <img src="${src}" 
            id="img-edit-${index}"
            class="absolute w-full h-full object-cover origin-center transition-transform duration-75 pointer-events-none" 
@@ -255,7 +255,8 @@ buatKolaseBtn.onclick = () => {
         ${formatTanggalHari(item.tanggal)}<br>
         SPPG NAILA JASMIN 📍
       </div>
-      <div class="absolute top-1 right-1 flex gap-1 z-20">
+      
+      <div class="absolute top-1 right-1 flex gap-1 z-20" data-html2canvas-ignore="true">
          <button class="btn-zoom-in bg-white/80 hover:bg-white p-1 rounded shadow text-[10px]">➕</button>
          <button class="btn-zoom-out bg-white/80 hover:bg-white p-1 rounded shadow text-[10px]">➖</button>
       </div>`;
@@ -396,6 +397,7 @@ document.getElementById("closeDetail").onclick = () => {
 document.getElementById("closeTambah").onclick = () => {
     tambahModal.classList.add("hidden");
 };
+
 
 
 

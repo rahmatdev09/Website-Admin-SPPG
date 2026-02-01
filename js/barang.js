@@ -273,5 +273,12 @@ barangTable.addEventListener("click", async (e) => {
 
 searchInput.addEventListener("input", applyFilters);
 document.getElementById("filterTanggal")?.addEventListener("change", applyFilters);
-document.getElementById("closeDetail")?.onclick = () => detailModal.classList.add("hidden");
-document.getElementById("closeTambah")?.onclick = () => tambahModal.classList.add("hidden");
+document.getElementById("closeDetail").onclick = () => {
+    detailModal.classList.add("hidden");
+};
+
+document.getElementById("closeTambah").onclick = () => {
+    tambahModal.classList.add("hidden");
+};
+
+

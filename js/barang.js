@@ -133,51 +133,91 @@ document.getElementById("closeKolase").addEventListener("click", () => kolaseMod
 
 function renderKolaseList() {
   kolaseList.innerHTML = "";
+  // Filter hanya yang sudah diverifikasi admin & user
   let vItems = barangData.filter(i => i.verifikasi && i.verifikasiAdmin);
-  if (kolaseSelectedDate) vItems = vItems.filter(i => toISODateOnly(i.tanggal) === kolaseSelectedDate);
+  
+  if (kolaseSelectedDate) {
+    vItems = vItems.filter(i => toISODateOnly(i.tanggal) === kolaseSelectedDate);
+  }
+
+  if (vItems.length === 0) {
+    kolaseList.innerHTML = `<p class="text-center text-gray-500 col-span-2 py-10">Tidak ada barang yang memenuhi syarat.</p>`;
+    return;
+  }
 
   vItems.forEach((item) => {
+    const isSelected = selectedItems.find(s => s.id === item.id);
     const div = document.createElement("div");
-    div.className = "border rounded-lg p-2 hover:bg-blue-50 relative cursor-pointer";
+    
+    // Tambahkan class ring jika item sudah terpilih sebelumnya
+    div.className = `border rounded-lg p-2 hover:bg-blue-50 relative cursor-pointer transition-all ${isSelected ? 'ring-2 ring-blue-600 bg-blue-50' : ''}`;
+    div.setAttribute("data-id", item.id);
+    
     div.innerHTML = `
-      <img src="${item.foto1 || ""}" class="w-full h-32 object-cover rounded-lg mb-2 img-kolase-item" id="thumb-${item.id}">
+      <div class="relative overflow-hidden rounded-lg mb-2">
+        <img src="${item.foto1 || ""}" class="w-full h-32 object-cover" id="thumb-${item.id}">
+        <div class="btn-ganti-foto absolute inset-0 bg-black/20 opacity-0 hover:opacity-100 flex items-center justify-center text-white text-[10px] font-bold transition-opacity">
+          GANTI FOTO
+        </div>
+      </div>
       <p class="text-sm font-medium text-gray-700 truncate">${item.nama}</p>
-      <span class="orderBadge absolute top-2 left-2 bg-blue-600 text-white text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full hidden"></span>
+      <span class="orderBadge absolute top-2 left-2 bg-blue-600 text-white text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full ${isSelected ? '' : 'hidden'}"></span>
     `;
 
-    // Klik Gambar -> Pilih Foto 1/2
-    div.querySelector(".img-kolase-item").onclick = (e) => {
-      e.stopPropagation();
+    // 1. Logika Klik Ganti Foto (Klik pada area gambar)
+    div.querySelector(".btn-ganti-foto").onclick = (e) => {
+      e.stopPropagation(); // Mencegah trigger seleksi item
       currentSelectItem = item;
       openFotoSelectModal(item);
     };
 
-    // Klik Card -> Pilih Item
+    // 2. Logika Klik Seleksi (Klik pada area card/luar gambar)
     div.onclick = () => {
-      const idx = selectedItems.findIndex(s => s.id === item.id);
-      if (idx >= 0) {
-        selectedItems.splice(idx, 1);
-        div.classList.remove("ring-2", "ring-blue-600");
-      } else {
-        if (selectedItems.length >= 4) return alert("Maksimal 4!");
-        selectedItems.push(item);
-        div.classList.add("ring-2", "ring-blue-600");
-      }
-      updateBadges();
+      toggleSelect(item, div);
     };
+
     kolaseList.appendChild(div);
   });
+  
+  updateBadges(); // Pastikan nomor urut muncul jika sudah ada yang terpilih
+}
+
+function toggleSelect(item, div) {
+  const idx = selectedItems.findIndex(s => s.id === item.id);
+  
+  if (idx >= 0) {
+    // Jika sudah ada, hapus dari seleksi
+    selectedItems.splice(idx, 1);
+    div.classList.remove("ring-2", "ring-blue-600", "bg-blue-50");
+  } else {
+    // Jika belum ada, tambahkan (maksimal 4)
+    if (selectedItems.length >= 4) {
+      alert("Maksimal hanya boleh memilih 4 item!");
+      return;
+    }
+    selectedItems.push(item);
+    div.classList.add("ring-2", "ring-blue-600", "bg-blue-50");
+  }
+  
+  updateBadges();
 }
 
 function updateBadges() {
   const allDivs = [...kolaseList.children];
-  allDivs.forEach(d => d.querySelector(".orderBadge").classList.add("hidden"));
+  
+  // Sembunyikan semua badge dulu
+  allDivs.forEach(d => {
+    const b = d.querySelector(".orderBadge");
+    if (b) b.classList.add("hidden");
+  });
+
+  // Tampilkan badge sesuai urutan di array selectedItems
   selectedItems.forEach((item, i) => {
-    const target = allDivs.find(d => d.querySelector("p").textContent === item.nama);
-    if (target) {
-      const b = target.querySelector(".orderBadge");
-      b.classList.remove("hidden");
-      b.textContent = i + 1;
+    const targetDiv = allDivs.find(d => d.getAttribute("data-id") === item.id);
+    if (targetDiv) {
+      const badge = targetDiv.querySelector(".orderBadge");
+      badge.classList.remove("hidden");
+      badge.textContent = i + 1;
     }
   });
 }
@@ -280,5 +320,6 @@ document.getElementById("closeDetail").onclick = () => {
 document.getElementById("closeTambah").onclick = () => {
     tambahModal.classList.add("hidden");
 };
+
 
 

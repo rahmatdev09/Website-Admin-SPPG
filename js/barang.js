@@ -237,19 +237,18 @@ buatKolaseBtn.onclick = () => {
   kolasePreview.innerHTML = "";
   kolasePreview.className = "grid grid-cols-2 grid-rows-2 w-full aspect-square bg-white border border-gray-200 shadow-inner overflow-hidden mx-auto";
   
-  // Reset transformasi setiap kali generate ulang
+  // Reset transformasi
   transformState = transformState.map(() => ({ scale: 1, x: 0, y: 0 }));
 
   selectedItems.forEach((item, index) => {
     const src = item.selectedFoto === "foto2" ? item.foto2 : item.foto1;
     const wrap = document.createElement("div");
     wrap.className = "relative w-full h-full border-[0.5px] border-white overflow-hidden cursor-move bg-gray-100";
-    wrap.dataset.index = index; // Simpan index untuk identifikasi saat edit
-
+    
     wrap.innerHTML = `
       <img src="${src}" 
            id="img-edit-${index}"
-           class="absolute w-full h-full object-cover origin-center transition-transform duration-75" 
+           class="absolute w-full h-full object-cover origin-center transition-transform duration-75 pointer-events-none" 
            style="transform: scale(1) translate(0px, 0px);"
            crossorigin="anonymous">
       <div class="absolute bottom-1 left-1 bg-black/50 text-white text-[8px] p-1 rounded pointer-events-none z-10">
@@ -257,32 +256,43 @@ buatKolaseBtn.onclick = () => {
         SPPG NAILA JASMIN 📍
       </div>
       <div class="absolute top-1 right-1 flex gap-1 z-20">
-         <button onclick="changeZoom(${index}, 0.1)" class="bg-white/80 hover:bg-white p-1 rounded shadow text-[10px]">➕</button>
-         <button onclick="changeZoom(${index}, -0.1)" class="bg-white/80 hover:bg-white p-1 rounded shadow text-[10px]">➖</button>
+         <button class="btn-zoom-in bg-white/80 hover:bg-white p-1 rounded shadow text-[10px]">➕</button>
+         <button class="btn-zoom-out bg-white/80 hover:bg-white p-1 rounded shadow text-[10px]">➖</button>
       </div>`;
 
-    // Fitur Geser (Drag to Pan)
+    // Ambil referensi tombol zoom
+    wrap.querySelector(".btn-zoom-in").onclick = (e) => { e.stopPropagation(); changeZoom(index, 0.1); };
+    wrap.querySelector(".btn-zoom-out").onclick = (e) => { e.stopPropagation(); changeZoom(index, -0.1); };
+
+    // --- Logika Drag and Drop yang Diperbaiki ---
     let isDragging = false;
     let startX, startY;
 
-    wrap.onmousedown = (e) => {
+    wrap.addEventListener('mousedown', (e) => {
       isDragging = true;
       startX = e.clientX - transformState[index].x;
       startY = e.clientY - transformState[index].y;
       wrap.style.cursor = 'grabbing';
-    };
+    });
 
-    window.onmousemove = (e) => {
+    // Gunakan document agar drag tetap mulus meski mouse keluar sedikit dari kotak
+    const mouseMoveHandler = (e) => {
       if (!isDragging) return;
       transformState[index].x = e.clientX - startX;
       transformState[index].y = e.clientY - startY;
       updateImageTransform(index);
     };
 
-    window.onmouseup = () => {
-      isDragging = false;
-      wrap.style.cursor = 'move';
+    const mouseUpHandler = () => {
+      if (isDragging) {
+        isDragging = false;
+        wrap.style.cursor = 'move';
+      }
     };
+
+    // Tambahkan listener secara global namun tetap dalam scope index masing-masing
+    document.addEventListener('mousemove', mouseMoveHandler);
+    document.addEventListener('mouseup', mouseUpHandler);
 
     kolasePreview.appendChild(wrap);
   });
@@ -386,6 +396,7 @@ document.getElementById("closeDetail").onclick = () => {
 document.getElementById("closeTambah").onclick = () => {
     tambahModal.classList.add("hidden");
 };
+
 
 
 

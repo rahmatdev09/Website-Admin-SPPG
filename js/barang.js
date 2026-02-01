@@ -23,17 +23,15 @@ const detailModal = document.getElementById("detailModal");
 let isInitialLoad = true; 
 let barangData = [];
 let filteredData = [];
-let selectedItems = []; // Menyimpan 4 item terpilih untuk kolase
+let selectedItems = []; 
 let currentPage = 1;
 const itemsPerPage = 5;
 let currentSelectItem = null;
 let kolaseSelectedDate = "";
 
-// --- 2. FIRESTORE LISTENER (SKELETON LOADING) ---
+// --- 2. FIRESTORE LISTENER ---
 onSnapshot(collection(db, "barang"), (snapshot) => {
-  if (isInitialLoad) {
-    showLoading(); 
-  }
+  if (isInitialLoad) showLoading();
 
   barangData = snapshot.docs.map((docSnap) => ({
     id: docSnap.id,
@@ -65,7 +63,7 @@ function showLoading() {
   barangTable.innerHTML = skeletonRow.repeat(5);
 }
 
-// --- 3. RENDER TABEL & PAGINATION ---
+// --- 3. TABEL & PAGINATION ---
 function renderTable() {
   const start = (currentPage - 1) * itemsPerPage;
   const end = start + itemsPerPage;
@@ -93,21 +91,11 @@ function renderTable() {
               <div class="font-bold text-gray-800">${data.nama}</div>
               <div class="text-[11px] text-gray-400 flex items-center gap-1"><i class="fa-regular fa-calendar-check"></i> ${formatTanggalHari(data.tanggal)}</div>
           </td>
-          <td class="px-6 py-4 text-center">
-              <div class="flex items-center justify-center gap-2">
-                  <span class="font-semibold text-gray-700">${data.jumlahKebutuhan}</span>
-                  <span class="text-gray-300">/</span>
-                  <span class="font-bold text-blue-600">${data.jumlahDatang}</span>
-              </div>
-          </td>
+          <td class="px-6 py-4 text-center"><div class="flex items-center justify-center gap-2"><span class="font-semibold text-gray-700">${data.jumlahKebutuhan}</span><span class="text-gray-300">/</span><span class="font-bold text-blue-600">${data.jumlahDatang}</span></div></td>
           <td class="px-6 py-4">${data.tambahan ? `<span class="bg-blue-50 text-blue-600 text-[10px] font-bold px-2 py-1 rounded border border-blue-100">TAMBAHAN</span>` : `<span class="text-gray-400 text-[10px] font-bold">UTAMA</span>`}</td>
           <td class="px-6 py-4">${statusBadge}</td>
           <td class="px-6 py-4">${adminBadge}</td>
-          <td class="px-6 py-4 text-center">
-              <button class="btn-hapus p-2 text-gray-300 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all" data-id="${data.id}" data-nama="${data.nama}">
-                  <i class="fa-solid fa-trash-can pointer-events-none"></i>
-              </button>
-          </td>
+          <td class="px-6 py-4 text-center"><button class="btn-hapus p-2 text-gray-300 hover:text-red-600 rounded-lg" data-id="${data.id}" data-nama="${data.nama}"><i class="fa-solid fa-trash-can pointer-events-none"></i></button></td>
       </tr>`;
   }).join('');
 }
@@ -120,54 +108,28 @@ function renderPagination(totalItems) {
   const createBtn = (text, target, active = false, disabled = false) => {
     const btn = document.createElement("button");
     btn.textContent = text;
-    btn.className = `px-3 py-1 rounded ${active ? "bg-blue-600 text-white" : "bg-gray-200 hover:bg-gray-300"} ${disabled ? "opacity-40 cursor-not-allowed" : "cursor-pointer"}`;
+    btn.className = `px-3 py-1 rounded ${active ? "bg-blue-600 text-white" : "bg-gray-200 hover:bg-gray-300"} ${disabled ? "opacity-40 cursor-not-allowed" : ""}`;
     btn.disabled = disabled;
     btn.onclick = () => { currentPage = target; renderTable(); renderPagination(totalItems); };
     return btn;
   };
 
-  pagination.appendChild(createBtn("« Prev", currentPage - 1, false, currentPage === 1));
-  let startPage = Math.max(1, currentPage - 2);
-  let endPage = Math.min(totalPages, startPage + 4);
-  if (endPage - startPage < 4) startPage = Math.max(1, endPage - 4);
-  for (let i = startPage; i <= endPage; i++) pagination.appendChild(createBtn(i, i, i === currentPage));
-  pagination.appendChild(createBtn("Next »", currentPage + 1, false, currentPage === totalPages));
+  pagination.appendChild(createBtn("«", currentPage - 1, false, currentPage === 1));
+  let start = Math.max(1, currentPage - 2);
+  let end = Math.min(totalPages, start + 4);
+  if (end - start < 4) start = Math.max(1, end - 4);
+  for (let i = start; i <= end; i++) pagination.appendChild(createBtn(i, i, i === currentPage));
+  pagination.appendChild(createBtn("»", currentPage + 1, false, currentPage === totalPages));
 }
 
-// --- 4. FILTER & MODAL CLOSE ---
-function applyFilters() {
-  const filterTanggal = document.getElementById("filterTanggal")?.value || "";
-  const filterStatus = document.getElementById("filterStatus")?.value || "";
-  const keyword = searchInput.value.toLowerCase();
-
-  filteredData = barangData.filter((item) => {
-    let match = item.nama.toLowerCase().includes(keyword);
-    if (filterTanggal) match = match && item.tanggal === filterTanggal;
-    if (filterStatus === "diverifikasi") match = match && item.verifikasi === true;
-    else if (filterStatus === "menunggu") match = match && item.verifikasi === false;
-    return match;
-  });
-
-  filteredData.sort((a, b) => new Date(b.tanggal || 0) - new Date(a.tanggal || 0));
-  renderTable();
-  renderPagination(filteredData.length);
-}
-
-document.getElementById("closeDetail")?.addEventListener("click", () => { detailModal.classList.add("hidden"); detailModal.classList.remove("flex"); });
-document.getElementById("closeTambah")?.addEventListener("click", () => { tambahModal.classList.add("hidden"); tambahModal.classList.remove("flex"); });
-
-// --- 5. LOGIKA KOLASE (PILIH & GANTI FOTO) ---
+// --- 4. LOGIKA KOLASE (PILIH & GENERATE) ---
 document.getElementById("kolaseBtn").addEventListener("click", () => {
-  kolaseModal.classList.remove("hidden");
-  kolaseModal.classList.add("flex");
-  selectedItems = [];
+  kolaseModal.classList.replace("hidden", "flex");
+  selectedItems = []; 
   renderKolaseList();
 });
 
-document.getElementById("closeKolase").addEventListener("click", () => {
-  kolaseModal.classList.add("hidden");
-  kolaseModal.classList.remove("flex");
-});
+document.getElementById("closeKolase").addEventListener("click", () => kolaseModal.classList.replace("flex", "hidden"));
 
 function renderKolaseList() {
   kolaseList.innerHTML = "";
@@ -178,136 +140,138 @@ function renderKolaseList() {
     const div = document.createElement("div");
     div.className = "border rounded-lg p-2 hover:bg-blue-50 relative cursor-pointer";
     div.innerHTML = `
-      <img src="${item.foto1 || ""}" class="w-full h-32 object-cover rounded-lg mb-2" id="thumb-${item.id}">
+      <img src="${item.foto1 || ""}" class="w-full h-32 object-cover rounded-lg mb-2 img-kolase-item" id="thumb-${item.id}">
       <p class="text-sm font-medium text-gray-700 truncate">${item.nama}</p>
       <span class="orderBadge absolute top-2 left-2 bg-blue-600 text-white text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full hidden"></span>
     `;
-    // Tombol ganti foto tersembunyi (klik pada gambar)
-    div.querySelector("img").onclick = (e) => { 
-      e.stopPropagation(); 
-      currentSelectItem = item; 
-      openFotoSelectModal(item); 
+
+    // Klik Gambar -> Pilih Foto 1/2
+    div.querySelector(".img-kolase-item").onclick = (e) => {
+      e.stopPropagation();
+      currentSelectItem = item;
+      openFotoSelectModal(item);
     };
-    // Seleksi item
-    div.onclick = () => toggleSelect(item, div);
+
+    // Klik Card -> Pilih Item
+    div.onclick = () => {
+      const idx = selectedItems.findIndex(s => s.id === item.id);
+      if (idx >= 0) {
+        selectedItems.splice(idx, 1);
+        div.classList.remove("ring-2", "ring-blue-600");
+      } else {
+        if (selectedItems.length >= 4) return alert("Maksimal 4!");
+        selectedItems.push(item);
+        div.classList.add("ring-2", "ring-blue-600");
+      }
+      updateBadges();
+    };
     kolaseList.appendChild(div);
   });
 }
 
-function toggleSelect(item, div) {
-  const idx = selectedItems.findIndex(i => i.id === item.id);
-  const badge = div.querySelector(".orderBadge");
-  if (idx >= 0) {
-    selectedItems.splice(idx, 1);
-    div.classList.remove("ring-2", "ring-blue-600", "bg-blue-50");
-    badge.classList.add("hidden");
-  } else {
-    if (selectedItems.length >= 4) return alert("Maksimal 4 item!");
-    selectedItems.push(item);
-    div.classList.add("ring-2", "ring-blue-600", "bg-blue-50");
-    badge.classList.remove("hidden");
-  }
-  updateOrderBadges();
-}
-
-function updateOrderBadges() {
-  const divs = [...kolaseList.children];
-  divs.forEach(d => d.querySelector(".orderBadge").classList.add("hidden"));
-  selectedItems.forEach((item, index) => {
-    const targetDiv = divs.find(d => d.querySelector("p").textContent === item.nama);
-    if (targetDiv) {
-      const b = targetDiv.querySelector(".orderBadge");
+function updateBadges() {
+  const allDivs = [...kolaseList.children];
+  allDivs.forEach(d => d.querySelector(".orderBadge").classList.add("hidden"));
+  selectedItems.forEach((item, i) => {
+    const target = allDivs.find(d => d.querySelector("p").textContent === item.nama);
+    if (target) {
+      const b = target.querySelector(".orderBadge");
       b.classList.remove("hidden");
-      b.textContent = index + 1;
+      b.textContent = i + 1;
     }
   });
 }
 
+// FUNGSI UTAMA GENERATE
+buatKolaseBtn.onclick = () => {
+  if (selectedItems.length !== 4) return alert("Pilih tepat 4 item!");
+  
+  kolasePreview.innerHTML = "";
+  kolasePreview.className = "grid grid-cols-2 grid-rows-2 w-[500px] h-[500px] bg-white";
+  
+  selectedItems.forEach(item => {
+    const src = item.selectedFoto === "foto2" ? item.foto2 : item.foto1;
+    const wrap = document.createElement("div");
+    wrap.className = "relative border-[0.5px] border-white";
+    wrap.innerHTML = `
+      <img src="${src}" class="w-full h-full object-cover" crossorigin="anonymous">
+      <div class="absolute bottom-1 left-1 bg-black/50 text-white text-[9px] p-1 rounded">
+        ${formatTanggalHari(item.tanggal)}<br>SPPG NAILA JASMIN
+      </div>`;
+    kolasePreview.appendChild(wrap);
+  });
+  
+  kolasePreview.classList.remove("hidden");
+  downloadKolaseBtn.classList.remove("hidden");
+};
+
+// --- 5. FOTO SELECT MODAL ---
 function openFotoSelectModal(item) {
-  const options = document.getElementById("fotoSelectOptions");
-  options.innerHTML = `
-    <label class="cursor-pointer flex flex-col items-center"><input type="radio" name="fc" value="f1" checked><img src="${item.foto1}" class="w-20 h-20 object-cover rounded mt-1"></label>
-    <label class="cursor-pointer flex flex-col items-center"><input type="radio" name="fc" value="f2"><img src="${item.foto2}" class="w-20 h-20 object-cover rounded mt-1"></label>
-  `;
+  const opt = document.getElementById("fotoSelectOptions");
+  opt.innerHTML = `
+    <label class="flex flex-col items-center"><input type="radio" name="fc" value="f1" checked><img src="${item.foto1}" class="w-20 h-20 object-cover mt-1"></label>
+    <label class="flex flex-col items-center"><input type="radio" name="fc" value="f2"><img src="${item.foto2}" class="w-20 h-20 object-cover mt-1"></label>`;
   document.getElementById("fotoSelectModal").classList.remove("hidden");
 }
 
 document.getElementById("fotoSelectOk").onclick = () => {
-  const choice = document.querySelector("input[name='fc']:checked").value;
-  currentSelectItem.selectedFoto = choice === "f2" ? "foto2" : "foto1";
-  const thumb = document.getElementById(`thumb-${currentSelectItem.id}`);
-  if (thumb) thumb.src = choice === "f2" ? currentSelectItem.foto2 : currentSelectItem.foto1;
+  const val = document.querySelector("input[name='fc']:checked").value;
+  currentSelectItem.selectedFoto = (val === "f2") ? "foto2" : "foto1";
+  document.getElementById(`thumb-${currentSelectItem.id}`).src = (val === "f2") ? currentSelectItem.foto2 : currentSelectItem.foto1;
   document.getElementById("fotoSelectModal").classList.add("hidden");
 };
 
-// --- 6. GENERATE KOLASE (FIXED) ---
-buatKolaseBtn.addEventListener("click", () => {
-  if (selectedItems.length !== 4) {
-    alert(`Pilih tepat 4 item! (Baru terpilih: ${selectedItems.length})`);
-    return;
-  }
-
-  kolasePreview.innerHTML = "";
-  kolasePreview.className = "grid grid-cols-2 grid-rows-2 w-[500px] h-[500px] gap-0 border-2 border-white shadow-xl bg-white";
-
-  selectedItems.forEach(item => {
-    const imgSrc = item.selectedFoto === "foto2" ? item.foto2 : item.foto1;
-    const wrapper = document.createElement("div");
-    wrapper.className = "relative w-full h-full overflow-hidden border-[0.5px] border-white";
-    wrapper.innerHTML = `
-      <img src="${imgSrc}" class="w-full h-full object-cover" crossorigin="anonymous">
-      <div class="absolute bottom-1 left-1 bg-black/60 text-white text-[9px] p-1 leading-tight rounded">
-        ${formatTanggalHari(item.tanggal)} ${item.jam || ""}<br>
-        SPPG NAILA JASMIN 📍
-      </div>`;
-    kolasePreview.appendChild(wrapper);
-  });
-
-  kolasePreview.classList.remove("hidden");
-  downloadKolaseBtn.classList.remove("hidden");
-});
-
-// --- 7. DOWNLOAD (HTML2CANVAS) ---
-downloadKolaseBtn.addEventListener("click", async () => {
-  if (typeof html2canvas === "undefined") return alert("Library html2canvas belum dimuat!");
-  
-  const canvas = await html2canvas(kolasePreview, { useCORS: true, scale: 2 });
-  const fileName = document.getElementById("kolaseFileName")?.value || "kolase-sppg";
+// --- 6. DOWNLOAD ---
+downloadKolaseBtn.onclick = async () => {
+  const canvas = await html2canvas(kolasePreview, { useCORS: true });
   const link = document.createElement("a");
-  link.download = fileName + ".png";
-  link.href = canvas.toDataURL("image/png");
+  link.download = "kolase.png";
+  link.href = canvas.toDataURL();
   link.click();
-});
+};
 
-// --- 8. UTILS & EVENT DELEGATION ---
-barangTable.addEventListener("click", async (e) => {
-  const btnHapus = e.target.closest(".btn-hapus");
-  if (btnHapus) {
-    e.stopPropagation();
-    if (confirm(`Hapus "${btnHapus.dataset.nama}"?`)) await deleteDoc(doc(db, "barang", btnHapus.dataset.id));
-    return;
-  }
-  const row = e.target.closest(".row-barang");
-  if (row) {
-    const data = filteredData.find(i => i.id === row.dataset.id);
-    if (data) openDetailModal(data);
-  }
-});
+// --- 7. UTILS & FILTER ---
+function applyFilters() {
+  const tgl = document.getElementById("filterTanggal")?.value || "";
+  const st = document.getElementById("filterStatus")?.value || "";
+  const kw = searchInput.value.toLowerCase();
+
+  filteredData = barangData.filter(i => {
+    let m = i.nama.toLowerCase().includes(kw);
+    if (tgl) m = m && i.tanggal === tgl;
+    if (st === "diverifikasi") m = m && i.verifikasi === true;
+    else if (st === "menunggu") m = m && i.verifikasi === false;
+    return m;
+  });
+  renderTable();
+  renderPagination(filteredData.length);
+}
 
 function formatTanggalHari(t) {
   if (!t) return "-";
-  const d = new Date(t);
-  return d.toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+  return new Date(t).toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
 }
 
-function toISODateOnly(dateStr) {
-  const d = new Date(dateStr);
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+function toISODateOnly(d) {
+  const date = new Date(d);
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
 }
+
+barangTable.addEventListener("click", async (e) => {
+    const btn = e.target.closest(".btn-hapus");
+    if (btn) {
+        e.stopPropagation();
+        if (confirm("Hapus?")) await deleteDoc(doc(db, "barang", btn.dataset.id));
+        return;
+    }
+    const row = e.target.closest(".row-barang");
+    if (row) {
+        const d = filteredData.find(i => i.id === row.dataset.id);
+        if (d) openDetailModal(d);
+    }
+});
 
 searchInput.addEventListener("input", applyFilters);
 document.getElementById("filterTanggal")?.addEventListener("change", applyFilters);
-document.getElementById("kolaseFilterTanggal")?.addEventListener("change", (e) => {
-  kolaseSelectedDate = e.target.value;
-  renderKolaseList();
-});
+document.getElementById("closeDetail")?.onclick = () => detailModal.classList.add("hidden");
+document.getElementById("closeTambah")?.onclick = () => tambahModal.classList.add("hidden");

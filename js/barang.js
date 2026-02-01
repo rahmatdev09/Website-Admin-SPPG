@@ -15,6 +15,7 @@ const pagination = document.getElementById("pagination");
 const searchInput = document.getElementById("searchInput");
 const sortTanggalBtn = document.getElementById("sortTanggalBtn");
 
+let isInitialLoad = true; // Untuk menandai loading pertama kali
 let barangData = [];
 let filteredData = [];
 let currentPage = 1;
@@ -77,7 +78,7 @@ function applyFilters() {
   sortByLatest();
 
   currentPage = 1;
-    showLoading();
+  
   renderTable();
   renderPagination(filteredData.length);
 }
@@ -634,13 +635,20 @@ detailModal.addEventListener("click", (e) => {
 
 // Firestore listener
 onSnapshot(collection(db, "barang"), (snapshot) => {
-      showLoading();
-  barangData = snapshot.docs.map((docSnap) => ({
-    id: docSnap.id,
-    ...docSnap.data(),
-  }));
-  
-  applyFilters(); // ✅ langsung pakai filter + sort terbaru
+    // Tampilkan loading hanya saat aplikasi baru dibuka
+    if (isInitialLoad) {
+        showLoading();
+    }
+
+    barangData = snapshot.docs.map((docSnap) => ({
+        id: docSnap.id,
+        ...docSnap.data(),
+    }));
+
+    // Matikan status initial load setelah data pertama kali didapat
+    isInitialLoad = false;
+
+    applyFilters(); // Di dalam applyFilters biasanya memanggil renderTable()
 });
 
 // Search filter
@@ -683,6 +691,7 @@ function formatTanggalHari(tanggalStr) {
   });
   return `${hari}, ${tglFormat}`;
 }
+
 
 
 

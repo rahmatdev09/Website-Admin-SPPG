@@ -77,6 +77,7 @@ function applyFilters() {
   sortByLatest();
 
   currentPage = 1;
+    showLoading();
   renderTable();
   renderPagination(filteredData.length);
 }
@@ -682,6 +683,7 @@ function formatTanggalHari(tanggalStr) {
   });
   return `${hari}, ${tglFormat}`;
 }
+
 
 
 

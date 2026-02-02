@@ -666,7 +666,7 @@ for (let i = 0; i < listFoto.length; i += 2) {
     
     fotoGrid.push({ baris: baris });
 }
-    const response = await fetch("templates/SURAT_PERMINTAAN_PEMBAYARAN_TEMPLATE.docx");
+    const response = await fetch("templates/SURAT_PERMINTAAN_PEMBAYARAN_TEMPLATE (5).docx");
     const content = await response.arrayBuffer();
     const zip = new window.PizZip(content);
 
@@ -934,6 +934,7 @@ function formatTanggalDokumen(dateString) {
 
 // ✅ Panggil render pertama kali
 loadDokumen();
+
 
 
 

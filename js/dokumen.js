@@ -666,20 +666,21 @@ for (let i = 0; i < listFoto.length; i += 2) {
     const content = await response.arrayBuffer();
     const zip = new window.PizZip(content);
 
-    // 3. Konfigurasi Image Module
-    const imageOptions = {
-      getImage: function(tagValue) {
-        // tagValue adalah string base64
+
+
+ 
+
+   const imageModule = new ImageModule({
+    centered: false,
+    getImage: function (tagValue) {
+        // tagValue di sini adalah isi dari "imgData"
         return base64Parser(tagValue);
-      },
-      getSize: function() {
-        return [250, 200]; // Ukuran gambar di Word (px)
-      }
-    };
-
-    console.log(fotoGrid);
-
-    const imageModule = new window.ImageModule(imageOptions);
+    },
+    getSize: function (img, tagValue, tagName) {
+        // Mengatur ukuran gambar di Word (Lebar, Tinggi)
+        return [200, 150];
+    }
+});
     const docx = new window.docxtemplater(zip, {
       paragraphLoop: true,
       linebreaks: true,
@@ -711,6 +712,8 @@ for (let i = 0; i < listFoto.length; i += 2) {
       suppliers: groupedSuppliers,
       fotoGrid: fotoGrid // Digunakan untuk looping {%fotoGrid} {#baris} {%img} {/baris} {/fotoGrid}
     });
+
+       console.log(fotoGrid);
 
     docx.render();
 
@@ -932,6 +935,7 @@ function formatTanggalDokumen(dateString) {
 
 // ✅ Panggil render pertama kali
 loadDokumen();
+
 
 
 

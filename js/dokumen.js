@@ -640,48 +640,85 @@ async function downloadDokumen(docId) {
     }
     const data = docSnap.data();
 
+    // 1. Ambil foto dari field 'foto_barang' (sesuai saat simpan/update)
+    const listFoto = data.foto_barang || []; 
+    const fotoGrid = [];
 
-const listFoto = data.kolom_foto || []; // Sesuai JSON Anda
-const fotoGrid = [];
+    // 2. Buat logic Baris & Kolom (2 gambar per baris untuk tabel di Word)
+    for (let i = 0; i < listFoto.length; i += 2) {
+      const barisData = [];
+      // Gambar pertama di baris ini
+      barisData.push({ img: listFoto[i].base64 }); 
+      
+      // Gambar kedua di baris ini (jika ada)
+      if (listFoto[i + 1]) {
+        barisData.push({ img: listFoto[i + 1].base64 });
+      }
+      
+      fotoGrid.push({ baris: barisData });
+    }
 
-for (let i = 0; i < listFoto.length; i += 2) {
-    fotoGrid.push({
-        baris: [
-            { img: listFoto[i].imgData }, // Ubah imgData menjadi img agar cocok dengan {%img}
-            ...(listFoto[i+1] ? [{ img: listFoto[i+1].imgData }] : [])
-        ]
-    });
-}
-
-    const response = await fetch(
-      "templates/SURAT_PERMINTAAN_PEMBAYARAN_TEMPLATE.docx"
-    );
+    const response = await fetch("templates/SURAT_PERMINTAAN_PEMBAYARAN_TEMPLATE.docx");
     const content = await response.arrayBuffer();
-
     const zip = new window.PizZip(content);
 
-  
+    // 3. Konfigurasi Image Module
+    const imageOptions = {
+      getImage: function(tagValue) {
+        // tagValue adalah string base64
+        return base64Parser(tagValue);
+      },
+      getSize: function() {
+        return [250, 200]; // Ukuran gambar di Word (px)
+      }
+    };
 
-    // Inisialisasi Image Module
-   const imageOptions = {
- getImage: function(tagValue) {
-    // tagValue adalah isi dari "imgData" Anda
-    // Kita hapus bagian "data:image/jpeg;base64," agar tersisa kode gambarnya saja
-    const b64 = tagValue.replace(/^data:image\/[a-z]+;base64,/, "");
-    
-    const binaryString = window.atob(b64);
-    const len = binaryString.length;
-    const bytes = new Uint8Array(len);
-    for (let i = 0; i < len; i++) {
-        bytes[i] = binaryString.charCodeAt(i);
-    }
-    return bytes.buffer;
-},
-    getSize: function() {
-        return [150, 150]; // Coba ukuran kecil dulu untuk tes
-    }
-};
+    const imageModule = new window.ImageModule(imageOptions);
+    const docx = new window.docxtemplater(zip, {
+      paragraphLoop: true,
+      linebreaks: true,
+      modules: [imageModule],
+    });
 
+    // 4. Transformasi Data Supplier untuk Tabel
+    const groupedSuppliers = data.suppliers.map((s, idx) => {
+      return {
+        ...s,
+        totalSupplierFormatted: "Rp. " + (s.barang.reduce((sum, b) => sum + parseInt(b.jumlahBayar || 0), 0)).toLocaleString("id-ID"),
+        barang: s.barang.map((b, bIdx) => ({
+          no: bIdx + 1,
+          namaBarang: b.namaBarang,
+          jumlahBayarFormatted: "Rp. " + parseInt(b.jumlahBayar).toLocaleString("id-ID"),
+          // Logic agar nama supplier hanya muncul di baris pertama barang
+          supplierCell: bIdx === 0 ? s.supplier : "",
+          namaBankCell: bIdx === 0 ? b.namaBank : "",
+          nomorRekeningCell: bIdx === 0 ? b.nomorRekening : ""
+        }))
+      };
+    });
+
+    // 5. Kirim data ke Template
+    docx.setData({
+      namaDokumen: data.namaDokumen,
+      createdAt: data.createdAt,
+      totalBayar: "Rp. " + (data.totalBayar || 0).toLocaleString("id-ID"),
+      suppliers: groupedSuppliers,
+      fotoGrid: fotoGrid // Digunakan untuk looping {%fotoGrid} {#baris} {%img} {/baris} {/fotoGrid}
+    });
+
+    docx.render();
+
+    const out = docx.getZip().generate({ type: "blob" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(out);
+    link.download = `${data.namaDokumen}.docx`;
+    link.click();
+
+  } catch (err) {
+    console.error("Error generate Word:", err);
+    alert("Gagal membuat dokumen Word: " + err.message);
+  }
+}
 const imageModule = new window.ImageModule(imageOptions);
     const docx = new window.docxtemplater(zip, {
       paragraphLoop: true,
@@ -955,6 +992,7 @@ function formatTanggalDokumen(dateString) {
 
 // ✅ Panggil render pertama kali
 loadDokumen();
+
 
 
 

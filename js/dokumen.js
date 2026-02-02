@@ -611,10 +611,25 @@ async function downloadDokumen(docId) {
     const content = await response.arrayBuffer();
 
     const zip = new window.PizZip(content);
+    // --- LOGIKA GRID 2 KOLOM ---
+    const rawPhotos = data.foto_barang || [];
+    const fotoGrid = [];
+    for (let i = 0; i < rawPhotos.length; i += 2) {
+      // Mengelompokkan tiap 2 foto ke dalam satu baris
+      fotoGrid.push({
+        baris_foto: [
+          { image: rawPhotos[i].base64 }, 
+          { image: rawPhotos[i + 1] ? rawPhotos[i + 1].base64 : null }
+        ]
+      });
+    }
+    
     const docx = new window.docxtemplater(zip, {
       paragraphLoop: true,
       linebreaks: true,
     });
+
+    
 
     const groupedSuppliers = data.suppliers.reduce((acc, s) => {
       if (!acc[s.supplier]) {
@@ -624,6 +639,8 @@ async function downloadDokumen(docId) {
           nomorRekening: s.barang[0]?.nomorRekening || "",
           barang: [],
           totalSupplier: 0,
+          has_photos: rawPhotos.length > 0,
+      fotoGrid: fotoGrid //
         };
       }
 
@@ -866,6 +883,7 @@ function formatTanggalDokumen(dateString) {
 
 // ✅ Panggil render pertama kali
 loadDokumen();
+
 
 
 

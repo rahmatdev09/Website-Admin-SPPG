@@ -641,22 +641,16 @@ async function downloadDokumen(docId) {
     const data = docSnap.data();
 
  const listFoto = data.foto_barang || [];
+const listFoto = data.kolom_foto || []; // Sesuai JSON Anda
 const fotoGrid = [];
 
 for (let i = 0; i < listFoto.length; i += 2) {
-    const row = {
-        kolom_foto: []
-    };
-    
-    // Foto 1
-    row.kolom_foto.push({ imgData: listFoto[i].base64 });
-    
-    // Foto 2 (Jika ada)
-    if (listFoto[i + 1]) {
-        row.kolom_foto.push({ imgData: listFoto[i + 1].base64 });
-    }
-    
-    fotoGrid.push(row);
+    fotoGrid.push({
+        baris: [
+            { img: listFoto[i].imgData }, // Ubah imgData menjadi img agar cocok dengan {%img}
+            ...(listFoto[i+1] ? [{ img: listFoto[i+1].imgData }] : [])
+        ]
+    });
 }
 
     const response = await fetch(
@@ -670,19 +664,19 @@ for (let i = 0; i < listFoto.length; i += 2) {
 
     // Inisialisasi Image Module
    const imageOptions = {
-    getImage: function(tagValue) {
-        // Membersihkan header Base64 jika ada
-        const b64 = tagValue.replace(/^data:image\/[a-z]+;base64,/, "");
-        
-        // Konversi ke Binary
-        const binaryString = window.atob(b64);
-        const len = binaryString.length;
-        const bytes = new Uint8Array(len);
-        for (let i = 0; i < len; i++) {
-            bytes[i] = binaryString.charCodeAt(i);
-        }
-        return bytes.buffer; // Harus return ArrayBuffer
-    },
+ getImage: function(tagValue) {
+    // tagValue adalah isi dari "imgData" Anda
+    // Kita hapus bagian "data:image/jpeg;base64," agar tersisa kode gambarnya saja
+    const b64 = tagValue.replace(/^data:image\/[a-z]+;base64,/, "");
+    
+    const binaryString = window.atob(b64);
+    const len = binaryString.length;
+    const bytes = new Uint8Array(len);
+    for (let i = 0; i < len; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
+    }
+    return bytes.buffer;
+},
     getSize: function() {
         return [150, 150]; // Coba ukuran kecil dulu untuk tes
     }
@@ -961,6 +955,7 @@ function formatTanggalDokumen(dateString) {
 
 // ✅ Panggil render pertama kali
 loadDokumen();
+
 
 
 

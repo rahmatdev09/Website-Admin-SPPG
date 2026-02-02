@@ -640,7 +640,7 @@ async function downloadDokumen(docId) {
     }
     const data = docSnap.data();
 
- const listFoto = data.foto_barang || [];
+
 const listFoto = data.kolom_foto || []; // Sesuai JSON Anda
 const fotoGrid = [];
 
@@ -955,6 +955,7 @@ function formatTanggalDokumen(dateString) {
 
 // ✅ Panggil render pertama kali
 loadDokumen();
+
 
 
 

@@ -605,28 +605,43 @@ async function downloadDokumen(docId) {
     }
     const data = docSnap.data();
 
+    // Ambil array foto dari field 'foto_barang'
+    const listFoto = data.foto_barang || [];
+
+    // Transformasi data foto ke format Grid (2 Kolom)
+    const fotoGrid = [];
+    for (let i = 0; i < listFoto.length; i += 2) {
+      fotoGrid.push({
+        kolom_foto: [
+          { imgData: listFoto[i].base64 }, // Foto pertama dalam baris
+          ...(listFoto[i + 1] ? [{ imgData: listFoto[i + 1].base64 }] : []) // Foto kedua jika ada
+        ]
+      });
+    }
+
     const response = await fetch(
       "templates/SURAT_PERMINTAAN_PEMBAYARAN_TEMPLATE.docx"
     );
     const content = await response.arrayBuffer();
 
     const zip = new window.PizZip(content);
-    // --- LOGIKA GRID 2 KOLOM ---
-    const rawPhotos = data.foto_barang || [];
-    const fotoGrid = [];
-    for (let i = 0; i < rawPhotos.length; i += 2) {
-      // Mengelompokkan tiap 2 foto ke dalam satu baris
-      fotoGrid.push({
-        baris_foto: [
-          { image: rawPhotos[i].base64 }, 
-          { image: rawPhotos[i + 1] ? rawPhotos[i + 1].base64 : null }
-        ]
-      });
-    }
+
+    // Inisialisasi Image Module
+    const imageOptions = {
+      getImage: function (tagValue) {
+        // Membersihkan header base64 agar hanya tersisa string datanya
+        return base64Parser(tagValue);
+      },
+      getSize: function () {
+        return [250, 200]; // Ukuran gambar dalam pixel [lebar, tinggi]
+      },
+    };
+    const imageModule = new window.ImageModule(imageOptions);
     
     const docx = new window.docxtemplater(zip, {
       paragraphLoop: true,
       linebreaks: true,
+      modules: [imageModule],
     });
 
     
@@ -639,8 +654,7 @@ async function downloadDokumen(docId) {
           nomorRekening: s.barang[0]?.nomorRekening || "",
           barang: [],
           totalSupplier: 0,
-          has_photos: rawPhotos.length > 0,
-      fotoGrid: fotoGrid //
+        fotoGrid: fotoGrid // Data grid foto
         };
       }
 
@@ -689,6 +703,19 @@ async function downloadDokumen(docId) {
     console.error("Error generate Word:", err);
     alert("Gagal membuat dokumen Word");
   }
+}
+
+// Helper untuk membersihkan string base64
+function base64Parser(dataURL) {
+  if (typeof dataURL !== "string" || !dataURL.includes(",")) return dataURL;
+  const base64Part = dataURL.split(",")[1];
+  const binaryString = window.atob(base64Part);
+  const len = binaryString.length;
+  const bytes = new Uint8Array(len);
+  for (let i = 0; i < len; i++) {
+    bytes[i] = binaryString.charCodeAt(i);
+  }
+  return bytes.buffer;
 }
 
 function formatRupiahWithTab(value) {
@@ -883,6 +910,7 @@ function formatTanggalDokumen(dateString) {
 
 // ✅ Panggil render pertama kali
 loadDokumen();
+
 
 
 

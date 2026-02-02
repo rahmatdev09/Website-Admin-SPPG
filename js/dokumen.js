@@ -669,15 +669,24 @@ for (let i = 0; i < listFoto.length; i += 2) {
   
 
     // Inisialisasi Image Module
-    const imageOptions = {
-      getImage: function (tagValue) {
-        // Membersihkan header base64 agar hanya tersisa string datanya
-        return base64Parser(tagValue);
-      },
-      getSize: function () {
-        return [250, 200]; // Ukuran gambar dalam pixel [lebar, tinggi]
-      },
-    };
+   const imageOptions = {
+    getImage: function(tagValue) {
+        // Membersihkan header Base64 jika ada
+        const b64 = tagValue.replace(/^data:image\/[a-z]+;base64,/, "");
+        
+        // Konversi ke Binary
+        const binaryString = window.atob(b64);
+        const len = binaryString.length;
+        const bytes = new Uint8Array(len);
+        for (let i = 0; i < len; i++) {
+            bytes[i] = binaryString.charCodeAt(i);
+        }
+        return bytes.buffer; // Harus return ArrayBuffer
+    },
+    getSize: function() {
+        return [150, 150]; // Coba ukuran kecil dulu untuk tes
+    }
+};
 
 const imageModule = new window.ImageModule(imageOptions);
     const docx = new window.docxtemplater(zip, {
@@ -952,6 +961,7 @@ function formatTanggalDokumen(dateString) {
 
 // ✅ Panggil render pertama kali
 loadDokumen();
+
 
 
 

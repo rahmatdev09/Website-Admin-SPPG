@@ -176,6 +176,20 @@ async function confirmDeleteDokumen() {
   }
 }
 
+async function loadImgModulePaksa() {
+    if (window.ImageModule) return window.ImageModule;
+    
+    const response = await fetch("https://cdn.jsdelivr.net/npm/docxtemplater-image-module-free@1.1.1/build/imageloader.js");
+    const scriptText = await response.text();
+    
+    // Menjalankan script secara manual di scope window
+    const script = document.createElement("script");
+    script.text = scriptText;
+    document.head.appendChild(script);
+    
+    return window.ImageModule;
+}
+
 window.openConfirmDelete = openConfirmDelete;
 window.confirmDeleteDokumen = confirmDeleteDokumen;
 
@@ -652,14 +666,11 @@ for (let i = 0; i < listFoto.length; i += 2) {
 
     const zip = new window.PizZip(content);
 
-    // --- DETEKSI MODUL ---
-    const ImageModuleConstructor = getImageModule();
-    
-    if (!ImageModuleConstructor) {
-      console.error("DEBUG: Objek window saat ini:", window);
-      alert("Library gambar tidak terdeteksi. Silakan refresh (Ctrl+F5) atau hubungi admin.");
-      return;
-    }
+  // 1. Pastikan Library Ada
+        const ImageModuleConstructor = await loadImgModulePaksa();
+        if (!ImageModuleConstructor) {
+            throw new Error("Library ImageModule benar-benar tidak bisa dimuat.");
+        }
 
     // Inisialisasi Image Module
     const imageOptions = {
@@ -945,6 +956,7 @@ function formatTanggalDokumen(dateString) {
 
 // ✅ Panggil render pertama kali
 loadDokumen();
+
 
 
 

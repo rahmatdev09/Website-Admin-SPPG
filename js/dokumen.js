@@ -605,19 +605,24 @@ async function downloadDokumen(docId) {
     }
     const data = docSnap.data();
 
-    // Ambil array foto dari field 'foto_barang'
-    const listFoto = data.foto_barang || [];
+ const listFoto = data.foto_barang || [];
+const fotoGrid = [];
 
-    // Transformasi data foto ke format Grid (2 Kolom)
-    const fotoGrid = [];
-    for (let i = 0; i < listFoto.length; i += 2) {
-      fotoGrid.push({
-        kolom_foto: [
-          { imgData: listFoto[i].base64 }, // Foto pertama dalam baris
-          ...(listFoto[i + 1] ? [{ imgData: listFoto[i + 1].base64 }] : []) // Foto kedua jika ada
-        ]
-      });
+for (let i = 0; i < listFoto.length; i += 2) {
+    const row = {
+        kolom_foto: []
+    };
+    
+    // Foto 1
+    row.kolom_foto.push({ imgData: listFoto[i].base64 });
+    
+    // Foto 2 (Jika ada)
+    if (listFoto[i + 1]) {
+        row.kolom_foto.push({ imgData: listFoto[i + 1].base64 });
     }
+    
+    fotoGrid.push(row);
+}
 
     const response = await fetch(
       "templates/SURAT_PERMINTAAN_PEMBAYARAN_TEMPLATE.docx"
@@ -636,7 +641,13 @@ async function downloadDokumen(docId) {
         return [250, 200]; // Ukuran gambar dalam pixel [lebar, tinggi]
       },
     };
-    const imageModule = new window.ImageModule(imageOptions);
+let imageModule;
+try {
+    imageModule = new window.ImageModule(imageOptions);
+} catch (e) {
+    // Jika masih error, coba akses via ImageModule.default (beberapa build unpkg)
+    imageModule = new window.ImageModule.default(imageOptions);
+}
     
     const docx = new window.docxtemplater(zip, {
       paragraphLoop: true,
@@ -910,6 +921,7 @@ function formatTanggalDokumen(dateString) {
 
 // ✅ Panggil render pertama kali
 loadDokumen();
+
 
 
 

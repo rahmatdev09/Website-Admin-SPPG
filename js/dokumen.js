@@ -30,29 +30,32 @@ function openConfirmDelete(docId) {
   document.getElementById("modalConfirmDelete").classList.remove("hidden");
 }
 
-async function loadKolaseHistoryEdit(existingImages = []) {
+async function loadKolaseHistoryEdit(existingPhotos = []) {
   const container = document.getElementById("kolaseContainerEdit");
   container.innerHTML = "<p class='text-xs text-gray-500'>Memuat daftar...</p>";
   
-  // Set state awal dengan gambar yang sudah ada di dokumen
-  selectedImagesEdit = [...existingImages];
+  // Set state awal sesuai dengan foto yang sudah ada di dokumen tersebut
+  selectedImagesEdit = [...existingPhotos];
 
   try {
     const querySnapshot = await getDocs(collection(db, "kolase_history"));
     container.innerHTML = "";
 
     querySnapshot.forEach((docSnap) => {
+      const photoId = docSnap.id;
       const data = docSnap.data();
       const base64Str = data.gambar_base64;
       const namaFile = data.nama_file || "Gambar Tanpa Nama";
 
-      // Cek apakah gambar ini sudah terpilih sebelumnya
-      const isAlreadySelected = selectedImagesEdit.includes(base64Str);
+      // LOGIKA KUNCI: Cek apakah ID dari history ini ada di array foto_barang dokumen
+      const isAlreadySelected = selectedImagesEdit.some(img => img.id === photoId);
 
       const nameCard = document.createElement("div");
-      // Styling dasar + styling jika terpilih
-      const selectedClasses = "border-indigo-600 bg-indigo-50 ring-1 ring-indigo-600";
-      nameCard.className = `cursor-pointer border-2 rounded-lg p-2 text-xs font-medium transition-all flex justify-between items-center ${isAlreadySelected ? selectedClasses : 'border-gray-200'}`;
+      // Styling: jika terpilih beri warna indigo, jika tidak beri warna gray
+      const selectedStyle = "border-indigo-600 bg-indigo-50 ring-1 ring-indigo-600";
+      const unselectedStyle = "border-gray-200 hover:bg-gray-50";
+      
+      nameCard.className = `cursor-pointer border-2 rounded-lg p-2 text-xs font-medium transition-all flex justify-between items-center ${isAlreadySelected ? selectedStyle : unselectedStyle}`;
       
       nameCard.innerHTML = `
         <span class="truncate pr-2">${namaFile}</span>
@@ -64,18 +67,17 @@ async function loadKolaseHistoryEdit(existingImages = []) {
       `;
 
       nameCard.addEventListener("click", () => {
-        const index = selectedImagesEdit.indexOf(base64Str);
-        if (index > -1) {
-          // Unselect
-          selectedImagesEdit.splice(index, 1);
-          nameCard.classList.remove("border-indigo-600", "bg-indigo-50", "ring-1", "ring-indigo-600");
-          nameCard.classList.add("border-gray-200");
+        const foundIndex = selectedImagesEdit.findIndex(img => img.id === photoId);
+        
+        if (foundIndex > -1) {
+          // Jika diklik lagi maka hapus (unselect)
+          selectedImagesEdit.splice(foundIndex, 1);
+          nameCard.className = `cursor-pointer border-2 rounded-lg p-2 text-xs font-medium transition-all flex justify-between items-center ${unselectedStyle}`;
           nameCard.querySelector(".check-icon").classList.add("hidden");
         } else {
-          // Select
-          selectedImagesEdit.push(base64Str);
-          nameCard.classList.add("border-indigo-600", "bg-indigo-50", "ring-1", "ring-indigo-600");
-          nameCard.classList.remove("border-gray-200");
+          // Jika belum ada maka tambahkan ke array
+          selectedImagesEdit.push({ id: photoId, base64: base64Str });
+          nameCard.className = `cursor-pointer border-2 rounded-lg p-2 text-xs font-medium transition-all flex justify-between items-center ${selectedStyle}`;
           nameCard.querySelector(".check-icon").classList.remove("hidden");
         }
       });
@@ -83,30 +85,26 @@ async function loadKolaseHistoryEdit(existingImages = []) {
       container.appendChild(nameCard);
     });
   } catch (err) {
-    console.error("Gagal ambil kolase edit:", err);
-    container.innerHTML = "<p class='text-red-500 text-xs'>Gagal memuat.</p>";
+    console.error("Gagal load history:", err);
+    container.innerHTML = "Gagal memuat daftar foto.";
   }
 }
 
 async function loadKolaseHistory() {
   const container = document.getElementById("kolaseContainer");
   container.innerHTML = "<p class='text-sm text-gray-500'>Memuat daftar gambar...</p>";
-  
+  selectedImages = []; // Reset pilihan setiap buka modal baru
+
   try {
     const querySnapshot = await getDocs(collection(db, "kolase_history"));
-    container.innerHTML = ""; // Bersihkan loading
-
-    if (querySnapshot.empty) {
-      container.innerHTML = "<p class='text-sm text-gray-500'>Tidak ada riwayat kolase.</p>";
-      return;
-    }
+    container.innerHTML = "";
 
     querySnapshot.forEach((docSnap) => {
+      const photoId = docSnap.id;
       const data = docSnap.data();
       const base64Str = data.gambar_base64;
-      const namaFile = data.nama_file || "Gambar Tanpa Nama"; // Ambil field nama dari DB
+      const namaFile = data.nama_file || "Gambar Tanpa Nama";
 
-      // Buat elemen card nama
       const nameCard = document.createElement("div");
       nameCard.className = "cursor-pointer border-2 border-gray-200 rounded-lg p-3 text-sm font-medium transition-all hover:bg-indigo-50 flex justify-between items-center";
       nameCard.innerHTML = `
@@ -118,25 +116,24 @@ async function loadKolaseHistory() {
         </div>
       `;
 
-      // Logika Klik (Multiple Select)
       nameCard.addEventListener("click", () => {
-        const isSelected = selectedImages.includes(base64Str);
-        if (isSelected) {
-          selectedImages = selectedImages.filter(img => img !== base64Str);
-          nameCard.classList.remove("border-indigo-600", "bg-indigo-50", "ring-1", "ring-indigo-600");
+        const foundIndex = selectedImages.findIndex(img => img.id === photoId);
+        if (foundIndex > -1) {
+          selectedImages.splice(foundIndex, 1);
+          nameCard.classList.remove("border-indigo-600", "bg-indigo-50", "ring-1");
           nameCard.querySelector(".check-icon").classList.add("hidden");
         } else {
-          selectedImages.push(base64Str);
+          // Simpan ID dan Base64
+          selectedImages.push({ id: photoId, base64: base64Str });
           nameCard.classList.add("border-indigo-600", "bg-indigo-50", "ring-1", "ring-indigo-600");
           nameCard.querySelector(".check-icon").classList.remove("hidden");
         }
       });
-
       container.appendChild(nameCard);
     });
   } catch (err) {
-    console.error("Gagal ambil kolase:", err);
-    container.innerHTML = "<p class='text-red-500 text-sm'>Gagal memuat daftar gambar.</p>";
+    console.error(err);
+    container.innerHTML = "Gagal memuat.";
   }
 }
 async function confirmDeleteDokumen() {
@@ -321,11 +318,10 @@ function renderPage(page) {
       document.getElementById("statusDokumenEdit").value =
         data.status || "Draft";
 
-      // Ambil data gambar yang sudah ada di dokumen ini (jika ada)
-  const existingImages = data.gambar_base64 || [];
+ // Ambil array foto dari dokumen (pastikan field di Firestore namanya 'foto_barang')
+  const existingPhotos = data.foto_barang || []; 
   
-  // Panggil fungsi load kolase untuk modal edit
-  loadKolaseHistoryEdit(existingImages);
+  loadKolaseHistoryEdit(existingPhotos);
       
       const tableBody = document.getElementById("tableBodyEdit");
       tableBody.innerHTML = "";
@@ -574,7 +570,7 @@ document
         createdAt: tanggalDokumen,
         status: statusDokumen,
         suppliers: oldSuppliers,
-        gambar_base64: selectedImagesEdit,
+   foto_barang: selectedImagesEdit,
         totalBayar: oldSuppliers.reduce(
           (sum, s) =>
             sum +
@@ -821,7 +817,7 @@ async function simpanDokumen(items) {
       namaDokumen,
       createdAt: tanggalFormatted,
       status: statusDokumen,
-      gambar_base64: selectedImages,
+   foto_barang: selectedImages,
       dibuatOleh, // ✅ tambahkan nama & role pembuat
       suppliers: items.map((item) => ({
         supplier: item.supplier,
@@ -870,6 +866,7 @@ function formatTanggalDokumen(dateString) {
 
 // ✅ Panggil render pertama kali
 loadDokumen();
+
 
 
 

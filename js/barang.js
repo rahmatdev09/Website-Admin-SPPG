@@ -5,7 +5,8 @@ import {
   doc,
   deleteDoc,
   updateDoc,
-  addDoc 
+  addDoc,
+  serverTimestamp
 } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
 import { openDetailModal } from "./detailBarang.js";
 
@@ -469,6 +470,7 @@ document.getElementById("closeDetail").onclick = () => {
 document.getElementById("closeTambah").onclick = () => {
     tambahModal.classList.add("hidden");
 };
+
 
 
 

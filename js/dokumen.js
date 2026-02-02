@@ -672,20 +672,7 @@ for (let i = 0; i < listFoto.length; i += 2) {
       },
     };
 
-    let imageModule;
-// Cek berbagai kemungkinan lokasi constructor dari library
-if (typeof window.ImageModule === "function") {
-    imageModule = new window.ImageModule(imageOptions);
-} else if (window.ImageModule && typeof window.ImageModule.default === "function") {
-    imageModule = new window.ImageModule.default(imageOptions);
-} else if (typeof window.ImageLoader === "function") {
-    // Beberapa versi menggunakan nama ImageLoader sebagai constructor utama
-    imageModule = new window.ImageLoader(imageOptions);
-} else {
-    console.error("Library ImageModule tidak ditemukan atau gagal dimuat.");
-    alert("Gagal memproses modul gambar. Pastikan library sudah terpasang.");
-    return;
-}
+   const imageModule = new ImageModuleConstructor(imageOptions);
     const docx = new window.docxtemplater(zip, {
       paragraphLoop: true,
       linebreaks: true,
@@ -958,6 +945,7 @@ function formatTanggalDokumen(dateString) {
 
 // ✅ Panggil render pertama kali
 loadDokumen();
+
 
 
 

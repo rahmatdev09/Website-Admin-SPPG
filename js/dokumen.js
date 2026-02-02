@@ -17,6 +17,7 @@ const dokumenModal = document.getElementById("dokumenModal");
 const closeDokumenModal = document.getElementById("closeDokumenModal");
 const cardSPP = document.getElementById("cardSPP");
 const cardRAB = document.getElementById("cardRAB");
+let selectedImages = []; // Menampung base64 gambar yang dipilih
 // aktifkan table module
 
 let listBarang = [];
@@ -26,6 +27,52 @@ const allowedRoles = ["akuntan", "ka_sppg", "super_admin"];
 function openConfirmDelete(docId) {
   dokumenToDelete = docId;
   document.getElementById("modalConfirmDelete").classList.remove("hidden");
+}
+
+async function loadKolaseHistory() {
+  const container = document.getElementById("kolaseContainer");
+  container.innerHTML = "<p class='text-sm text-gray-500'>Memuat gambar...</p>";
+  
+  try {
+    const querySnapshot = await getDocs(collection(db, "kolase_history"));
+    container.innerHTML = ""; // Bersihkan loading
+
+    querySnapshot.forEach((docSnap) => {
+      const data = docSnap.data();
+      const imgWrapper = document.createElement("div");
+      imgWrapper.className = "relative cursor-pointer border-2 border-transparent hover:border-indigo-500 rounded p-1";
+      
+      // Gunakan field 'gambar_base64' atau sesuaikan dengan nama field di firebase Anda
+      const base64Str = data.gambar_base64; 
+
+      imgWrapper.innerHTML = `
+        <img src="${base64Str}" class="w-full h-20 object-cover rounded">
+        <div class="check-icon hidden absolute top-1 right-1 bg-indigo-600 text-white rounded-full p-1">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
+          </svg>
+        </div>
+      `;
+
+      imgWrapper.addEventListener("click", () => {
+        const isSelected = selectedImages.includes(base64Str);
+        if (isSelected) {
+          selectedImages = selectedImages.filter(img => img !== base64Str);
+          imgWrapper.classList.remove("border-indigo-500");
+          imgWrapper.querySelector(".check-icon").classList.add("hidden");
+        } else {
+          selectedImages.push(base64Str);
+          imgWrapper.classList.add("border-indigo-500");
+          imgWrapper.querySelector(".check-icon").classList.remove("hidden");
+        }
+      });
+
+      container.appendChild(imgWrapper);
+    });
+  } catch (err) {
+    console.error("Gagal ambil kolase:", err);
+    container.innerHTML = "Gagal memuat galeri.";
+  }
 }
 
 async function confirmDeleteDokumen() {
@@ -748,3 +795,4 @@ function formatTanggalDokumen(dateString) {
 
 // ✅ Panggil render pertama kali
 loadDokumen();
+

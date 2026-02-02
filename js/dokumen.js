@@ -31,50 +31,55 @@ function openConfirmDelete(docId) {
 
 async function loadKolaseHistory() {
   const container = document.getElementById("kolaseContainer");
-  container.innerHTML = "<p class='text-sm text-gray-500'>Memuat gambar...</p>";
+  container.innerHTML = "<p class='text-sm text-gray-500'>Memuat daftar gambar...</p>";
   
   try {
     const querySnapshot = await getDocs(collection(db, "kolase_history"));
     container.innerHTML = ""; // Bersihkan loading
 
+    if (querySnapshot.empty) {
+      container.innerHTML = "<p class='text-sm text-gray-500'>Tidak ada riwayat kolase.</p>";
+      return;
+    }
+
     querySnapshot.forEach((docSnap) => {
       const data = docSnap.data();
-      const imgWrapper = document.createElement("div");
-      imgWrapper.className = "relative cursor-pointer border-2 border-transparent hover:border-indigo-500 rounded p-1";
-      
-      // Gunakan field 'gambar_base64' atau sesuaikan dengan nama field di firebase Anda
-      const base64Str = data.gambar_base64; 
+      const base64Str = data.gambar_base64;
+      const namaFile = data.nama_file || "Gambar Tanpa Nama"; // Ambil field nama dari DB
 
-      imgWrapper.innerHTML = `
-        <img src="${base64Str}" class="w-full h-20 object-cover rounded">
-        <div class="check-icon hidden absolute top-1 right-1 bg-indigo-600 text-white rounded-full p-1">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
+      // Buat elemen card nama
+      const nameCard = document.createElement("div");
+      nameCard.className = "cursor-pointer border-2 border-gray-200 rounded-lg p-3 text-sm font-medium transition-all hover:bg-indigo-50 flex justify-between items-center";
+      nameCard.innerHTML = `
+        <span class="truncate text-gray-700">${namaFile}</span>
+        <div class="check-icon hidden text-indigo-600">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
           </svg>
         </div>
       `;
 
-      imgWrapper.addEventListener("click", () => {
+      // Logika Klik (Multiple Select)
+      nameCard.addEventListener("click", () => {
         const isSelected = selectedImages.includes(base64Str);
         if (isSelected) {
           selectedImages = selectedImages.filter(img => img !== base64Str);
-          imgWrapper.classList.remove("border-indigo-500");
-          imgWrapper.querySelector(".check-icon").classList.add("hidden");
+          nameCard.classList.remove("border-indigo-600", "bg-indigo-50", "ring-1", "ring-indigo-600");
+          nameCard.querySelector(".check-icon").classList.add("hidden");
         } else {
           selectedImages.push(base64Str);
-          imgWrapper.classList.add("border-indigo-500");
-          imgWrapper.querySelector(".check-icon").classList.remove("hidden");
+          nameCard.classList.add("border-indigo-600", "bg-indigo-50", "ring-1", "ring-indigo-600");
+          nameCard.querySelector(".check-icon").classList.remove("hidden");
         }
       });
 
-      container.appendChild(imgWrapper);
+      container.appendChild(nameCard);
     });
   } catch (err) {
     console.error("Gagal ambil kolase:", err);
-    container.innerHTML = "Gagal memuat galeri.";
+    container.innerHTML = "<p class='text-red-500 text-sm'>Gagal memuat daftar gambar.</p>";
   }
 }
-
 async function confirmDeleteDokumen() {
   if (!dokumenToDelete) return;
 
@@ -799,5 +804,6 @@ function formatTanggalDokumen(dateString) {
 
 // ✅ Panggil render pertama kali
 loadDokumen();
+
 
 

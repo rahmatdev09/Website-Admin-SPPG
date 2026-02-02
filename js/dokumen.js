@@ -719,73 +719,7 @@ async function downloadDokumen(docId) {
     alert("Gagal membuat dokumen Word: " + err.message);
   }
 }
-const imageModule = new window.ImageModule(imageOptions);
-    const docx = new window.docxtemplater(zip, {
-      paragraphLoop: true,
-      linebreaks: true,
-      modules: [imageModule],
-    });
-console.log(fotoGrid)
-    
 
-    const groupedSuppliers = data.suppliers.reduce((acc, s) => {
-      if (!acc[s.supplier]) {
-        acc[s.supplier] = {
-          supplier: s.supplier,
-          namaBank: s.barang[0]?.namaBank || "",
-          nomorRekening: s.barang[0]?.nomorRekening || "",
-          barang: [],
-          totalSupplier: 0,
-        fotoGrid: fotoGrid // Data grid foto
-        };
-      }
-
-      s.barang.forEach((b) => {
-        const jumlah = b.jumlahBayar || 0;
-        const idx = acc[s.supplier].barang.length;
-
-        acc[s.supplier].barang.push({
-          no: String(idx + 1),
-          namaBarang: b.namaBarang || "",
-          jumlahBayarFormatted: "Rp. " + jumlah.toLocaleString("id-ID"),
-          // hanya isi di baris pertama
-          supplierCell: idx === 0 ? s.supplier : "",
-          namaBankCell: idx === 0 ? b.namaBank || acc[s.supplier].namaBank : "",
-          nomorRekeningCell:
-            idx === 0 ? b.nomorRekening || acc[s.supplier].nomorRekening : "",
-        });
-
-        acc[s.supplier].totalSupplier += jumlah;
-      });
-
-      return acc;
-    }, {});
-
-    const suppliers = Object.values(groupedSuppliers).map((s) => ({
-      ...s,
-      totalSupplierFormatted:
-        "Rp. " + (s.totalSupplier || 0).toLocaleString("id-ID"),
-    }));
-
-    docx.setData({
-      namaDokumen: data.namaDokumen,
-      createdAt: data.createdAt,
-      totalBayar: "Rp. " + data.totalBayar.toLocaleString("id-ID"),
-      suppliers,
-    });
-
-    docx.render();
-
-    const out = docx.getZip().generate({ type: "blob" });
-    const link = document.createElement("a");
-    link.href = URL.createObjectURL(out);
-    link.download = `${data.namaDokumen}.docx`;
-    link.click();
-  } catch (err) {
-    console.error("Error generate Word:", err);
-    alert("Gagal membuat dokumen Word");
-  }
-}
 
 // Helper untuk membersihkan string base64
 function base64Parser(dataURL) {
@@ -992,6 +926,7 @@ function formatTanggalDokumen(dateString) {
 
 // ✅ Panggil render pertama kali
 loadDokumen();
+
 
 
 

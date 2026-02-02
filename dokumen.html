@@ -34,12 +34,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/docxtemplater/3.37.2/docxtemplater.js"></script>
     <script src="https://unpkg.com/pizzip@3.2.0/dist/pizzip.js"></script>
     <script src="https://unpkg.com/pizzip@3.2.0/dist/pizzip-utils.js"></script>
-<script type="module">
-    import ImageModule from 'https://cdn.skypack.dev/docxtemplater-image-module-free/build/imageloader.js';
-    // Masukkan ke window agar bisa diakses oleh dokumen.js
-    window.ImageModule = ImageModule;
-    console.log("ImageModule berhasil dimuat ke global scope!");
-</script>
+ <script src="js/imageloader.js"></script>
 
 <!-- <script src="https://open-docxtemplater.s3.amazonaws.com/image-module/v1/build/imageloader.js"></script> -->
 
@@ -1115,8 +1110,10 @@
     <script type="module" src="js/auth.js"></script>
     <script type="module" src="js/utils.js"></script>
     <script type="module" src="js/dokumen.js"></script>
+   
   </body>
 </html>
+
 
 
 

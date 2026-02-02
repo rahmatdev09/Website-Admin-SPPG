@@ -28,6 +28,48 @@ let transformState = [
   { scale: 1, x: 0, y: 0 }
 ];
 
+// Import Firestore functions jika belum ada di atas
+// import { collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.x/firebase-firestore.js";
+
+const simpanDbBtn = document.getElementById("simpanDbBtn");
+
+simpanDbBtn.onclick = async () => {
+  const namaFile = document.getElementById("kolaseFileName")?.value;
+  if (!namaFile) return alert("Masukkan nama file kolase terlebih dahulu!");
+
+  simpanDbBtn.disabled = true;
+  simpanDbBtn.innerText = "Menyimpan...";
+
+  try {
+    // 1. Capture kolase menggunakan html2canvas (sama seperti fungsi download)
+    const canvas = await html2canvas(kolasePreview, {
+      useCORS: true,
+      scale: 2,
+      logging: false,
+      dataHtml2canvasIgnore: true // Mengabaikan tombol zoom
+    });
+
+    // 2. Ubah ke format Base64
+    const base64Image = canvas.toDataURL("image/png");
+
+    // 3. Simpan ke Firestore
+    await addDoc(collection(db, "kolase_history"), {
+      nama_file: namaFile,
+      gambar_base64: base64Image,
+      tanggal_buat: serverTimestamp(),
+      item_ids: selectedItems.map(i => i.id) // Menyimpan referensi item yang digunakan
+    });
+
+    alert("Berhasil simpan ke database!");
+  } catch (error) {
+    console.error("Error simpan database:", error);
+    alert("Gagal menyimpan ke database.");
+  } finally {
+    simpanDbBtn.disabled = false;
+    simpanDbBtn.innerText = "Simpan ke DB";
+  }
+};
+
 let isInitialLoad = true; 
 let barangData = [];
 let filteredData = [];
@@ -437,6 +479,7 @@ document.getElementById("closeDetail").onclick = () => {
 document.getElementById("closeTambah").onclick = () => {
     tambahModal.classList.add("hidden");
 };
+
 
 
 

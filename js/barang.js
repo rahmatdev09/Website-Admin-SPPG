@@ -40,38 +40,45 @@ simpanDbBtn.onclick = async () => {
   if (!namaFile) return alert("Masukkan nama file kolase terlebih dahulu!");
 
   simpanDbBtn.disabled = true;
-  simpanDbBtn.innerText = "Menyimpan...";
+  simpanDbBtn.innerText = "Mengompres & Menyimpan...";
 
   try {
-    // 1. Capture kolase menggunakan html2canvas (sama seperti fungsi download)
+    // 1. Capture dengan scale lebih rendah (1.5 cukup tajam tapi file jauh lebih kecil)
     const canvas = await html2canvas(kolasePreview, {
       useCORS: true,
-      scale: 2,
+      scale: 1.5, 
       logging: false,
-      dataHtml2canvasIgnore: true // Mengabaikan tombol zoom
     });
 
-    // 2. Ubah ke format Base64
-    const base64Image = canvas.toDataURL("image/png");
+    // 2. Kompresi Kualitas (0.5 = 50% kualitas, sangat efektif memperkecil size)
+    // Menggunakan image/jpeg karena kompresinya jauh lebih baik dibanding image/png
+    const base64Image = canvas.toDataURL("image/jpeg", 0.5);
+
+    // Cek ukuran (Opsional untuk debugging)
+    const sizeInBytes = base64Image.length;
+    console.log("Ukuran foto terkompresi:", (sizeInBytes / 1024).toFixed(2), "KB");
+
+    if (sizeInBytes > 1048487) {
+      throw new Error("Foto masih terlalu besar, coba kurangi elemen atau zoom.");
+    }
 
     // 3. Simpan ke Firestore
     await addDoc(collection(db, "kolase_history"), {
       nama_file: namaFile,
       gambar_base64: base64Image,
       tanggal_buat: serverTimestamp(),
-      item_ids: selectedItems.map(i => i.id) // Menyimpan referensi item yang digunakan
+      item_ids: selectedItems.map(i => i.id)
     });
 
-    alert("Berhasil simpan ke database!");
+    alert("Berhasil simpan ke database (Ukuran optimal)!");
   } catch (error) {
     console.error("Error simpan database:", error);
-    alert("Gagal menyimpan ke database.");
+    alert(error.message || "Gagal menyimpan ke database.");
   } finally {
     simpanDbBtn.disabled = false;
     simpanDbBtn.innerText = "Simpan ke DB";
   }
 };
-
 let isInitialLoad = true; 
 let barangData = [];
 let filteredData = [];
@@ -470,6 +477,7 @@ document.getElementById("closeDetail").onclick = () => {
 document.getElementById("closeTambah").onclick = () => {
     tambahModal.classList.add("hidden");
 };
+
 
 
 

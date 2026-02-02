@@ -694,7 +694,7 @@ const imageModule = new window.ImageModule(imageOptions);
       linebreaks: true,
       modules: [imageModule],
     });
-
+console.log(fotoGrid)
     
 
     const groupedSuppliers = data.suppliers.reduce((acc, s) => {
@@ -961,6 +961,7 @@ function formatTanggalDokumen(dateString) {
 
 // ✅ Panggil render pertama kali
 loadDokumen();
+
 
 
 

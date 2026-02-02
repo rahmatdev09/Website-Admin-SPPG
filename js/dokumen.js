@@ -677,6 +677,8 @@ for (let i = 0; i < listFoto.length; i += 2) {
       }
     };
 
+    console.log(fotoGrid);
+
     const imageModule = new window.ImageModule(imageOptions);
     const docx = new window.docxtemplater(zip, {
       paragraphLoop: true,
@@ -930,6 +932,7 @@ function formatTanggalDokumen(dateString) {
 
 // ✅ Panggil render pertama kali
 loadDokumen();
+
 
 
 

@@ -653,17 +653,22 @@ async function downloadDokumen(docId) {
     // 2. Buat logic Baris & Kolom (2 gambar per baris untuk tabel di Word)
   // 2. Pecah menjadi baris (setiap baris berisi 2 foto agar rapi di Word)
 // 2. Mapping ke dalam struktur Baris & Kolom
+// 2. Mapping ke dalam struktur Baris & Kolom
 for (let i = 0; i < listFoto.length; i += 2) {
     const barisData = [];
     
-    // Ambil base64 murni dari objek {id, base64}
+    // Ambil foto pertama
     if (listFoto[i]) {
-        barisData.push({ imgData: listFoto[i].base64 || listFoto[i] });
+        // Ambil string base64, lalu BERSIHKAN prefix-nya
+        const rawBase64 = listFoto[i].base64 || listFoto[i];
+        barisData.push({ imgData: cleanBase64(rawBase64) });
     }
     
     // Ambil foto kedua jika ada
     if (listFoto[i + 1]) {
-        barisData.push({ imgData: listFoto[i+1].base64 || listFoto[i+1] });
+        // Ambil string base64, lalu BERSIHKAN prefix-nya
+        const rawBase64 = listFoto[i + 1].base64 || listFoto[i + 1];
+        barisData.push({ imgData: cleanBase64(rawBase64) });
     }
     
     fotoGrid.push({ baris: barisData });
@@ -941,6 +946,7 @@ function formatTanggalDokumen(dateString) {
 
 // ✅ Panggil render pertama kali
 loadDokumen();
+
 
 
 

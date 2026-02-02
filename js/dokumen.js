@@ -18,6 +18,7 @@ const closeDokumenModal = document.getElementById("closeDokumenModal");
 const cardSPP = document.getElementById("cardSPP");
 const cardRAB = document.getElementById("cardRAB");
 let selectedImages = []; // Menampung base64 gambar yang dipilih
+let selectedImagesEdit = []; // Menampung base64 gambar yang dipilih di modal edit
 // aktifkan table module
 
 let listBarang = [];
@@ -27,6 +28,64 @@ const allowedRoles = ["akuntan", "ka_sppg", "super_admin"];
 function openConfirmDelete(docId) {
   dokumenToDelete = docId;
   document.getElementById("modalConfirmDelete").classList.remove("hidden");
+}
+
+async function loadKolaseHistoryEdit(existingImages = []) {
+  const container = document.getElementById("kolaseContainerEdit");
+  container.innerHTML = "<p class='text-xs text-gray-500'>Memuat daftar...</p>";
+  
+  // Set state awal dengan gambar yang sudah ada di dokumen
+  selectedImagesEdit = [...existingImages];
+
+  try {
+    const querySnapshot = await getDocs(collection(db, "kolase_history"));
+    container.innerHTML = "";
+
+    querySnapshot.forEach((docSnap) => {
+      const data = docSnap.data();
+      const base64Str = data.gambar_base64;
+      const namaFile = data.nama_file || "Gambar Tanpa Nama";
+
+      // Cek apakah gambar ini sudah terpilih sebelumnya
+      const isAlreadySelected = selectedImagesEdit.includes(base64Str);
+
+      const nameCard = document.createElement("div");
+      // Styling dasar + styling jika terpilih
+      const selectedClasses = "border-indigo-600 bg-indigo-50 ring-1 ring-indigo-600";
+      nameCard.className = `cursor-pointer border-2 rounded-lg p-2 text-xs font-medium transition-all flex justify-between items-center ${isAlreadySelected ? selectedClasses : 'border-gray-200'}`;
+      
+      nameCard.innerHTML = `
+        <span class="truncate pr-2">${namaFile}</span>
+        <div class="check-icon ${isAlreadySelected ? '' : 'hidden'} text-indigo-600">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+          </svg>
+        </div>
+      `;
+
+      nameCard.addEventListener("click", () => {
+        const index = selectedImagesEdit.indexOf(base64Str);
+        if (index > -1) {
+          // Unselect
+          selectedImagesEdit.splice(index, 1);
+          nameCard.classList.remove("border-indigo-600", "bg-indigo-50", "ring-1", "ring-indigo-600");
+          nameCard.classList.add("border-gray-200");
+          nameCard.querySelector(".check-icon").classList.add("hidden");
+        } else {
+          // Select
+          selectedImagesEdit.push(base64Str);
+          nameCard.classList.add("border-indigo-600", "bg-indigo-50", "ring-1", "ring-indigo-600");
+          nameCard.classList.remove("border-gray-200");
+          nameCard.querySelector(".check-icon").classList.remove("hidden");
+        }
+      });
+
+      container.appendChild(nameCard);
+    });
+  } catch (err) {
+    console.error("Gagal ambil kolase edit:", err);
+    container.innerHTML = "<p class='text-red-500 text-xs'>Gagal memuat.</p>";
+  }
 }
 
 async function loadKolaseHistory() {
@@ -262,6 +321,12 @@ function renderPage(page) {
       document.getElementById("statusDokumenEdit").value =
         data.status || "Draft";
 
+      // Ambil data gambar yang sudah ada di dokumen ini (jika ada)
+  const existingImages = data.gambar_base64 || [];
+  
+  // Panggil fungsi load kolase untuk modal edit
+  loadKolaseHistoryEdit(existingImages);
+      
       const tableBody = document.getElementById("tableBodyEdit");
       tableBody.innerHTML = "";
       let i = 1;
@@ -509,6 +574,7 @@ document
         createdAt: tanggalDokumen,
         status: statusDokumen,
         suppliers: oldSuppliers,
+        gambar_base64: selectedImagesEdit,
         totalBayar: oldSuppliers.reduce(
           (sum, s) =>
             sum +
@@ -804,6 +870,7 @@ function formatTanggalDokumen(dateString) {
 
 // ✅ Panggil render pertama kali
 loadDokumen();
+
 
 
 

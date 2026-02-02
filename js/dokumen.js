@@ -640,6 +640,12 @@ async function downloadDokumen(docId) {
     }
     const data = docSnap.data();
 
+    const cleanBase64 = (base64String) => {
+    if (!base64String) return "";
+    // Menghapus "data:image/png;base64," jika ada
+    return base64String.includes(',') ? base64String.split(',')[1] : base64String;
+};
+
     // 1. Ambil foto dari field 'foto_barang' (sesuai saat simpan/update)
     const listFoto = data.foto_barang || []; 
     const fotoGrid = [];
@@ -935,6 +941,7 @@ function formatTanggalDokumen(dateString) {
 
 // ✅ Panggil render pertama kali
 loadDokumen();
+
 
 
 

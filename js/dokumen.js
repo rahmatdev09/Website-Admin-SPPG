@@ -646,25 +646,21 @@ async function downloadDokumen(docId) {
 
     // 2. Buat logic Baris & Kolom (2 gambar per baris untuk tabel di Word)
   // 2. Pecah menjadi baris (setiap baris berisi 2 foto agar rapi di Word)
+// 2. Mapping ke dalam struktur Baris & Kolom
 for (let i = 0; i < listFoto.length; i += 2) {
-    const baris = [];
+    const barisData = [];
     
-    // Foto pertama dalam baris
+    // Ambil base64 murni dari objek {id, base64}
     if (listFoto[i]) {
-        baris.push({ 
-            // Ambil .base64 jika listFoto berisi objek {id, base64}
-            imgData: listFoto[i].base64 || listFoto[i] 
-        });
+        barisData.push({ imgData: listFoto[i].base64 || listFoto[i] });
     }
     
-    // Foto kedua dalam baris (jika ada)
+    // Ambil foto kedua jika ada
     if (listFoto[i + 1]) {
-        baris.push({ 
-            imgData: listFoto[i+1].base64 || listFoto[i+1] 
-        });
+        barisData.push({ imgData: listFoto[i+1].base64 || listFoto[i+1] });
     }
     
-    fotoGrid.push({ baris: baris });
+    fotoGrid.push({ baris: barisData });
 }
     const response = await fetch("templates/SURAT_PERMINTAAN_PEMBAYARAN_TEMPLATE (5).docx");
     const content = await response.arrayBuffer();
@@ -934,6 +930,7 @@ function formatTanggalDokumen(dateString) {
 
 // ✅ Panggil render pertama kali
 loadDokumen();
+
 
 
 

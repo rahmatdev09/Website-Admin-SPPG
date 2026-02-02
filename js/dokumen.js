@@ -641,14 +641,21 @@ for (let i = 0; i < listFoto.length; i += 2) {
         return [250, 200]; // Ukuran gambar dalam pixel [lebar, tinggi]
       },
     };
-let imageModule;
-try {
+
+    let imageModule;
+// Cek berbagai kemungkinan lokasi constructor dari library
+if (typeof window.ImageModule === "function") {
     imageModule = new window.ImageModule(imageOptions);
-} catch (e) {
-    // Jika masih error, coba akses via ImageModule.default (beberapa build unpkg)
+} else if (window.ImageModule && typeof window.ImageModule.default === "function") {
     imageModule = new window.ImageModule.default(imageOptions);
+} else if (typeof window.ImageLoader === "function") {
+    // Beberapa versi menggunakan nama ImageLoader sebagai constructor utama
+    imageModule = new window.ImageLoader(imageOptions);
+} else {
+    console.error("Library ImageModule tidak ditemukan atau gagal dimuat.");
+    alert("Gagal memproses modul gambar. Pastikan library sudah terpasang.");
+    return;
 }
-    
     const docx = new window.docxtemplater(zip, {
       paragraphLoop: true,
       linebreaks: true,
@@ -921,6 +928,7 @@ function formatTanggalDokumen(dateString) {
 
 // ✅ Panggil render pertama kali
 loadDokumen();
+
 
 
 

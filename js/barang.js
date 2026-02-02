@@ -15,7 +15,7 @@ const searchInput = document.getElementById("searchInput");
 const kolaseModal = document.getElementById("kolaseModal");
 const kolaseList = document.getElementById("kolaseList");
 const kolasePreview = document.getElementById("kolasePreview");
-const saveDBBtn = document.getElementById("saveDBBtn");
+
 const downloadKolaseBtn = document.getElementById("downloadKolaseBtn");
 const buatKolaseBtn = document.getElementById("buatKolaseBtn");
 const tambahModal = document.getElementById("tambahBarangModal");
@@ -366,7 +366,7 @@ buatKolaseBtn.onclick = () => {
   
   kolasePreview.classList.remove("hidden");
   downloadKolaseBtn.classList.remove("hidden");
-    saveDBBtn.classList.remove("hidden");
+    simpanDbBtn.classList.remove("hidden");
   
 };
 
@@ -415,17 +415,6 @@ downloadKolaseBtn.onclick = async () => {
   link.click();
 };
 
-saveDBBtn.onclick = async () => {
-  const canvas = await html2canvas(kolasePreview, { 
-  useCORS: true, 
-  scale: 3, // Meningkatkan kualitas gambar hasil download meskipun preview di web terlihat kecil
-  logging: false 
-});
-  const link = document.createElement("a");
-  link.download = "kolase.png";
-  link.href = canvas.toDataURL();
-  link.click();
-};
 
 
 
@@ -479,6 +468,7 @@ document.getElementById("closeDetail").onclick = () => {
 document.getElementById("closeTambah").onclick = () => {
     tambahModal.classList.add("hidden");
 };
+
 
 
 

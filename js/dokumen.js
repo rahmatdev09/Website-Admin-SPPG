@@ -624,6 +624,8 @@ window.downloadDokumen = downloadDokumen;
 tambahDokumenBtn.addEventListener("click", () => {
   dokumenModal.classList.remove("hidden");
   dokumenModal.classList.add("flex");
+  selectedImages = []; // Reset pilihan setiap buka modal
+  loadKolaseHistory();
 });
 
 closeDokumenModal.addEventListener("click", () => {
@@ -726,6 +728,7 @@ async function simpanDokumen(items) {
   );
   const statusDokumen = document.getElementById("statusDokumen").value;
   const tanggalFormatted = formatTanggalDokumen(tanggalInput);
+  
 
   try {
     // 🔑 ambil user info untuk role
@@ -747,6 +750,7 @@ async function simpanDokumen(items) {
       namaDokumen,
       createdAt: tanggalFormatted,
       status: statusDokumen,
+      gambar_base64: selectedImages,
       dibuatOleh, // ✅ tambahkan nama & role pembuat
       suppliers: items.map((item) => ({
         supplier: item.supplier,
@@ -795,4 +799,5 @@ function formatTanggalDokumen(dateString) {
 
 // ✅ Panggil render pertama kali
 loadDokumen();
+
 

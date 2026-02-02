@@ -210,6 +210,27 @@ hargaBarangEdit.addEventListener("input", (e) => {
   updateTotalEdit(); // panggil setelah format harga
 });
 
+function getImageModule() {
+  // Cek kemungkinan 1: window.ImageModule (Standar)
+  if (typeof window.ImageModule === "function") {
+    return window.ImageModule;
+  }
+  // Cek kemungkinan 2: window.ImageModule.default (ES Module build)
+  if (window.ImageModule && typeof window.ImageModule.default === "function") {
+    return window.ImageModule.default;
+  }
+  // Cek kemungkinan 3: Terkadang library terdaftar sebagai ImageLoader
+  if (typeof window.ImageLoader === "function") {
+    return window.ImageLoader;
+  }
+  // Cek kemungkinan 4: Cek di dalam namespace Docxtemplater (Beberapa versi)
+  if (window.docxtemplater && window.docxtemplater.ImageModule) {
+    return window.docxtemplater.ImageModule;
+  }
+  
+  return null;
+}
+
 function updateTotal() {
   const jumlah = parseFloat(jumlahBarang.value) || 0;
 
@@ -631,6 +652,15 @@ for (let i = 0; i < listFoto.length; i += 2) {
 
     const zip = new window.PizZip(content);
 
+    // --- DETEKSI MODUL ---
+    const ImageModuleConstructor = getImageModule();
+    
+    if (!ImageModuleConstructor) {
+      console.error("DEBUG: Objek window saat ini:", window);
+      alert("Library gambar tidak terdeteksi. Silakan refresh (Ctrl+F5) atau hubungi admin.");
+      return;
+    }
+
     // Inisialisasi Image Module
     const imageOptions = {
       getImage: function (tagValue) {
@@ -928,6 +958,7 @@ function formatTanggalDokumen(dateString) {
 
 // ✅ Panggil render pertama kali
 loadDokumen();
+
 
 
 

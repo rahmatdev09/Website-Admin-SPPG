@@ -37,6 +37,23 @@ const itemsPerPage = 5;
 let currentSelectItem = null;
 let kolaseSelectedDate = "";
 
+// --- Event Listener Filter Tanggal Kolase ---
+const filterTanggalKolase = document.getElementById("kolaseFilterTanggal");
+
+if (filterTanggalKolase) {
+  filterTanggalKolase.addEventListener("change", (e) => {
+    // Simpan nilai tanggal yang dipilih (format YYYY-MM-DD)
+    kolaseSelectedDate = e.target.value;
+    console.log("Filter Tanggal Kolase:", kolaseSelectedDate);
+    
+    // PENTING: Reset pilihan item setiap kali filter berubah agar tidak terjadi error
+    selectedItems = []; 
+    
+    // Panggil ulang render daftar gambar
+    renderKolaseList();
+  });
+}
+
 // --- 2. FIRESTORE LISTENER ---
 onSnapshot(collection(db, "barang"), (snapshot) => {
   if (isInitialLoad) showLoading();
@@ -414,6 +431,7 @@ document.getElementById("closeDetail").onclick = () => {
 document.getElementById("closeTambah").onclick = () => {
     tambahModal.classList.add("hidden");
 };
+
 
 
 

@@ -179,7 +179,7 @@ async function confirmDeleteDokumen() {
 async function loadImgModulePaksa() {
     if (window.ImageModule) return window.ImageModule;
     
-    const response = await fetch("https://cdn.jsdelivr.net/npm/docxtemplater-image-module-free@1.1.1/build/imageloader.js");
+    const response = await fetch("https://cdn.skypack.dev/pin/docxtemplater-image-module-free@v1.1.1-KYSHFVZNjTq5xJ91HYka/mode=raw/build/imageloader.js");
     const scriptText = await response.text();
     
     // Menjalankan script secara manual di scope window
@@ -956,6 +956,7 @@ function formatTanggalDokumen(dateString) {
 
 // ✅ Panggil render pertama kali
 loadDokumen();
+
 
 
 

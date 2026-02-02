@@ -666,11 +666,7 @@ for (let i = 0; i < listFoto.length; i += 2) {
 
     const zip = new window.PizZip(content);
 
-  // 1. Pastikan Library Ada
-        const ImageModuleConstructor = await loadImgModulePaksa();
-        if (!ImageModuleConstructor) {
-            throw new Error("Library ImageModule benar-benar tidak bisa dimuat.");
-        }
+  
 
     // Inisialisasi Image Module
     const imageOptions = {
@@ -683,7 +679,7 @@ for (let i = 0; i < listFoto.length; i += 2) {
       },
     };
 
-   const imageModule = new ImageModuleConstructor(imageOptions);
+const imageModule = new window.ImageModule(imageOptions);
     const docx = new window.docxtemplater(zip, {
       paragraphLoop: true,
       linebreaks: true,
@@ -956,6 +952,7 @@ function formatTanggalDokumen(dateString) {
 
 // ✅ Panggil render pertama kali
 loadDokumen();
+
 
 
 

@@ -158,53 +158,59 @@ document.getElementById("closeKolase").addEventListener("click", () => kolaseMod
 
 function renderKolaseList() {
   kolaseList.innerHTML = "";
-  // Filter hanya yang sudah diverifikasi admin & user
-  let vItems = barangData.filter(i => i.verifikasi && i.verifikasiAdmin);
   
-  if (kolaseSelectedDate) {
-    vItems = vItems.filter(i => toISODateOnly(i.tanggal) === kolaseSelectedDate);
-  }
+  // 1. Filter data yang valid
+  let vItems = barangData.filter(i => i.verifikasi && i.verifikasiAdmin);
+  if (kolaseSelectedDate) vItems = vItems.filter(i => toISODateOnly(i.tanggal) === kolaseSelectedDate);
 
   if (vItems.length === 0) {
-    kolaseList.innerHTML = `<p class="text-center text-gray-500 col-span-2 py-10">Tidak ada barang yang memenuhi syarat.</p>`;
+    kolaseList.innerHTML = `<p class="text-center text-gray-500 col-span-2 py-10 italic">Tidak ada data untuk tanggal ini.</p>`;
     return;
   }
 
   vItems.forEach((item) => {
     const isSelected = selectedItems.find(s => s.id === item.id);
     const div = document.createElement("div");
-    
-    // Tambahkan class ring jika item sudah terpilih sebelumnya
     div.className = `border rounded-lg p-2 hover:bg-blue-50 relative cursor-pointer transition-all ${isSelected ? 'ring-2 ring-blue-600 bg-blue-50' : ''}`;
     div.setAttribute("data-id", item.id);
-    
+
     div.innerHTML = `
       <div class="relative overflow-hidden rounded-lg mb-2">
         <img src="${item.foto1 || ""}" class="w-full h-32 object-cover" id="thumb-${item.id}">
-        <div class="btn-ganti-foto absolute inset-0 bg-black/20 opacity-0 hover:opacity-100 flex items-center justify-center text-white text-[10px] font-bold transition-opacity">
+        <div class="btn-ganti-foto absolute inset-0 bg-black/20 opacity-0 hover:opacity-100 flex items-center justify-center text-white text-[10px] font-bold">
           GANTI FOTO
         </div>
       </div>
-      <p class="text-sm font-medium text-gray-700 truncate">${item.nama}</p>
+      <p class="text-sm font-bold text-gray-800 truncate">${item.nama}</p>
+      
+      <p class="text-[11px] text-gray-500 flex items-center gap-1 mt-1">
+        <i class="fa-regular fa-calendar text-[10px]"></i> ${formatTanggalSingkat(item.tanggal)}
+      </p>
+
       <span class="orderBadge absolute top-2 left-2 bg-blue-600 text-white text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full ${isSelected ? '' : 'hidden'}"></span>
     `;
 
-    // 1. Logika Klik Ganti Foto (Klik pada area gambar)
+    // Event stopPropagation agar ganti foto tidak memicu seleksi card
     div.querySelector(".btn-ganti-foto").onclick = (e) => {
-      e.stopPropagation(); // Mencegah trigger seleksi item
+      e.stopPropagation();
       currentSelectItem = item;
       openFotoSelectModal(item);
     };
 
-    // 2. Logika Klik Seleksi (Klik pada area card/luar gambar)
-    div.onclick = () => {
-      toggleSelect(item, div);
-    };
-
+    div.onclick = () => toggleSelect(item, div);
     kolaseList.appendChild(div);
   });
-  
-  updateBadges(); // Pastikan nomor urut muncul jika sudah ada yang terpilih
+}
+
+// Fungsi helper untuk format tanggal singkat di dalam card
+function formatTanggalSingkat(tgl) {
+  if (!tgl) return "-";
+  const d = new Date(tgl);
+  return d.toLocaleDateString("id-ID", { 
+    day: "numeric", 
+    month: "short", 
+    year: "numeric" 
+  });
 }
 
 function toggleSelect(item, div) {
@@ -431,6 +437,7 @@ document.getElementById("closeDetail").onclick = () => {
 document.getElementById("closeTambah").onclick = () => {
     tambahModal.classList.add("hidden");
 };
+
 
 
 

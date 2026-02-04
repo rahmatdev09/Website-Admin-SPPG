@@ -703,26 +703,27 @@ async function downloadDokumen(docId) {
    // 1. Definisikan groupedSuppliers dengan perhitungan TOTAL PER SUPPLIER
 // 1. Definisikan groupedSuppliers (Logika transformasi data supplier)
 const groupedSuppliers = (data.suppliers || []).map((s) => {
-    // Hitung total harga per supplier
-    const totalHargaSupplier = s.barang.reduce((sum, b) => sum + parseInt(b.jumlahBayar || 0), 0);
+            // Hitung total per supplier
+            const totalSatuSupplier = s.barang.reduce((sum, b) => sum + parseInt(b.jumlahBayar || 0), 0);
 
-    return {
-        // Gunakan nama kunci yang konsisten untuk dipanggil di Word
-        namaSupplierUtama: s.supplier, 
-        totalHargaSupplierFormatted: "Rp. " + totalHargaSupplier.toLocaleString("id-ID"),
-        
-        // Detail barang di bawah supplier ini
-        barang: (s.barang || []).map((b, bIdx) => ({
-            no: bIdx + 1,
-            namaBarang: b.namaBarang,
-            jumlahBayarFormatted: "Rp. " + parseInt(b.jumlahBayar || 0).toLocaleString("id-ID"),
-            
-            // Info bank hanya muncul jika bIdx === 0 (baris pertama) jika ingin hemat ruang
-            namaBank: b.namaBank,
-            nomorRekening: b.nomorRekening
-        }))
-    };
-});
+            return {
+                // Ini akan dibaca oleh {totalSupplierFormatted} di bawah loop barang
+                totalSupplierFormatted: "Rp. " + totalSatuSupplier.toLocaleString("id-ID"),
+                
+                // Ini loop {#barang}
+                barang: (s.barang || []).map((b, idx) => ({
+                    no: idx + 1,
+                    namaBarang: b.namaBarang,
+                    jumlahBayarFormatted: "Rp. " + parseInt(b.jumlahBayar || 0).toLocaleString("id-ID"),
+                    
+                    // LOGIKA: Hanya isi di baris pertama (idx === 0), sisanya kosong ""
+                    // Agar di Word tidak muncul berulang-ulang
+                    supplierCell: idx === 0 ? s.supplier : "",
+                    namaBankCell: idx === 0 ? (b.namaBank || "-") : "",
+                    nomorRekeningCell: idx === 0 ? (b.nomorRekening || "-") : ""
+                }))
+            };
+        });
     const dataKirim = {
     namaDokumen: data.namaDokumen,
     createdAt: data.createdAt,
@@ -951,6 +952,7 @@ function formatTanggalDokumen(dateString) {
 
 // ✅ Panggil render pertama kali
 loadDokumen();
+
 
 
 

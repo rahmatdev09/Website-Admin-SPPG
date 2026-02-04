@@ -701,24 +701,28 @@ async function downloadDokumen(docId) {
 
     // 1. Definisikan groupedSuppliers (Logika transformasi data supplier)
    // 1. Definisikan groupedSuppliers dengan perhitungan TOTAL PER SUPPLIER
+// 1. Definisikan groupedSuppliers (Logika transformasi data supplier)
 const groupedSuppliers = (data.suppliers || []).map((s) => {
-    // Hitung total harga hanya untuk supplier ini
+    // Hitung total harga per supplier
     const totalHargaSupplier = s.barang.reduce((sum, b) => sum + parseInt(b.jumlahBayar || 0), 0);
 
     return {
-        supplierName: s.supplier, // Gunakan nama kunci yang jelas
-        totalSupplierFormatted: "Rp. " + totalHargaSupplier.toLocaleString("id-ID"),
+        // Gunakan nama kunci yang konsisten untuk dipanggil di Word
+        namaSupplierUtama: s.supplier, 
+        totalHargaSupplierFormatted: "Rp. " + totalHargaSupplier.toLocaleString("id-ID"),
+        
+        // Detail barang di bawah supplier ini
         barang: (s.barang || []).map((b, bIdx) => ({
             no: bIdx + 1,
             namaBarang: b.namaBarang,
             jumlahBayarFormatted: "Rp. " + parseInt(b.jumlahBayar || 0).toLocaleString("id-ID"),
-            // Info bank hanya muncul di baris pertama barang per supplier
-            namaBankCell: bIdx === 0 ? b.namaBank : "",
-            nomorRekeningCell: bIdx === 0 ? b.nomorRekening : ""
+            
+            // Info bank hanya muncul jika bIdx === 0 (baris pertama) jika ingin hemat ruang
+            namaBank: b.namaBank,
+            nomorRekening: b.nomorRekening
         }))
     };
 });
-
     const dataKirim = {
     namaDokumen: data.namaDokumen,
     createdAt: data.createdAt,
@@ -947,6 +951,7 @@ function formatTanggalDokumen(dateString) {
 
 // ✅ Panggil render pertama kali
 loadDokumen();
+
 
 
 

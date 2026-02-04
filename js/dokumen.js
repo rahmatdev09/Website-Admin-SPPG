@@ -699,30 +699,30 @@ async function downloadDokumen(docId) {
         modules: [imageModule],
     });
 
-    // 1. Definisikan groupedSuppliers (Logika transformasi data supplier)
-   // 1. Definisikan groupedSuppliers dengan perhitungan TOTAL PER SUPPLIER
-// 1. Definisikan groupedSuppliers (Logika transformasi data supplier)
-// --- 1. PROSES GRUP SUPPLIER & TOTAL (FIX) ---
-        const groupedSuppliers = (data.suppliers || []).map((s) => {
-            // Hitung total hanya untuk supplier ini
-            const totalPerSupplier = s.barang.reduce((sum, b) => sum + parseInt(b.jumlahBayar || 0), 0);
+   // --- 1. PROSES GRUP SUPPLIER & TOTAL (FIXED LOGIC) ---
+const groupedSuppliers = (data.suppliers || []).map((s) => {
+    // Hitung total harga HANYA untuk supplier ini
+    const totalSatuSupplier = s.barang.reduce((sum, b) => {
+        return sum + parseInt(b.jumlahBayar || 0);
+    }, 0);
 
-            return {
-                // Di luar loop barang (Level Supplier)
-                totalSupplierFormatted: "Rp. " + totalPerSupplier.toLocaleString("id-ID"),
-                
-                // Di dalam loop barang (Level Item)
-                barang: (s.barang || []).map((b, idx) => ({
-                    no: idx + 1,
-                    namaBarang: b.namaBarang,
-                    jumlahBayarFormatted: "Rp. " + parseInt(b.jumlahBayar || 0).toLocaleString("id-ID"),
-                    // Munculkan data bank & supplier hanya di baris pertama barang saja
-                    supplierCell: idx === 0 ? s.supplier : "",
-                    namaBankCell: idx === 0 ? (b.namaBank || "-") : "",
-                    nomorRekeningCell: idx === 0 ? (b.nomorRekening || "-") : ""
-                }))
-            };
-        });
+    return {
+        // totalSupplierFormatted berada di level Supplier (Hanya muncul sekali setelah loop barang selesai)
+        totalSupplierFormatted: "Rp. " + totalSatuSupplier.toLocaleString("id-ID"),
+        
+        // Loop barang-barang milik supplier ini
+        barang: (s.barang || []).map((b, idx) => ({
+            no: idx + 1,
+            namaBarang: b.namaBarang,
+            jumlahBayarFormatted: "Rp. " + parseInt(b.jumlahBayar || 0).toLocaleString("id-ID"),
+            
+            // KUNCI: Hanya isi di baris pertama (idx === 0), baris lainnya dikirim string kosong ""
+            supplierCell: idx === 0 ? s.supplier : "",
+            namaBankCell: idx === 0 ? (b.namaBank || "-") : "",
+            nomorRekeningCell: idx === 0 ? (b.nomorRekening || "-") : ""
+        }))
+    };
+});
     
     const dataKirim = {
     namaDokumen: data.namaDokumen,
@@ -952,6 +952,7 @@ function formatTanggalDokumen(dateString) {
 
 // ✅ Panggil render pertama kali
 loadDokumen();
+
 
 
 

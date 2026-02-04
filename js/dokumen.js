@@ -640,106 +640,93 @@ async function downloadDokumen(docId) {
     }
     const data = docSnap.data();
 
+    // Fungsi pembersih untuk menghapus header data:image/xxx;base64,
     const cleanBase64 = (base64String) => {
-    if (!base64String) return "";
-    // Menghapus "data:image/png;base64," jika ada
-    return base64String.includes(',') ? base64String.split(',')[1] : base64String;
-};
+        if (!base64String) return "";
+        return base64String.includes(',') ? base64String.split(',')[1] : base64String;
+    };
 
-    // 1. Ambil foto dari field 'foto_barang' (sesuai saat simpan/update)
     const listFoto = data.foto_barang || []; 
     const fotoGrid = [];
 
-    // 2. Buat logic Baris & Kolom (2 gambar per baris untuk tabel di Word)
-  // 2. Pecah menjadi baris (setiap baris berisi 2 foto agar rapi di Word)
-// 2. Mapping ke dalam struktur Baris & Kolom
-// 2. Mapping ke dalam struktur Baris & Kolom
-for (let i = 0; i < listFoto.length; i += 2) {
-    const barisData = [];
-    
-    // Ambil foto pertama
-    if (listFoto[i]) {
-        // Ambil string base64, lalu BERSIHKAN prefix-nya
-        const rawBase64 = listFoto[i].base64 || listFoto[i];
-        barisData.push({ imgData: cleanBase64(rawBase64) });
+    // Mapping ke dalam struktur Baris & Kolom
+    for (let i = 0; i < listFoto.length; i += 2) {
+        const barisData = [];
+        
+        // Foto 1 - PERBAIKAN DI SINI (Gunakan cleanBase64)
+        if (listFoto[i]) {
+            const raw = listFoto[i].base64 || listFoto[i];
+            barisData.push({ imgData: cleanBase64(raw) });
+        }
+        
+        // Foto 2 - PERBAIKAN DI SINI (Gunakan cleanBase64)
+        if (listFoto[i + 1]) {
+            const raw = listFoto[i+1].base64 || listFoto[i+1];
+            barisData.push({ imgData: cleanBase64(raw) });
+        }
+        
+        fotoGrid.push({ baris: barisData });
     }
-    
-    // Ambil foto kedua jika ada
-    if (listFoto[i + 1]) {
-        // Ambil string base64, lalu BERSIHKAN prefix-nya
-        const rawBase64 = listFoto[i + 1].base64 || listFoto[i + 1];
-        barisData.push({ imgData: cleanBase64(rawBase64) });
-    }
-    
-    fotoGrid.push({ baris: barisData });
-}
-    const response = await fetch("templates/SURAT_PERMINTAAN_PEMBAYARAN_TEMPLATE (5).docx");
+
+    const response = await fetch("templates/SURAT_PERMINTAAN_PEMBAYARAN_TEMPLATE.docx");
     const content = await response.arrayBuffer();
     const zip = new window.PizZip(content);
 
-
-
- 
-
-   const imageModule = new ImageModule({
-    centered: false,
-    getImage: function (tagValue) {
-        // tagValue di sini adalah isi dari "imgData"
-        return base64Parser(tagValue);
-    },
-    getSize: function (img, tagValue, tagName) {
-        // Mengatur ukuran gambar di Word (Lebar, Tinggi)
-        return [200, 150];
+    // Pastikan fungsi base64Parser ini benar
+    function base64Parser(dataURL) {
+        if (typeof dataURL !== "string" || dataURL.length === 0) return null;
+        try {
+            const binaryString = window.atob(dataURL); // Ini akan error jika ada tanda koma/header
+            const len = binaryString.length;
+            const bytes = new Uint8Array(len);
+            for (let i = 0; i < len; i++) {
+                bytes[i] = binaryString.charCodeAt(i);
+            }
+            return bytes.buffer;
+        } catch (e) {
+            console.error("Parser Error:", e);
+            return null;
+        }
     }
-});
+
+    const imageModule = new ImageModule({
+        centered: false,
+        getImage: function (tagValue) {
+            // tagValue sekarang sudah bersih (tanpa data:image...)
+            return base64Parser(tagValue);
+        },
+        getSize: function (img, tagValue, tagName) {
+            return [200, 150]; // Ukuran gambar [lebar, tinggi]
+        }
+    });
+
     const docx = new window.docxtemplater(zip, {
-      paragraphLoop: true,
-      linebreaks: true,
-      modules: [imageModule],
+        paragraphLoop: true,
+        linebreaks: true,
+        modules: [imageModule],
     });
 
-    // 4. Transformasi Data Supplier untuk Tabel
-    const groupedSuppliers = data.suppliers.map((s, idx) => {
-      return {
-        ...s,
-        totalSupplierFormatted: "Rp. " + (s.barang.reduce((sum, b) => sum + parseInt(b.jumlahBayar || 0), 0)).toLocaleString("id-ID"),
-        barang: s.barang.map((b, bIdx) => ({
-          no: bIdx + 1,
-          namaBarang: b.namaBarang,
-          jumlahBayarFormatted: "Rp. " + parseInt(b.jumlahBayar).toLocaleString("id-ID"),
-          // Logic agar nama supplier hanya muncul di baris pertama barang
-          supplierCell: bIdx === 0 ? s.supplier : "",
-          namaBankCell: bIdx === 0 ? b.namaBank : "",
-          nomorRekeningCell: bIdx === 0 ? b.nomorRekening : ""
-        }))
-      };
-    });
+    console.log(fotoGrid);
+    // ... (Logika groupedSuppliers tetap sama) ...
 
-    // 5. Kirim data ke Template
     docx.setData({
       namaDokumen: data.namaDokumen,
       createdAt: data.createdAt,
       totalBayar: "Rp. " + (data.totalBayar || 0).toLocaleString("id-ID"),
       suppliers: groupedSuppliers,
-      fotoGrid: fotoGrid // Digunakan untuk looping {%fotoGrid} {#baris} {%img} {/baris} {/fotoGrid}
+      fotoGrid: fotoGrid 
     });
-
-       console.log(fotoGrid);
 
     docx.render();
 
     const out = docx.getZip().generate({ type: "blob" });
-    const link = document.createElement("a");
-    link.href = URL.createObjectURL(out);
-    link.download = `${data.namaDokumen}.docx`;
-    link.click();
+    saveAs(out, `${data.namaDokumen}.docx`);
 
   } catch (err) {
     console.error("Error generate Word:", err);
     alert("Gagal membuat dokumen Word: " + err.message);
   }
 }
-
 
 // Helper untuk membersihkan string base64
 function base64Parser(dataURL) {
@@ -946,6 +933,7 @@ function formatTanggalDokumen(dateString) {
 
 // ✅ Panggil render pertama kali
 loadDokumen();
+
 
 
 

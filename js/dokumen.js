@@ -699,30 +699,27 @@ async function downloadDokumen(docId) {
         modules: [imageModule],
     });
 
-   // --- 1. PROSES GRUP SUPPLIER & TOTAL (FIXED LOGIC) ---
-const groupedSuppliers = (data.suppliers || []).map((s) => {
-    // Hitung total harga HANYA untuk supplier ini
-    const totalSatuSupplier = s.barang.reduce((sum, b) => {
-        return sum + parseInt(b.jumlahBayar || 0);
-    }, 0);
+// --- 1. PROSES GRUP SUPPLIER (FIX) ---
+    const groupedSuppliers = (data.suppliers || []).map((s) => {
+      // Hitung total harga HANYA untuk supplier ini
+      const totalSatuSupplier = s.barang.reduce((sum, b) => sum + parseInt(b.jumlahBayar || 0), 0);
 
-    return {
-        // totalSupplierFormatted berada di level Supplier (Hanya muncul sekali setelah loop barang selesai)
+      return {
+        // Data ini ada di level SUPPLIER (Muncul sekali)
         totalSupplierFormatted: "Rp. " + totalSatuSupplier.toLocaleString("id-ID"),
-        
-        // Loop barang-barang milik supplier ini
+        // Ambil info bank dari barang pertama untuk header supplier
+        namaBankHeader: s.barang[0]?.namaBank || "-",
+        rekeningHeader: s.barang[0]?.nomorRekening || "-",
+        namaSupplierHeader: s.supplier,
+
+        // Data ini ada di level BARANG (Looping di dalam)
         barang: (s.barang || []).map((b, idx) => ({
-            no: idx + 1,
-            namaBarang: b.namaBarang,
-            jumlahBayarFormatted: "Rp. " + parseInt(b.jumlahBayar || 0).toLocaleString("id-ID"),
-            
-            // KUNCI: Hanya isi di baris pertama (idx === 0), baris lainnya dikirim string kosong ""
-            supplierCell: idx === 0 ? s.supplier : "",
-            namaBankCell: idx === 0 ? (b.namaBank || "-") : "",
-            nomorRekeningCell: idx === 0 ? (b.nomorRekening || "-") : ""
+          no: idx + 1,
+          namaBarang: b.namaBarang,
+          jumlahBayarFormatted: "Rp. " + parseInt(b.jumlahBayar || 0).toLocaleString("id-ID")
         }))
-    };
-});
+      };
+    });
     
     const dataKirim = {
     namaDokumen: data.namaDokumen,
@@ -952,6 +949,7 @@ function formatTanggalDokumen(dateString) {
 
 // ✅ Panggil render pertama kali
 loadDokumen();
+
 
 
 

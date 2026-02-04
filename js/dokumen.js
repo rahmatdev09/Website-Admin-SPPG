@@ -672,15 +672,23 @@ async function downloadDokumen(docId) {
     const content = await response.arrayBuffer();
     const zip = new window.PizZip(content);
     
-  const imageModule = new ImageModule({
-    centered: false,
-    getImage: function (tagValue) {
-        // tagValue di sini adalah isi dari imgData (base64 string)
-        return base64Parser(tagValue);
-    },
-    getSize: function (img, tagValue, tagName) {
-        return [200, 150]; 
-    }
+  // SESUAI REFERENSI: Handler untuk ImageModule
+    const imageOptions = {
+        centered: false,
+        getImage: function (tagValue) {
+            // tagValue adalah string base64 dari imgData
+            const base64Part = tagValue.split(",")[1] || tagValue;
+            const binaryString = window.atob(base64Part);
+            const bytes = new Uint8Array(binaryString.length);
+            for (let i = 0; i < binaryString.length; i++) {
+                bytes[i] = binaryString.charCodeAt(i);
+            }
+            return bytes.buffer;
+        },
+        getSize: function () {
+            return [200, 150]; // [Lebar, Tinggi] dalam pixel
+        }
+    };
 });
     const docx = new window.docxtemplater(zip, {
         paragraphLoop: true,
@@ -936,4 +944,5 @@ function formatTanggalDokumen(dateString) {
 
 // ✅ Panggil render pertama kali
 loadDokumen();
+
 

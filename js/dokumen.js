@@ -707,7 +707,23 @@ async function downloadDokumen(docId) {
     });
 
     console.log(fotoGrid);
-    // ... (Logika groupedSuppliers tetap sama) ...
+
+    // 1. Definisikan groupedSuppliers (Logika transformasi data supplier)
+    const groupedSuppliers = (data.suppliers || []).map((s, idx) => {
+      return {
+        ...s,
+        totalSupplierFormatted: "Rp. " + (s.barang.reduce((sum, b) => sum + parseInt(b.jumlahBayar || 0), 0)).toLocaleString("id-ID"),
+        barang: (s.barang || []).map((b, bIdx) => ({
+          no: bIdx + 1,
+          namaBarang: b.namaBarang,
+          jumlahBayarFormatted: "Rp. " + parseInt(b.jumlahBayar || 0).toLocaleString("id-ID"),
+          // Logic agar nama supplier hanya muncul di baris pertama barang
+          supplierCell: bIdx === 0 ? s.supplier : "",
+          namaBankCell: bIdx === 0 ? b.namaBank : "",
+          nomorRekeningCell: bIdx === 0 ? b.nomorRekening : ""
+        }))
+      };
+    });
 
     docx.setData({
       namaDokumen: data.namaDokumen,
@@ -933,6 +949,7 @@ function formatTanggalDokumen(dateString) {
 
 // ✅ Panggil render pertama kali
 loadDokumen();
+
 
 
 

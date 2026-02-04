@@ -702,28 +702,28 @@ async function downloadDokumen(docId) {
     // 1. Definisikan groupedSuppliers (Logika transformasi data supplier)
    // 1. Definisikan groupedSuppliers dengan perhitungan TOTAL PER SUPPLIER
 // 1. Definisikan groupedSuppliers (Logika transformasi data supplier)
-const groupedSuppliers = (data.suppliers || []).map((s) => {
-            // Hitung total per supplier
-            const totalSatuSupplier = s.barang.reduce((sum, b) => sum + parseInt(b.jumlahBayar || 0), 0);
+// --- 1. PROSES GRUP SUPPLIER & TOTAL (FIX) ---
+        const groupedSuppliers = (data.suppliers || []).map((s) => {
+            // Hitung total hanya untuk supplier ini
+            const totalPerSupplier = s.barang.reduce((sum, b) => sum + parseInt(b.jumlahBayar || 0), 0);
 
             return {
-                // Ini akan dibaca oleh {totalSupplierFormatted} di bawah loop barang
-                totalSupplierFormatted: "Rp. " + totalSatuSupplier.toLocaleString("id-ID"),
+                // Di luar loop barang (Level Supplier)
+                totalSupplierFormatted: "Rp. " + totalPerSupplier.toLocaleString("id-ID"),
                 
-                // Ini loop {#barang}
+                // Di dalam loop barang (Level Item)
                 barang: (s.barang || []).map((b, idx) => ({
                     no: idx + 1,
                     namaBarang: b.namaBarang,
                     jumlahBayarFormatted: "Rp. " + parseInt(b.jumlahBayar || 0).toLocaleString("id-ID"),
-                    
-                    // LOGIKA: Hanya isi di baris pertama (idx === 0), sisanya kosong ""
-                    // Agar di Word tidak muncul berulang-ulang
+                    // Munculkan data bank & supplier hanya di baris pertama barang saja
                     supplierCell: idx === 0 ? s.supplier : "",
                     namaBankCell: idx === 0 ? (b.namaBank || "-") : "",
                     nomorRekeningCell: idx === 0 ? (b.nomorRekening || "-") : ""
                 }))
             };
         });
+    
     const dataKirim = {
     namaDokumen: data.namaDokumen,
     createdAt: data.createdAt,
@@ -952,6 +952,7 @@ function formatTanggalDokumen(dateString) {
 
 // ✅ Panggil render pertama kali
 loadDokumen();
+
 
 
 

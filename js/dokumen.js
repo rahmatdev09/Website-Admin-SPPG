@@ -673,6 +673,7 @@ async function downloadDokumen(docId) {
     const zip = new window.PizZip(content);
     
   // SESUAI REFERENSI: Handler untuk ImageModule
+ // SESUAI REFERENSI: Handler untuk ImageModule
     const imageOptions = {
         centered: false,
         getImage: function (tagValue) {
@@ -689,7 +690,6 @@ async function downloadDokumen(docId) {
             return [200, 150]; // [Lebar, Tinggi] dalam pixel
         }
     };
-});
     const docx = new window.docxtemplater(zip, {
         paragraphLoop: true,
         linebreaks: true,
@@ -944,5 +944,6 @@ function formatTanggalDokumen(dateString) {
 
 // ✅ Panggil render pertama kali
 loadDokumen();
+
 
 

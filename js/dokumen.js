@@ -671,24 +671,7 @@ async function downloadDokumen(docId) {
     const response = await fetch("templates/SURAT_PERMINTAAN_PEMBAYARAN_TEMPLATE.docx");
     const content = await response.arrayBuffer();
     const zip = new window.PizZip(content);
-
-    // Pastikan fungsi base64Parser ini benar
-    function base64Parser(dataURL) {
-        if (typeof dataURL !== "string" || dataURL.length === 0) return null;
-        try {
-            const binaryString = window.atob(dataURL); // Ini akan error jika ada tanda koma/header
-            const len = binaryString.length;
-            const bytes = new Uint8Array(len);
-            for (let i = 0; i < len; i++) {
-                bytes[i] = binaryString.charCodeAt(i);
-            }
-            return bytes.buffer;
-        } catch (e) {
-            console.error("Parser Error:", e);
-            return null;
-        }
-    }
-
+    
     const imageModule = new ImageModule({
         centered: false,
         getImage: function (tagValue) {
@@ -705,8 +688,6 @@ async function downloadDokumen(docId) {
         linebreaks: true,
         modules: [imageModule],
     });
-
-    console.log(fotoGrid);
 
     // 1. Definisikan groupedSuppliers (Logika transformasi data supplier)
     const groupedSuppliers = (data.suppliers || []).map((s, idx) => {
@@ -725,13 +706,17 @@ async function downloadDokumen(docId) {
       };
     });
 
-    docx.setData({
-      namaDokumen: data.namaDokumen,
-      createdAt: data.createdAt,
-      totalBayar: "Rp. " + (data.totalBayar || 0).toLocaleString("id-ID"),
-      suppliers: groupedSuppliers,
-      fotoGrid: fotoGrid 
-    });
+    const dataKirim = {
+    namaDokumen: data.namaDokumen,
+    createdAt: data.createdAt,
+    totalBayar: "Rp. " + (data.totalBayar || 0).toLocaleString("id-ID"),
+    suppliers: groupedSuppliers,
+    fotoGrid: fotoGrid 
+};
+
+    docx.setData(dataKirim);
+
+    console.log("FINAL DATA TO WORD:", JSON.stringify(dataKirim, null, 2)); // Cek strukturnya di sini
 
     docx.render();
 
@@ -949,6 +934,7 @@ function formatTanggalDokumen(dateString) {
 
 // ✅ Panggil render pertama kali
 loadDokumen();
+
 
 
 

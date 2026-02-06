@@ -700,40 +700,53 @@ async function downloadDokumen(docId) {
     });
 
 // --- 1. PROSES GRUP SUPPLIER (FIX) ---
- // --- PROSES GRUP SUPPLIER ---
-// --- PROSES GRUP SUPPLIER ---
-const groupedSuppliers = (data.suppliers || []).map((s) => {
-    // Hitung total HANYA untuk satu supplier ini
-    const totalHargaSupplier = s.barang.reduce((sum, b) => {
-        return sum + parseInt(b.jumlahBayar || 0);
-    }, 0);
+
+// --- 1. LOGIKA PENGGABUNGAN (GROUPING) SUPPLIER YANG SAMA ---
+const suppliersRaw = data.suppliers || [];
+const groupedMap = {};
+
+suppliersRaw.forEach(item => {
+    const namaSup = item.supplier;
+    if (!groupedMap[namaSup]) {
+        // Jika supplier belum terdaftar di grup, buat grup baru
+        groupedMap[namaSup] = {
+            supplier: namaSup,
+            barang: []
+        };
+    }
+    // Masukkan semua barang dari entri ini ke dalam grup supplier yang sama
+    if (item.barang && Array.isArray(item.barang)) {
+        groupedMap[namaSup].barang.push(...item.barang);
+    }
+});
+
+// --- 2. FORMAT DATA UNTUK WORD ---
+const finalSuppliers = Object.values(groupedMap).map((s) => {
+    // Hitung total harga gabungan untuk supplier ini
+    const totalHargaGrup = s.barang.reduce((sum, b) => sum + parseInt(b.jumlahBayar || 0), 0);
 
     return {
-        // Variabel ini untuk baris JUMLAH (muncul 1x per supplier)
-        totalSupplierFormatted: "Rp. " + totalHargaSupplier.toLocaleString("id-ID"),
-        
-        // Mapping detail barang
-        barang: (s.barang || []).map((b, idx) => ({
+        totalSupplierFormatted: "Rp. " + totalHargaGrup.toLocaleString("id-ID"),
+        // Mapping detail barang di dalam grup ini
+        barang: s.barang.map((b, idx) => ({
             no: idx + 1,
             namaBarang: b.namaBarang,
             jumlahBayarFormatted: "Rp. " + parseInt(b.jumlahBayar || 0).toLocaleString("id-ID"),
-            
-            // Logika: Data muncul hanya di baris pertama barang, sisanya kosong ""
+            // Tampilkan info bank hanya di baris pertama barang agar rapi
             supplierCell: idx === 0 ? s.supplier : "",
             namaBankCell: idx === 0 ? (b.namaBank || "-") : "",
             nomorRekeningCell: idx === 0 ? (b.nomorRekening || "-") : ""
         }))
     };
 });
-    const dataKirim = {
+
+// --- 3. KIRIM KE DOCXTEMPLATER ---
+docx.setData({
     namaDokumen: data.namaDokumen,
     createdAt: data.createdAt,
-    totalBayar: "Rp. " + (data.totalBayar || 0).toLocaleString("id-ID"),
-    suppliers: groupedSuppliers,
-    fotoGrid: fotoGrid 
-};
-
-    docx.setData(dataKirim);
+    suppliers: finalSuppliers, // Data yang sudah digabung
+    fotoGrid: fotoGrid
+});
 
     console.log("FINAL DATA TO WORD:", JSON.stringify(dataKirim, null, 2)); // Cek strukturnya di sini
 
@@ -953,6 +966,7 @@ function formatTanggalDokumen(dateString) {
 
 // ✅ Panggil render pertama kali
 loadDokumen();
+
 
 
 

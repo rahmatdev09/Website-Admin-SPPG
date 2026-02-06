@@ -748,7 +748,7 @@ docx.setData({
     fotoGrid: fotoGrid
 });
 
-    console.log("FINAL DATA TO WORD:", JSON.stringify(dataKirim, null, 2)); // Cek strukturnya di sini
+    // console.log("FINAL DATA TO WORD:", JSON.stringify(dataKirim, null, 2)); // Cek strukturnya di sini
 
     docx.render();
 
@@ -966,6 +966,7 @@ function formatTanggalDokumen(dateString) {
 
 // ✅ Panggil render pertama kali
 loadDokumen();
+
 
 
 

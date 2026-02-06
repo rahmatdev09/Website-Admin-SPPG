@@ -700,27 +700,28 @@ async function downloadDokumen(docId) {
     });
 
 // --- 1. PROSES GRUP SUPPLIER (FIX) ---
-    const groupedSuppliers = (data.suppliers || []).map((s) => {
-      // Hitung total harga HANYA untuk supplier ini
-      const totalSatuSupplier = s.barang.reduce((sum, b) => sum + parseInt(b.jumlahBayar || 0), 0);
+ // --- PROSES GRUP SUPPLIER ---
+const groupedSuppliers = (data.suppliers || []).map((s) => {
+    // Hitung total harga HANYA untuk supplier ini
+    const totalSatuSupplier = s.barang.reduce((sum, b) => sum + parseInt(b.jumlahBayar || 0), 0);
 
-      return {
-        // Data ini ada di level SUPPLIER (Muncul sekali)
+    return {
+        // Data ini muncul sekali di bawah daftar barang
         totalSupplierFormatted: "Rp. " + totalSatuSupplier.toLocaleString("id-ID"),
-        // Ambil info bank dari barang pertama untuk header supplier
-        namaBankHeader: s.barang[0]?.namaBank || "-",
-        rekeningHeader: s.barang[0]?.nomorRekening || "-",
-        namaSupplierHeader: s.supplier,
-
-        // Data ini ada di level BARANG (Looping di dalam)
+        
+        // Loop barang-barang
         barang: (s.barang || []).map((b, idx) => ({
-          no: idx + 1,
-          namaBarang: b.namaBarang,
-          jumlahBayarFormatted: "Rp. " + parseInt(b.jumlahBayar || 0).toLocaleString("id-ID")
+            no: idx + 1,
+            namaBarang: b.namaBarang,
+            jumlahBayarFormatted: "Rp. " + parseInt(b.jumlahBayar || 0).toLocaleString("id-ID"),
+            
+            // Hanya isi di baris pertama (idx === 0)
+            supplierCell: idx === 0 ? s.supplier : "",
+            namaBankCell: idx === 0 ? (b.namaBank || "-") : "",
+            nomorRekeningCell: idx === 0 ? (b.nomorRekening || "-") : ""
         }))
-      };
-    });
-    
+    };
+});
     const dataKirim = {
     namaDokumen: data.namaDokumen,
     createdAt: data.createdAt,
@@ -949,6 +950,7 @@ function formatTanggalDokumen(dateString) {
 
 // ✅ Panggil render pertama kali
 loadDokumen();
+
 
 
 

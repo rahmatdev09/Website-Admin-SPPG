@@ -701,21 +701,24 @@ async function downloadDokumen(docId) {
 
 // --- 1. PROSES GRUP SUPPLIER (FIX) ---
  // --- PROSES GRUP SUPPLIER ---
+// --- PROSES GRUP SUPPLIER ---
 const groupedSuppliers = (data.suppliers || []).map((s) => {
-    // Hitung total harga HANYA untuk supplier ini
-    const totalSatuSupplier = s.barang.reduce((sum, b) => sum + parseInt(b.jumlahBayar || 0), 0);
+    // Hitung total HANYA untuk satu supplier ini
+    const totalHargaSupplier = s.barang.reduce((sum, b) => {
+        return sum + parseInt(b.jumlahBayar || 0);
+    }, 0);
 
     return {
-        // Data ini muncul sekali di bawah daftar barang
-        totalSupplierFormatted: "Rp. " + totalSatuSupplier.toLocaleString("id-ID"),
+        // Variabel ini untuk baris JUMLAH (muncul 1x per supplier)
+        totalSupplierFormatted: "Rp. " + totalHargaSupplier.toLocaleString("id-ID"),
         
-        // Loop barang-barang
+        // Mapping detail barang
         barang: (s.barang || []).map((b, idx) => ({
             no: idx + 1,
             namaBarang: b.namaBarang,
             jumlahBayarFormatted: "Rp. " + parseInt(b.jumlahBayar || 0).toLocaleString("id-ID"),
             
-            // Hanya isi di baris pertama (idx === 0)
+            // Logika: Data muncul hanya di baris pertama barang, sisanya kosong ""
             supplierCell: idx === 0 ? s.supplier : "",
             namaBankCell: idx === 0 ? (b.namaBank || "-") : "",
             nomorRekeningCell: idx === 0 ? (b.nomorRekening || "-") : ""
@@ -950,6 +953,7 @@ function formatTanggalDokumen(dateString) {
 
 // ✅ Panggil render pertama kali
 loadDokumen();
+
 
 
 

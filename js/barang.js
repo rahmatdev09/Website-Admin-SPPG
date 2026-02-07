@@ -307,6 +307,7 @@ function updateBadges() {
 // FUNGSI UTAMA GENERATE
 // --- Perbaikan Fungsi Generate Agar Tidak Melewati Kontainer ---
 // --- Perbaikan Fungsi Generate Dinamis (2-6 Foto) ---
+// --- Perbaikan Fungsi Generate Tata Letak Vertikal & Grid Khusus ---
 buatKolaseBtn.onclick = () => {
   const jumlah = selectedItems.length;
   if (jumlah < 2 || jumlah > 6) return alert("Pilih antara 2 sampai 6 item!");
@@ -315,39 +316,37 @@ buatKolaseBtn.onclick = () => {
   // Reset Grid Class
   kolasePreview.className = "relative w-full aspect-square bg-white border border-gray-200 shadow-inner overflow-hidden mx-auto grid gap-0.5";
   
-  // Tentukan Layout Grid berdasarkan jumlah foto
+  // Tentukan Layout Grid berdasarkan jumlah foto (Vertikal & Grid 2 Column)
   if (jumlah === 2) {
-    kolasePreview.classList.add("grid-cols-2");
+    // 2 Foto: Vertical Kebawah
+    kolasePreview.classList.add("grid-cols-1", "grid-rows-2");
   } else if (jumlah === 3) {
-    kolasePreview.classList.add("grid-cols-2", "grid-rows-2");
+    // 3 Foto: 3 Vertical Kebawah
+    kolasePreview.classList.add("grid-cols-1", "grid-rows-3");
   } else if (jumlah === 4) {
+    // 4 Foto: Standar Grid 2x2
     kolasePreview.classList.add("grid-cols-2", "grid-rows-2");
   } else if (jumlah === 5) {
-    kolasePreview.classList.add("grid-cols-4", "grid-rows-2");
+    // 5 Foto: Grid 2 Column, 3 Baris, 1 Foto Memenuhi
+    kolasePreview.classList.add("grid-cols-2", "grid-rows-3");
   } else if (jumlah === 6) {
+    // 6 Foto: Grid 2 Column, 3 Baris
     kolasePreview.classList.add("grid-cols-2", "grid-rows-3");
   }
 
-  // Reset transformasi state untuk menampung hingga 6 data
+  // Reset transformasi state
   transformState = Array.from({ length: jumlah }, () => ({ scale: 1, x: 0, y: 0 }));
 
   selectedItems.forEach((item, index) => {
     const src = item.selectedFoto === "foto2" ? item.foto2 : item.foto1;
     const wrap = document.createElement("div");
     
-    // Logika Spesifik Desain sesuai Permintaan:
     let spanClass = "relative w-full h-full border-[0.5px] border-white overflow-hidden cursor-move bg-gray-100";
     
-    if (jumlah === 3 && index === 0) {
-      // 3 Foto: 1 foto memenuhi (atas), 2 foto horizontal (bawah)
+    // Logika Spesifik Desain sesuai Permintaan User:
+    if (jumlah === 5 && index === 0) {
+      // Foto pertama memenuhi baris pertama (2 kolom)
       spanClass += " col-span-2";
-    } else if (jumlah === 5) {
-      if (index === 0) {
-        // 5 Foto: 1 foto memenuhi (kiri/atas tergantung grid), 4 vertikal
-        spanClass += " col-span-4";
-      } else {
-        spanClass += " col-span-1";
-      }
     }
 
     wrap.className = spanClass;
@@ -407,7 +406,6 @@ buatKolaseBtn.onclick = () => {
   downloadKolaseBtn.classList.remove("hidden");
   simpanDbBtn.classList.remove("hidden");
 };
-
 // Fungsi untuk memperbarui tampilan gambar
 window.updateImageTransform = (index) => {
   const img = document.getElementById(`img-edit-${index}`);
@@ -506,6 +504,7 @@ document.getElementById("closeDetail").onclick = () => {
 document.getElementById("closeTambah").onclick = () => {
     tambahModal.classList.add("hidden");
 };
+
 
 
 

@@ -10,37 +10,65 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet" />
     <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 
-    <link rel="apple-touch-icon" sizes="180x180" href="favicon_io/apple-touch-icon.png" />
-    <link rel="icon" type="image/png" sizes="32x32" href="favicon_io/favicon-32x32.png" />
-    <link rel="icon" type="image/png" sizes="16x16" href="favicon_io/favicon-16x16.png" />
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
 
     <style>
         :root {
             --primary: #061e49;
-            --primary-dark: #021029;
+            --primary-soft: #1e3a8a;
             --accent: #3b82f6;
+            --surface: #ffffff;
+            --background: #f8fafc;
         }
 
-        /* Loading Screen Style */
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--background);
+            color: #1e293b;
+        }
+
+        /* Modern Glassmorphism Effect */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+        }
+
+        /* Sidebar Styling */
+        .sidebar-gradient {
+            background: linear-gradient(180deg, #061e49 0%, #020617 100%);
+        }
+
+        .nav-link {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+        }
+
+        .nav-link:hover {
+            background: rgba(255, 255, 255, 0.08);
+            transform: translateX(4px);
+        }
+
+        .nav-link.active-nav {
+            background: linear-gradient(90deg, #3b82f6 0%, #2563eb 100%) !important;
+            color: white !important;
+            box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.3);
+        }
+
+        /* Custom Loader */
         #loading-screen {
-            position: fixed;
-            inset: 0;
-            background: white;
-            z-index: 9999;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            transition: opacity 0.5s ease, visibility 0.5s;
+            background: #ffffff;
+            z-index: 10000;
         }
 
-        .loader {
-            width: 50px;
-            height: 50px;
-            border: 5px solid #f3f3f3;
-            border-top: 5px solid var(--primary);
+        .loader-ring {
+            width: 60px;
+            height: 60px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid var(--accent);
             border-radius: 50%;
-            animation: spin 1s linear infinite;
+            animation: spin 0.8s cubic-bezier(0.5, 0.1, 0.5, 0.9) infinite;
         }
 
         @keyframes spin {
@@ -48,377 +76,231 @@
             100% { transform: rotate(360deg); }
         }
 
-        /* Scrollbar Custom */
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: #f1f1f1; }
-        ::-webkit-scrollbar-thumb { background: #061e49; border-radius: 10px; }
+        /* Table Aesthetics */
+        .modern-table thead th {
+            background-color: #f1f5f9;
+            text-transform: uppercase;
+            font-size: 0.7rem;
+            letter-spacing: 0.05em;
+            color: #64748b;
+        }
 
-        .bg-primary { background-color: var(--primary); }
-        .text-primary { color: var(--primary); }
-        .hover-nav:hover { background: rgba(255, 255, 255, 0.1); transform: translateX(5px); transition: all 0.3s; }
-        .active-nav { background: white !important; color: var(--primary) !important; font-weight: 700; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); }
+        .modern-table tbody tr {
+            transition: background 0.2s;
+        }
+
+        .modern-table tbody tr:hover {
+            background-color: #f8fafc;
+        }
+
+        /* Buttons Styling */
+        .btn-primary {
+            background: linear-gradient(135deg, #061e49 0%, #1e3a8a 100%);
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px -5px rgba(30, 58, 138, 0.4);
+        }
+
+        /* Modal Animation */
+        .modal-animate {
+            animation: modalIn 0.3s ease-out;
+        }
+
+        @keyframes modalIn {
+            from { opacity: 0; transform: scale(0.95) translateY(10px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
     </style>
 </head>
 
-<body class="bg-gray-50 font-sans antialiased text-gray-900">
+<body class="antialiased">
 
-    <div id="loading-screen">
-        <div class="loader mb-4"></div>
-        <p class="text-primary font-bold animate-pulse">SPPG NAILA JASMIN</p>
+    <div id="loading-screen" class="fixed inset-0 flex flex-col items-center justify-center transition-all duration-700">
+        <div class="loader-ring mb-6"></div>
+        <div class="flex flex-col items-center">
+            <span class="text-2xl font-extrabold tracking-tighter text-primary">NAILA JASMIN</span>
+            <span class="text-[10px] uppercase tracking-[0.3em] text-blue-500 font-bold">Smart Logistics</span>
+        </div>
     </div>
 
     <div class="md:flex min-h-screen">
-        <aside id="sidebar" class="fixed inset-y-0 left-0 w-64 bg-primary text-white flex flex-col p-5 space-y-6 transform -translate-x-full transition-transform duration-300 md:translate-x-0 md:static z-50 shadow-2xl">
-            <div class="flex flex-col items-center py-4">
-                <div class="bg-white p-2 rounded-2xl mb-3 shadow-lg">
-                    <img src="icon/Picture1__3_-removebg-preview.png" alt="Logo" class="w-24 h-auto" />
+        <aside id="sidebar" class="fixed inset-y-0 left-0 w-72 sidebar-gradient text-white flex flex-col p-6 space-y-6 transform -translate-x-full transition-transform duration-300 md:translate-x-0 md:static z-50 shadow-2xl">
+            <div class="flex flex-col items-center py-6">
+                <div class="bg-white/10 p-3 rounded-3xl backdrop-blur-md mb-4 border border-white/20">
+                    <img src="icon/Picture1__3_-removebg-preview.png" alt="Logo" class="w-16 h-auto drop-shadow-xl" />
                 </div>
-                <h1 class="text-lg font-extrabold tracking-wider text-center">SPPG NAILA JASMIN</h1>
-                <div class="h-1 w-12 bg-blue-400 mt-2 rounded-full"></div>
+                <h1 class="text-lg font-black tracking-tight text-center">SPPG NAILA JASMIN</h1>
+                <p class="text-[10px] text-blue-400 font-bold tracking-widest uppercase mt-1">Management System</p>
             </div>
 
-            <nav class="flex-1 space-y-2 overflow-y-auto pt-4">
-                <a href="index.html" class="flex items-center px-4 py-3 rounded-xl hover-nav transition">
-                    <i class="fa-solid fa-house w-6"></i> <span>Beranda</span>
+            <nav class="flex-1 space-y-1.5 overflow-y-auto custom-scrollbar">
+                <p class="text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-4 mb-2">Main Menu</p>
+                <a href="index.html" class="nav-link flex items-center px-4 py-3.5 rounded-2xl text-gray-400">
+                    <i class="fa-solid fa-grid-2 w-6 text-lg"></i> <span class="text-sm font-semibold">Beranda</span>
                 </a>
-                <a href="#" class="flex items-center px-4 py-3 rounded-xl active-nav">
-                    <i class="fa-solid fa-box w-6"></i> <span>Barang</span>
+                <a href="#" class="nav-link flex items-center px-4 py-3.5 rounded-2xl active-nav">
+                    <i class="fa-solid fa-box w-6 text-lg"></i> <span class="text-sm">Barang Datang</span>
                 </a>
-                <a href="dokumen.html" class="flex items-center px-4 py-3 rounded-xl hover-nav transition">
-                    <i class="fa-solid fa-file-alt w-6"></i> <span>Dokumen</span>
+                <a href="dokumen.html" class="nav-link flex items-center px-4 py-3.5 rounded-2xl text-gray-400">
+                    <i class="fa-solid fa-file-invoice w-6 text-lg"></i> <span class="text-sm font-semibold">Dokumen</span>
                 </a>
-                <a href="stok.html" class="flex items-center px-4 py-3 rounded-xl hover-nav transition">
-                    <i class="fa-solid fa-boxes-stacked w-6"></i> <span>Stok Barang</span>
+                <a href="stok.html" class="nav-link flex items-center px-4 py-3.5 rounded-2xl text-gray-400">
+                    <i class="fa-solid fa-warehouse w-6 text-lg"></i> <span class="text-sm font-semibold">Stok Barang</span>
                 </a>
-                <a href="pm.html" class="flex items-center px-4 py-3 rounded-xl hover-nav transition">
-                    <i class="fa-solid fa-users w-6"></i> <span>Penerima Manfaat</span>
+                
+                <p class="text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-4 mt-6 mb-2">Operational</p>
+                <a href="pm.html" class="nav-link flex items-center px-4 py-3.5 rounded-2xl text-gray-400">
+                    <i class="fa-solid fa-circle-user w-6 text-lg"></i> <span class="text-sm font-semibold">Penerima Manfaat</span>
                 </a>
-                <a href="absen.html" class="flex items-center px-4 py-3 rounded-xl hover-nav transition">
-                    <i class="fa-solid fa-clipboard-check w-6"></i> <span>Absensi</span>
+                <a href="absen.html" class="nav-link flex items-center px-4 py-3.5 rounded-2xl text-gray-400">
+                    <i class="fa-solid fa-calendar-check w-6 text-lg"></i> <span class="text-sm font-semibold">Absensi</span>
                 </a>
-                <a href="gizi.html" class="flex items-center px-4 py-3 rounded-xl hover-nav transition">
-                    <i class="fa-solid fa-apple-whole w-6"></i> <span>Hitung Gizi</span>
+                <a href="gizi.html" class="nav-link flex items-center px-4 py-3.5 rounded-2xl text-gray-400">
+                    <i class="fa-solid fa-calculator w-6 text-lg"></i> <span class="text-sm font-semibold">Hitung Gizi</span>
                 </a>
-                <a href="survey-pasar.html" class="flex items-center px-4 py-3 rounded-xl hover-nav transition">
-                    <i class="fa-solid fa-chart-line w-6"></i> <span>Survey Pasar</span>
+                <a href="survey-pasar.html" class="nav-link flex items-center px-4 py-3.5 rounded-2xl text-gray-400">
+                    <i class="fa-solid fa-magnifying-glass-chart w-6 text-lg"></i> <span class="text-sm font-semibold">Survey Pasar</span>
                 </a>
             </nav>
 
-            <div class="pt-4 border-t border-white/10">
-                <button onclick="logout()" class="flex items-center w-full px-4 py-3 rounded-xl hover:bg-red-500/20 text-red-300 transition">
-                    <i class="fa-solid fa-right-from-bracket w-6"></i> <span>Keluar</span>
+            <div class="pt-6 border-t border-white/10">
+                <button onclick="logout()" class="flex items-center w-full px-5 py-4 rounded-2xl bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white transition-all duration-300 group">
+                    <i class="fa-solid fa-power-off w-6 group-hover:rotate-90 transition-transform"></i> <span class="text-sm font-bold">Keluar Sistem</span>
                 </button>
             </div>
         </aside>
 
-        <main class="flex-1 flex flex-col h-screen overflow-hidden">
-            <header class="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between shadow-sm z-40">
+        <main class="flex-1 flex flex-col h-screen overflow-hidden bg-slate-50">
+            <header class="bg-white/80 backdrop-blur-md border-b border-gray-200 px-8 py-5 flex items-center justify-between z-40">
                 <div class="flex items-center gap-4">
-                    <button id="btnSidebarToggle" class="md:hidden text-primary focus:outline-none">
-                        <i class="fa-solid fa-bars-staggered text-2xl"></i>
+                    <button id="btnSidebarToggle" class="md:hidden p-2 text-primary hover:bg-gray-100 rounded-lg transition">
+                        <i class="fa-solid fa-bars-staggered text-xl"></i>
                     </button>
-                    <h2 class="text-xl font-bold text-gray-800 tracking-tight">Barang Datang</h2>
+                    <div>
+                        <h2 class="text-2xl font-extrabold text-slate-800 tracking-tight">Data Barang Datang</h2>
+                        <p class="text-xs text-slate-400 font-medium hidden sm:block">Kelola logistik dan verifikasi barang masuk secara real-time.</p>
+                    </div>
                 </div>
 
-                <div class="flex items-center gap-4">
+                <div class="flex items-center gap-6">
                     <div class="text-right hidden sm:block">
-                        <p id="userName" class="text-sm font-bold text-gray-700">Memuat...</p>
-                        <p class="text-xs text-gray-400">Administrator</p>
+                        <p id="userName" class="text-sm font-bold text-slate-800">Administrator</p>
+                        <p class="text-[10px] font-bold text-blue-600 uppercase tracking-tighter">Super Admin</p>
                     </div>
-                    <div id="userPhotoWrapper" onclick="toggleUserCard()" class="w-10 h-10 rounded-full border-2 border-blue-100 shadow-inner cursor-pointer hover:scale-105 transition overflow-hidden bg-gray-200">
+                    <div id="userPhotoWrapper" onclick="toggleUserCard()" class="relative group cursor-pointer">
+                        <div class="w-12 h-12 rounded-2xl border-2 border-white shadow-md group-hover:shadow-blue-200 transition-all overflow-hidden bg-slate-200 ring-2 ring-blue-50">
+                            <img src="https://ui-avatars.com/api/?name=Admin&background=061e49&color=fff" alt="Avatar" />
                         </div>
+                        <div class="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 border-2 border-white rounded-full"></div>
+                    </div>
                 </div>
             </header>
 
-            <div class="p-6 overflow-y-auto flex-1">
-                
-                <div class="flex flex-col lg:flex-row gap-4 mb-6 items-center justify-between">
-                    <div class="flex flex-wrap gap-2 w-full lg:w-auto">
-                        <button id="tambahBarangBtn" class="bg-primary text-white px-5 py-2.5 rounded-xl hover:bg-primary-dark shadow-lg shadow-blue-900/20 transition flex items-center gap-2">
-                            <i class="fa-solid fa-plus text-xs"></i> Tambah Barang
+            <div class="p-8 overflow-y-auto flex-1">
+                <div class="flex flex-col xl:flex-row gap-6 mb-8 items-start xl:items-center justify-between">
+                    <div class="flex flex-wrap gap-3 w-full xl:w-auto">
+                        <button id="tambahBarangBtn" class="btn-primary text-white px-6 py-3.5 rounded-2xl shadow-lg flex items-center gap-3 font-bold text-sm">
+                            <div class="bg-white/20 p-1.5 rounded-lg"><i class="fa-solid fa-plus text-xs"></i></div> Tambah Barang
                         </button>
-                        <button id="kolaseBtn" class="bg-white border border-gray-200 text-gray-700 px-5 py-2.5 rounded-xl hover:bg-gray-50 transition flex items-center gap-2">
-                            <i class="fa-solid fa-images text-blue-500"></i> Buat Kolase
+                        <button id="kolaseBtn" class="bg-white border border-slate-200 text-slate-700 px-6 py-3.5 rounded-2xl hover:bg-slate-50 transition flex items-center gap-3 font-bold text-sm shadow-sm">
+                            <i class="fa-solid fa-layer-group text-blue-500"></i> Buat Kolase Foto
                         </button>
                     </div>
 
-                    <div class="flex flex-wrap gap-3 w-full lg:w-auto">
-                        <div class="relative flex-1 sm:min-w-[250px]">
-                            <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
-                            <input type="text" id="searchInput" placeholder="Cari nama barang..." class="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition" />
+                    <div class="flex flex-wrap gap-3 w-full xl:w-auto">
+                        <div class="relative flex-1 sm:min-w-[320px]">
+                            <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                            <input type="text" id="searchInput" placeholder="Cari data barang..." class="w-full pl-12 pr-5 py-3.5 bg-white border border-slate-200 rounded-2xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all shadow-sm" />
                         </div>
-                        <input type="date" id="filterTanggal" class="border border-gray-200 rounded-xl px-4 py-2.5 outline-none focus:ring-2 focus:ring-blue-500 transition" />
-                        <select id="filterStatus" class="border border-gray-200 rounded-xl px-4 py-2.5 outline-none focus:ring-2 focus:ring-blue-500 transition">
-                            <option value="">Semua Status</option>
-                            <option value="diverifikasi">✅ Diverifikasi</option>
-                            <option value="menunggu">⏳ Menunggu</option>
-                        </select>
+                        <div class="flex gap-2">
+                            <input type="date" id="filterTanggal" class="bg-white border border-slate-200 rounded-2xl px-5 py-3.5 outline-none focus:ring-4 focus:ring-blue-500/10 transition-all shadow-sm font-semibold text-sm text-slate-600" />
+                            <select id="filterStatus" class="bg-white border border-slate-200 rounded-2xl px-5 py-3.5 outline-none focus:ring-4 focus:ring-blue-500/10 transition-all shadow-sm font-bold text-sm text-slate-600 cursor-pointer">
+                                <option value="">Semua Status</option>
+                                <option value="diverifikasi">✅ Terverifikasi</option>
+                                <option value="menunggu">⏳ Menunggu</option>
+                            </select>
+                        </div>
                     </div>
                 </div>
 
-               <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
-    <div class="overflow-x-auto">
-        <table class="w-full text-left border-collapse">
-            <thead class="bg-gray-50 border-b border-gray-200">
-                <tr>
-                    <th class="px-6 py-4 text-[11px] font-bold text-gray-400 uppercase tracking-wider">No</th>
-                    <th class="px-6 py-4 text-[11px] font-bold text-gray-400 uppercase tracking-wider">Foto</th>
-                    <th class="px-6 py-4 text-[11px] font-bold text-gray-400 uppercase tracking-wider">Barang & Tanggal</th>
-                    <th class="px-6 py-4 text-[11px] font-bold text-gray-400 uppercase tracking-wider text-center">Kebutuhan / Datang</th>
-                    <th class="px-6 py-4 text-[11px] font-bold text-gray-400 uppercase tracking-wider">Tipe</th>
-                    <th class="px-6 py-4 text-[11px] font-bold text-gray-400 uppercase tracking-wider">Status User</th>
-                    <th class="px-6 py-4 text-[11px] font-bold text-gray-400 uppercase tracking-wider">Verif Admin</th>
-                    <th class="px-6 py-4 text-[11px] font-bold text-gray-400 uppercase tracking-wider text-center">Aksi</th>
-                </tr>
-            </thead>
-            <tbody id="barangTable" class="divide-y divide-gray-100 text-sm">
-                </tbody>
-        </table>
-    </div>
-    <div id="pagination" class="px-6 py-4 bg-gray-50/50 border-t border-gray-100">
-        </div>
-</div>
+                <div class="bg-white rounded-[2rem] shadow-sm border border-slate-200 overflow-hidden glass-card">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse modern-table">
+                            <thead>
+                                <tr>
+                                    <th class="px-8 py-5">No</th>
+                                    <th class="px-6 py-5">Pratinjau Foto</th>
+                                    <th class="px-6 py-5">Info Barang & Tanggal</th>
+                                    <th class="px-6 py-5 text-center">Volume (Req/Real)</th>
+                                    <th class="px-6 py-5">Kategori</th>
+                                    <th class="px-6 py-5">User Status</th>
+                                    <th class="px-6 py-5">Verifikasi</th>
+                                    <th class="px-8 py-5 text-center">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="barangTable" class="divide-y divide-slate-100 text-sm font-medium text-slate-600">
+                                </tbody>
+                        </table>
+                    </div>
+                    <div id="empty-state" class="hidden py-20 flex flex-col items-center justify-center text-center">
+                        <div class="bg-slate-50 p-6 rounded-full mb-4">
+                            <i class="fa-solid fa-box-open text-4xl text-slate-300"></i>
+                        </div>
+                        <h3 class="text-lg font-bold text-slate-800">Belum ada data barang</h3>
+                        <p class="text-sm text-slate-400">Silakan tambahkan barang baru untuk memulai.</p>
+                    </div>
+                    <div id="pagination" class="px-8 py-6 bg-slate-50/50 border-t border-slate-100 flex items-center justify-between">
+                        </div>
+                </div>
             </div>
         </main>
     </div>
 
-    <div id="sidebarOverlay" class="fixed inset-0 bg-black/40 backdrop-blur-sm hidden z-40 transition-opacity"></div>
-
-    <div id="modalEditProfile" class="hidden fixed inset-0 bg-black/60 backdrop-blur-md z-[100] flex items-center justify-center p-4">
-        <div class="bg-white rounded-3xl shadow-2xl max-w-sm w-full p-8 animate-fade-in">
-            <h3 class="text-xl font-bold text-primary mb-6 flex items-center gap-2">
-                <i class="fa-solid fa-user-pen"></i> Edit Profil
-            </h3>
-            <form id="formEditProfile" class="space-y-4">
-                <div>
-                    <label class="text-xs font-bold text-gray-500 uppercase mb-1 block ml-1">Nama Lengkap</label>
-                    <input type="text" id="editName" class="w-full border border-gray-200 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-500 outline-none" />
-                </div>
-                <div>
-                    <label class="text-xs font-bold text-gray-500 uppercase mb-1 block ml-1">Email (Tetap)</label>
-                    <input type="email" id="editEmail" disabled class="w-full border border-gray-100 rounded-xl px-4 py-2.5 bg-gray-50 text-gray-400 cursor-not-allowed" />
-                </div>
-                <div>
-                    <label class="text-xs font-bold text-gray-500 uppercase mb-1 block ml-1">Foto URL</label>
-                    <input type="text" id="editImage" class="w-full border border-gray-200 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-500 outline-none" />
-                    <div id="previewImage" class="w-20 h-20 rounded-full bg-gray-100 mt-4 mx-auto border-2 border-dashed border-gray-300 flex items-center justify-center overflow-hidden">
-                        <span class="text-[10px] text-gray-400">Preview</span>
-                    </div>
-                </div>
-                <div class="flex gap-3 pt-4">
-                    <button type="button" onclick="toggleEditProfile(false)" class="flex-1 px-4 py-2.5 bg-gray-100 rounded-xl font-semibold hover:bg-gray-200 transition">Batal</button>
-                    <button type="submit" class="flex-1 px-4 py-2.5 bg-primary text-white rounded-xl font-semibold shadow-lg shadow-blue-900/20 hover:bg-primary-dark transition">Simpan</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <div id="userCard" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
-        <div class="bg-white rounded-3xl shadow-2xl max-w-sm w-full p-8 text-center">
-            <div id="userPhotoModal" class="w-24 h-24 rounded-full bg-gray-100 mx-auto mb-4 border-4 border-blue-50 shadow-lg overflow-hidden flex items-center justify-center"></div>
-            <h3 id="userNameModal" class="text-xl font-bold text-gray-800">Nama User</h3>
-            <p id="userEmailModal" class="text-sm text-gray-500 mb-6 font-medium">email@email.com</p>
-            <div class="grid grid-cols-1 gap-2">
-                <button id="btnEditProfileTrigger" class="w-full py-3 bg-primary text-white rounded-2xl font-bold hover:bg-primary-dark transition">Edit Profil</button>
-                <button onclick="toggleUserCard()" class="w-full py-3 bg-gray-100 text-gray-600 rounded-2xl font-bold hover:bg-gray-200 transition">Tutup</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="successModal" class="fixed bottom-6 right-6 translate-y-20 opacity-0 bg-green-600 text-white px-6 py-4 rounded-2xl shadow-2xl flex items-center space-x-3 transition-all duration-500 z-[200]">
-        <i class="fa-solid fa-circle-check text-xl"></i>
-        <div>
-            <p class="font-bold text-sm">Berhasil!</p>
-            <p id="dialogText" class="text-xs opacity-90">Data telah diperbarui.</p>
-        </div>
-    </div>
-
-    <div id="detailModal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
-    <div class="bg-white rounded-3xl shadow-2xl max-w-2xl w-full p-6 overflow-y-auto max-h-[90vh]">
-        <div class="flex justify-between items-center mb-4">
-            <h3 class="text-xl font-bold text-primary">Detail Barang</h3>
-            <button id="closeDetail" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark text-2xl"></i></button>
-        </div>
-        
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-            <div>
-                <label class="block text-xs font-bold text-gray-500 mb-1">Nama Barang</label>
-                <input type="text" id="detailNama" readonly class="w-full border rounded-xl px-3 py-2 bg-gray-50 outline-none">
-            </div>
-            <div>
-                <label class="block text-xs font-bold text-gray-500 mb-1">Jam Datang</label>
-                <input type="time" id="detailJam" class="w-full border rounded-xl px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500">
-            </div>
-            <div>
-                <label class="block text-xs font-bold text-gray-500 mb-1">Jumlah Kebutuhan</label>
-                <input type="number" id="detailKebutuhan" readonly class="w-full border rounded-xl px-3 py-2 bg-gray-50 outline-none">
-            </div>
-            <div>
-                <label class="block text-xs font-bold text-gray-500 mb-1">Jumlah Datang</label>
-                <input type="number" id="detailDatang" class="w-full border rounded-xl px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500">
-            </div>
-            <div>
-                <label class="block text-xs font-bold text-gray-500 mb-1">Satuan</label>
-                <input type="text" id="detailSatuan" class="w-full border rounded-xl px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500">
-            </div>
-            <div>
-                <label class="block text-xs font-bold text-gray-500 mb-1">Status</label>
-                <span id="detailTambahan" class="inline-block px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-bold"></span>
-            </div>
-        </div>
-
-        <div class="grid grid-cols-2 gap-4 mb-6">
-            <div class="text-center">
-                <p class="text-[10px] font-bold text-gray-400 mb-1 uppercase">Foto 1</p>
-                <img id="detailFoto1" src="" class="w-full h-32 object-cover rounded-xl border border-gray-200">
-            </div>
-            <div class="text-center">
-                <p class="text-[10px] font-bold text-gray-400 mb-1 uppercase">Foto 2</p>
-                <img id="detailFoto2" src="" class="w-full h-32 object-cover rounded-xl border border-gray-200">
-            </div>
-        </div>
-
-        <div class="flex gap-3">
-            <button id="updateBtn" class="flex-1 bg-primary text-white py-3 rounded-2xl font-bold hover:bg-primary-dark transition">Simpan Perubahan</button>
-            <button id="verifikasiBtn" class="flex-1 bg-green-600 text-white py-3 rounded-2xl font-bold hover:bg-green-700 transition">Verifikasi Admin</button>
-        </div>
-    </div>
-</div>
-
-<div id="kolaseModal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
-    <div class="bg-white rounded-3xl shadow-2xl max-w-4xl w-full p-6 flex flex-col h-[90vh]">
-        <div class="flex justify-between items-center mb-4">
-            <h3 class="text-xl font-bold text-primary">Buat Kolase 4 Foto</h3>
-            <button id="closeKolase" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark text-2xl"></i></button>
-        </div>
-
-        <div class="flex flex-wrap gap-4 mb-4">
-            <input type="date" id="kolaseFilterTanggal" class="border rounded-xl px-3 py-2 outline-none">
-            <input type="text" id="kolaseFileName" placeholder="Nama File Kolase" class="border rounded-xl px-3 py-2 outline-none flex-1">
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 overflow-hidden flex-1">
-            <div id="kolaseList" class="grid grid-cols-2 gap-3 overflow-y-auto pr-2 border-r">
-                </div>
-
-            <div class="flex flex-col items-center justify-center bg-gray-50 rounded-2xl p-4">
-                <div id="kolasePreview" class="hidden shadow-xl bg-white leading-[0]"></div>
-                <p id="kolasePlaceholder" class="text-gray-400 text-sm">Pilih 4 item lalu klik "Generate Kolase"</p>
-            </div>
-        </div>
-
-        <div class="flex gap-3 mt-6">
-            <button id="buatKolaseBtn" class="flex-1 bg-blue-600 text-white py-3 rounded-2xl font-bold hover:bg-blue-700 transition">Generate Kolase</button>
-            <button id="simpanDbBtn" class="hidden flex-1 bg-primary text-white py-3 rounded-2xl font-bold hover:bg-primary transition">Simpan ke Database</button>
-            <button id="downloadKolaseBtn" class="hidden flex-1 bg-green-600 text-white py-3 rounded-2xl font-bold hover:bg-green-700 transition">Download PNG</button>
-        </div>
-    </div>
-</div>
-
-<div id="fotoSelectModal" class="hidden fixed inset-0 bg-black/80 z-[110] flex items-center justify-center">
-    <div class="bg-white p-6 rounded-3xl max-w-xs w-full text-center">
-        <h4 class="font-bold mb-4">Pilih Foto Kolase</h4>
-        <div id="fotoSelectOptions" class="flex justify-around mb-6"></div>
-        <div class="flex gap-2">
-            <button id="fotoSelectCancel" class="flex-1 py-2 bg-gray-200 rounded-xl">Batal</button>
-            <button id="fotoSelectOk" class="flex-1 py-2 bg-primary text-white rounded-xl">Pilih</button>
-        </div>
-    </div>
-</div>
-
-    <div id="tambahBarangModal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
-    <div class="bg-white rounded-3xl shadow-2xl max-w-md w-full p-8">
-        <div class="flex justify-between items-center mb-6">
-            <h3 class="text-xl font-bold text-primary flex items-center gap-2">
-                <i class="fa-solid fa-box-open"></i> Tambah Barang Baru
-            </h3>
-            <button id="closeTambah" class="text-gray-400 hover:text-gray-600">
-                <i class="fa-solid fa-xmark text-2xl"></i>
-            </button>
-        </div>
-
-        <form id="tambahBarangForm" class="space-y-5">
-            <div>
-                <label class="block text-xs font-bold text-gray-500 uppercase mb-1 ml-1">Nama Barang</label>
-                <input type="text" id="namaBarangBaru" required placeholder="Contoh: Telur Ayam" 
-                    class="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 outline-none transition" />
-            </div>
-
-            <div>
-                <label class="block text-xs font-bold text-gray-500 uppercase mb-1 ml-1">Jumlah Kebutuhan</label>
-                <input type="number" id="jumlahKebutuhanBaru" required placeholder="0" 
-                    class="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 outline-none transition" />
-            </div>
-
-            <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
-                <input type="checkbox" id="tambahanBaru" class="w-5 h-5 accent-blue-600 cursor-pointer" />
-                <label for="tambahanBaru" class="text-sm font-semibold text-gray-700 cursor-pointer">Barang Tambahan (Opsional)</label>
-            </div>
-
-            <div class="flex gap-3 pt-4">
-                <button type="button" id="btnBatalTambah" class="flex-1 px-4 py-3 bg-gray-100 text-gray-600 rounded-2xl font-bold hover:bg-gray-200 transition">Batal</button>
-                <button type="submit" class="flex-1 px-4 py-3 bg-primary text-white rounded-2xl font-bold shadow-lg shadow-blue-900/20 hover:bg-primary-dark transition">Simpan</button>
-            </div>
-        </form>
-    </div>
-</div>
-
     <script>
-        // 1. Loading Screen Logic
+        // Smooth Loader Logic
         window.addEventListener('load', () => {
             const loader = document.getElementById('loading-screen');
             setTimeout(() => {
                 loader.style.opacity = '0';
-                loader.style.visibility = 'hidden';
-            }, 800);
+                setTimeout(() => loader.style.display = 'none', 500);
+            }, 1000);
         });
 
-        // 2. Sidebar Toggle Logic
+        // Sidebar logic 
         const btnSidebarToggle = document.getElementById('btnSidebarToggle');
         const sidebar = document.getElementById('sidebar');
-        const overlay = document.getElementById('sidebarOverlay');
+        const sidebarOverlay = document.createElement('div');
+        sidebarOverlay.className = "fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-40 hidden transition-opacity duration-300";
+        document.body.appendChild(sidebarOverlay);
 
         btnSidebarToggle.addEventListener('click', () => {
             sidebar.classList.remove('-translate-x-full');
-            overlay.classList.remove('hidden');
+            sidebarOverlay.classList.remove('hidden');
         });
 
-        overlay.addEventListener('click', () => {
+        sidebarOverlay.addEventListener('click', () => {
             sidebar.classList.add('-translate-x-full');
-            overlay.classList.add('hidden');
+            sidebarOverlay.classList.add('hidden');
         });
 
-        // 3. Profile Logic
         function toggleUserCard() {
-            document.getElementById('userCard').classList.toggle('hidden');
-        }
-
-        function toggleEditProfile(show = true) {
-            const modal = document.getElementById("modalEditProfile");
-            if (show) {
-                modal.classList.remove("hidden");
-                // Pre-fill data if needed
-            } else {
-                modal.classList.add("hidden");
+            const card = document.getElementById('userCard');
+            card.classList.toggle('hidden');
+            if(!card.classList.contains('hidden')) {
+                card.querySelector('div').classList.add('modal-animate');
             }
         }
 
-        document.getElementById('btnEditProfileTrigger').addEventListener('click', () => {
-            toggleUserCard();
-            toggleEditProfile(true);
-        });
-
         function logout() {
-            if(confirm('Apakah Anda yakin ingin keluar?')) {
+            // Elegant confirmation
+            if(confirm('Keluar dari sesi manajemen?')) {
                 localStorage.removeItem("isLoggedIn");
                 window.location.href = "login.html";
             }
         }
-
-        // Initialize Feather Icons
-        document.addEventListener("DOMContentLoaded", () => {
-            if (typeof feather !== 'undefined') feather.replace();
-        });
     </script>
 
     <script type="module" src="js/auth.js"></script>
@@ -428,9 +310,3 @@
     <script type="module" src="js/tambahBarang.js"></script>
 </body>
 </html>
-
-
-
-
-
-

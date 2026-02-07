@@ -306,41 +306,73 @@ function updateBadges() {
 
 // FUNGSI UTAMA GENERATE
 // --- Perbaikan Fungsi Generate Agar Tidak Melewati Kontainer ---
+// --- Perbaikan Fungsi Generate Dinamis (2-6 Foto) ---
 buatKolaseBtn.onclick = () => {
-  if (selectedItems.length !== 4) return alert("Pilih tepat 4 item!");
+  const jumlah = selectedItems.length;
+  if (jumlah < 2 || jumlah > 6) return alert("Pilih antara 2 sampai 6 item!");
   
   kolasePreview.innerHTML = "";
-  kolasePreview.className = "grid grid-cols-2 grid-rows-2 w-full aspect-square bg-white border border-gray-200 shadow-inner overflow-hidden mx-auto";
+  // Reset Grid Class
+  kolasePreview.className = "relative w-full aspect-square bg-white border border-gray-200 shadow-inner overflow-hidden mx-auto grid gap-0.5";
   
-  // Reset transformasi
-  transformState = transformState.map(() => ({ scale: 1, x: 0, y: 0 }));
+  // Tentukan Layout Grid berdasarkan jumlah foto
+  if (jumlah === 2) {
+    kolasePreview.classList.add("grid-cols-2");
+  } else if (jumlah === 3) {
+    kolasePreview.classList.add("grid-cols-2", "grid-rows-2");
+  } else if (jumlah === 4) {
+    kolasePreview.classList.add("grid-cols-2", "grid-rows-2");
+  } else if (jumlah === 5) {
+    kolasePreview.classList.add("grid-cols-4", "grid-rows-2");
+  } else if (jumlah === 6) {
+    kolasePreview.classList.add("grid-cols-2", "grid-rows-3");
+  }
+
+  // Reset transformasi state untuk menampung hingga 6 data
+  transformState = Array.from({ length: jumlah }, () => ({ scale: 1, x: 0, y: 0 }));
 
   selectedItems.forEach((item, index) => {
     const src = item.selectedFoto === "foto2" ? item.foto2 : item.foto1;
     const wrap = document.createElement("div");
-    wrap.className = "relative w-full h-full border-[0.5px] border-white overflow-hidden cursor-move bg-gray-100";
     
-  wrap.innerHTML = `
+    // Logika Spesifik Desain sesuai Permintaan:
+    let spanClass = "relative w-full h-full border-[0.5px] border-white overflow-hidden cursor-move bg-gray-100";
+    
+    if (jumlah === 3 && index === 0) {
+      // 3 Foto: 1 foto memenuhi (atas), 2 foto horizontal (bawah)
+      spanClass += " col-span-2";
+    } else if (jumlah === 5) {
+      if (index === 0) {
+        // 5 Foto: 1 foto memenuhi (kiri/atas tergantung grid), 4 vertikal
+        spanClass += " col-span-4";
+      } else {
+        spanClass += " col-span-1";
+      }
+    }
+
+    wrap.className = spanClass;
+    
+    wrap.innerHTML = `
       <img src="${src}" 
            id="img-edit-${index}"
            class="absolute w-full h-full object-cover origin-center transition-transform duration-75 pointer-events-none" 
            style="transform: scale(1) translate(0px, 0px);"
            crossorigin="anonymous">
-      <div class="absolute bottom-1 left-1 bg-black/50 text-white text-[8px] p-1 rounded pointer-events-none z-10">
+      <div class="absolute bottom-1 left-1 bg-black/50 text-white text-[7px] md:text-[8px] p-1 rounded pointer-events-none z-10 leading-tight">
         ${formatTanggalHari(item.tanggal)}<br>
         SPPG NAILA JASMIN 📍
       </div>
       
       <div class="absolute top-1 right-1 flex gap-1 z-20" data-html2canvas-ignore="true">
-         <button class="btn-zoom-in bg-white/80 hover:bg-white p-1 rounded shadow text-[10px]">➕</button>
-         <button class="btn-zoom-out bg-white/80 hover:bg-white p-1 rounded shadow text-[10px]">➖</button>
+         <button class="btn-zoom-in bg-white/80 hover:bg-white px-1.5 py-0.5 rounded shadow text-[10px]">➕</button>
+         <button class="btn-zoom-out bg-white/80 hover:bg-white px-1.5 py-0.5 rounded shadow text-[10px]">➖</button>
       </div>`;
 
-    // Ambil referensi tombol zoom
+    // Zoom Events
     wrap.querySelector(".btn-zoom-in").onclick = (e) => { e.stopPropagation(); changeZoom(index, 0.1); };
     wrap.querySelector(".btn-zoom-out").onclick = (e) => { e.stopPropagation(); changeZoom(index, -0.1); };
 
-    // --- Logika Drag and Drop yang Diperbaiki ---
+    // Drag Logic
     let isDragging = false;
     let startX, startY;
 
@@ -351,7 +383,6 @@ buatKolaseBtn.onclick = () => {
       wrap.style.cursor = 'grabbing';
     });
 
-    // Gunakan document agar drag tetap mulus meski mouse keluar sedikit dari kotak
     const mouseMoveHandler = (e) => {
       if (!isDragging) return;
       transformState[index].x = e.clientX - startX;
@@ -366,7 +397,6 @@ buatKolaseBtn.onclick = () => {
       }
     };
 
-    // Tambahkan listener secara global namun tetap dalam scope index masing-masing
     document.addEventListener('mousemove', mouseMoveHandler);
     document.addEventListener('mouseup', mouseUpHandler);
 
@@ -375,8 +405,7 @@ buatKolaseBtn.onclick = () => {
   
   kolasePreview.classList.remove("hidden");
   downloadKolaseBtn.classList.remove("hidden");
-    simpanDbBtn.classList.remove("hidden");
-  
+  simpanDbBtn.classList.remove("hidden");
 };
 
 // Fungsi untuk memperbarui tampilan gambar
@@ -477,6 +506,7 @@ document.getElementById("closeDetail").onclick = () => {
 document.getElementById("closeTambah").onclick = () => {
     tambahModal.classList.add("hidden");
 };
+
 
 
 

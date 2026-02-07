@@ -272,9 +272,9 @@ function toggleSelect(item, div) {
     selectedItems.splice(idx, 1);
     div.classList.remove("ring-2", "ring-blue-600", "bg-blue-50");
   } else {
-    // Jika belum ada, tambahkan (maksimal 4)
-    if (selectedItems.length >= 4) {
-      alert("Maksimal hanya boleh memilih 4 item!");
+    // Jika belum ada, tambahkan (maksimal 6)
+    if (selectedItems.length >= 6) {
+      alert("Maksimal hanya boleh memilih 6 item!");
       return;
     }
     selectedItems.push(item);
@@ -506,6 +506,7 @@ document.getElementById("closeDetail").onclick = () => {
 document.getElementById("closeTambah").onclick = () => {
     tambahModal.classList.add("hidden");
 };
+
 
 
 

@@ -53,6 +53,81 @@
     </style>
   </head>
   <body class="bg-gray-50 text-gray-900">
+    <div
+      id="confirmModal"
+      class="hidden fixed inset-0 bg-black/60 z-[200] flex items-center justify-center p-4 backdrop-blur-sm"
+    >
+      <div
+        class="bg-white rounded-3xl w-full max-w-xs p-6 shadow-2xl text-center"
+      >
+        <div
+          class="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-4"
+        >
+          <i class="fa-solid fa-trash-can text-2xl"></i>
+        </div>
+        <h3 class="font-extrabold text-gray-800 uppercase text-sm mb-2">
+          Konfirmasi Hapus
+        </h3>
+        <p class="text-xs text-gray-500 mb-6 leading-relaxed">
+          Apakah Anda yakin ingin menghapus data ini? Tindakan ini tidak dapat
+          dibatalkan.
+        </p>
+        <div class="flex gap-3">
+          <button
+            id="cancelConfirm"
+            class="flex-1 py-3 bg-gray-100 text-gray-600 rounded-2xl font-bold uppercase text-[10px] active:scale-95 transition-all"
+          >
+            Batal
+          </button>
+          <button
+            id="okConfirm"
+            class="flex-1 py-3 bg-red-600 text-white rounded-2xl font-bold uppercase text-[10px] shadow-lg shadow-red-200 active:scale-95 transition-all"
+          >
+            Ya, Hapus
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div
+      id="successModal"
+      class="hidden fixed inset-0 bg-black/60 z-[200] flex items-center justify-center p-4 backdrop-blur-sm"
+    >
+      <div
+        class="bg-white rounded-3xl w-full max-w-xs p-8 shadow-2xl text-center animate-[scaleIn_0.3s_ease-out]"
+      >
+        <div
+          class="w-20 h-20 bg-green-50 text-green-500 rounded-full flex items-center justify-center mx-auto mb-4 border-4 border-white shadow-sm"
+        >
+          <i class="fa-solid fa-check text-3xl"></i>
+        </div>
+        <h3 class="font-extrabold text-gray-800 uppercase text-sm mb-2">
+          Berhasil!
+        </h3>
+        <p id="successMessage" class="text-xs text-gray-500 mb-6">
+          Data telah berhasil diproses ke dalam sistem.
+        </p>
+        <button
+          id="closeSuccess"
+          class="w-full py-3 bg-primary text-white rounded-2xl font-bold uppercase text-[10px] shadow-lg shadow-blue-900/20 active:scale-95 transition-all"
+        >
+          Selesai
+        </button>
+      </div>
+    </div>
+
+    <style>
+      @keyframes scaleIn {
+        from {
+          transform: scale(0.9);
+          opacity: 0;
+        }
+        to {
+          transform: scale(1);
+          opacity: 1;
+        }
+      }
+    </style>
     <div class="md:flex min-h-screen">
       <aside
         id="sidebar"
@@ -408,22 +483,6 @@
 
     <div
       id="tambahBarangModal"
-      class="hidden fixed inset-0 bg-black/60 z-[100] flex items-center justify-center p-4"
-    >
-      <div class="bg-white rounded-3xl w-full max-w-md p-8">
-        <div class="flex justify-between items-center mb-6">
-          <h3 class="font-bold text-primary italic uppercase text-sm">
-            Tambah Data
-          </h3>
-          <button id="closeTambah">
-            <i class="fa-solid fa-xmark text-xl text-gray-300"></i>
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <div
-      id="tambahBarangModal"
       class="hidden fixed inset-0 bg-black/60 z-[110] flex items-center justify-center p-4 backdrop-blur-sm"
     >
       <div class="bg-white rounded-3xl w-full max-w-md p-8 shadow-2xl">
@@ -448,6 +507,20 @@
               class="w-full border-2 border-gray-100 rounded-2xl px-4 py-3 text-xs outline-none focus:border-primary transition-all"
             />
           </div>
+
+          <div>
+            <label class="text-[10px] font-bold text-gray-400 uppercase ml-1"
+              >Harga Satuan (Rp)</label
+            >
+            <input
+              type="text"
+              id="hargaBarangBaru"
+              required
+              placeholder="0"
+              class="w-full border-2 border-gray-100 rounded-2xl px-4 py-3 text-xs outline-none focus:border-primary transition-all font-bold"
+            />
+          </div>
+
           <div>
             <label class="text-[10px] font-bold text-gray-400 uppercase ml-1"
               >Jumlah Kebutuhan</label
@@ -460,6 +533,20 @@
               class="w-full border-2 border-gray-100 rounded-2xl px-4 py-3 text-xs outline-none focus:border-primary transition-all"
             />
           </div>
+
+          <div>
+            <label class="text-[10px] font-bold text-gray-400 uppercase ml-1"
+              >Total Harga (Otomatis)</label
+            >
+            <input
+              type="text"
+              id="totalHargaBaru"
+              readonly
+              placeholder="Rp 0"
+              class="w-full border-2 border-gray-50 rounded-2xl px-4 py-3 text-xs bg-gray-50 font-extrabold text-primary outline-none"
+            />
+          </div>
+
           <div
             class="flex items-center gap-3 p-4 bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200"
           >
@@ -483,6 +570,34 @@
         </form>
       </div>
     </div>
+
+    <script>
+      const hargaInput = document.getElementById("hargaBarangBaru");
+      const jumlahInput = document.getElementById("jumlahKebutuhanBaru");
+      const totalInput = document.getElementById("totalHargaBaru");
+
+      // Fungsi memformat angka ke ribuan (1.000)
+      const formatRupiah = (angka) => {
+        return angka.replace(/\D/g, "").replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+      };
+
+      // Fungsi menghitung total
+      const hitungTotal = () => {
+        const harga = parseInt(hargaInput.value.replace(/\./g, "")) || 0;
+        const jumlah = parseInt(jumlahInput.value) || 0;
+        const total = harga * jumlah;
+        totalInput.value = "Rp " + total.toLocaleString("id-ID");
+      };
+
+      // Event saat mengetik harga
+      hargaInput.addEventListener("input", (e) => {
+        e.target.value = formatRupiah(e.target.value);
+        hitungTotal();
+      });
+
+      // Event saat mengetik jumlah
+      jumlahInput.addEventListener("input", hitungTotal);
+    </script>
 
     <script>
       // SIDEBAR TOGGLE

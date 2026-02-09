@@ -4,521 +4,387 @@ import {
   onSnapshot,
   doc,
   deleteDoc,
-  updateDoc,
   addDoc,
-  serverTimestamp
+  serverTimestamp,
 } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
 import { openDetailModal } from "./detailBarang.js";
 
-// --- 1. STATE & VARIABEL GLOBAL ---
-const barangTable = document.getElementById("barangTable");
-const pagination = document.getElementById("pagination");
-const searchInput = document.getElementById("searchInput");
-const kolaseModal = document.getElementById("kolaseModal");
-const kolaseList = document.getElementById("kolaseList");
-const kolasePreview = document.getElementById("kolasePreview");
-
-const downloadKolaseBtn = document.getElementById("downloadKolaseBtn");
-const buatKolaseBtn = document.getElementById("buatKolaseBtn");
-const tambahModal = document.getElementById("tambahBarangModal");
-const detailModal = document.getElementById("detailModal");
-
-let transformState = [
-  { scale: 1, x: 0, y: 0 },
-  { scale: 1, x: 0, y: 0 },
-  { scale: 1, x: 0, y: 0 },
-  { scale: 1, x: 0, y: 0 }
-];
-
-// Import Firestore functions jika belum ada di atas
-// import { collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.x/firebase-firestore.js";
-
-const simpanDbBtn = document.getElementById("simpanDbBtn");
-
-simpanDbBtn.onclick = async () => {
-  const namaFile = document.getElementById("kolaseFileName")?.value;
-  if (!namaFile) return alert("Masukkan nama file kolase terlebih dahulu!");
-
-  simpanDbBtn.disabled = true;
-  simpanDbBtn.innerText = "Mengompres & Menyimpan...";
-
-  try {
-    // 1. Capture dengan scale lebih rendah (1.5 cukup tajam tapi file jauh lebih kecil)
-    const canvas = await html2canvas(kolasePreview, {
-      useCORS: true,
-      scale: 1.5, 
-      logging: false,
-    });
-
-    // 2. Kompresi Kualitas (0.5 = 50% kualitas, sangat efektif memperkecil size)
-    // Menggunakan image/jpeg karena kompresinya jauh lebih baik dibanding image/png
-    const base64Image = canvas.toDataURL("image/jpeg", 0.5);
-
-    // Cek ukuran (Opsional untuk debugging)
-    const sizeInBytes = base64Image.length;
-    console.log("Ukuran foto terkompresi:", (sizeInBytes / 1024).toFixed(2), "KB");
-
-    if (sizeInBytes > 1048487) {
-      throw new Error("Foto masih terlalu besar, coba kurangi elemen atau zoom.");
-    }
-
-    // 3. Simpan ke Firestore
-    await addDoc(collection(db, "kolase_history"), {
-      nama_file: namaFile,
-      gambar_base64: base64Image,
-      tanggal_buat: serverTimestamp(),
-      item_ids: selectedItems.map(i => i.id)
-    });
-
-    alert("Berhasil simpan ke database (Ukuran optimal)!");
-  } catch (error) {
-    console.error("Error simpan database:", error);
-    alert(error.message || "Gagal menyimpan ke database.");
-  } finally {
-    simpanDbBtn.disabled = false;
-    simpanDbBtn.innerText = "Simpan ke DB";
-  }
-};
-let isInitialLoad = true; 
+// --- GLOBAL STATE ---
 let barangData = [];
 let filteredData = [];
-let selectedItems = []; 
+let selectedItems = [];
 let currentPage = 1;
 const itemsPerPage = 5;
+let transformState = [];
 let currentSelectItem = null;
 let kolaseSelectedDate = "";
+let isInitialLoad = true;
 
-// --- Event Listener Filter Tanggal Kolase ---
-const filterTanggalKolase = document.getElementById("kolaseFilterTanggal");
+const barangTable = document.getElementById("barangTable");
+const pagination = document.getElementById("pagination");
+const kolaseList = document.getElementById("kolaseList");
+const kolasePreview = document.getElementById("kolasePreview");
+// --- LOGIKA TOMBOL TAMBAH BARANG ---
+const btnTambah = document.getElementById("tambahBarangBtn");
+const modalTambah = document.getElementById("tambahBarangModal");
+const btnCloseTambah = document.getElementById("closeTambah");
 
-if (filterTanggalKolase) {
-  filterTanggalKolase.addEventListener("change", (e) => {
-    // Simpan nilai tanggal yang dipilih (format YYYY-MM-DD)
-    kolaseSelectedDate = e.target.value;
-    console.log("Filter Tanggal Kolase:", kolaseSelectedDate);
-    
-    // PENTING: Reset pilihan item setiap kali filter berubah agar tidak terjadi error
-    selectedItems = []; 
-    
-    // Panggil ulang render daftar gambar
-    renderKolaseList();
-  });
+if (btnTambah && modalTambah) {
+  btnTambah.onclick = () => modalTambah.classList.remove("hidden");
 }
 
-// --- 2. FIRESTORE LISTENER ---
+if (btnCloseTambah) {
+  btnCloseTambah.onclick = () => modalTambah.classList.add("hidden");
+}
+// --- 1. FIRESTORE LISTENER & LOADING ---
 onSnapshot(collection(db, "barang"), (snapshot) => {
-  if (isInitialLoad) showLoading();
-
-  barangData = snapshot.docs.map((docSnap) => ({
-    id: docSnap.id,
-    ...docSnap.data(),
-  }));
-
-  if (isInitialLoad) {
-    setTimeout(() => {
-      isInitialLoad = false;
-      applyFilters();
-    }, 800);
-  } else {
-    applyFilters();
-  }
+  if (isInitialLoad) renderLoading();
+  barangData = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
+  isInitialLoad = false;
+  applyFilters();
 });
 
-function showLoading() {
-  const skeletonRow = `
-    <tr class="animate-pulse border-b border-gray-100">
-        <td class="px-6 py-4"><div class="h-4 w-4 bg-gray-200 rounded"></div></td>
-        <td class="px-6 py-4"><div class="w-12 h-12 bg-gray-200 rounded-xl"></div></td>
-        <td class="px-6 py-4"><div class="h-4 w-32 bg-gray-200 rounded mb-2"></div><div class="h-3 w-20 bg-gray-100 rounded"></div></td>
-        <td class="px-6 py-4 text-center"><div class="h-4 w-16 bg-gray-200 rounded mx-auto"></div></td>
-        <td class="px-6 py-4"><div class="h-4 w-12 bg-gray-200 rounded"></div></td>
-        <td class="px-6 py-4"><div class="h-6 w-20 bg-gray-200 rounded-full"></div></td>
-        <td class="px-6 py-4"><div class="h-6 w-20 bg-gray-200 rounded-full"></div></td>
-        <td class="px-6 py-4 text-center"><div class="h-8 w-8 bg-gray-200 rounded-lg mx-auto"></div></td>
-    </tr>`;
-  barangTable.innerHTML = skeletonRow.repeat(5);
+// Ganti fungsi renderLoading di barang.js dengan ini
+function renderLoading() {
+  const tableBody = document.getElementById("barangTable");
+  if (tableBody) {
+    tableBody.innerHTML = `
+            <tr>
+                <td colspan="8" class="py-20 text-center">
+                    <div class="flex flex-col items-center justify-center">
+                        <div class="loader-circle mb-3"></div>
+                        <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest animate-pulse">
+                            Memuat Data...
+                        </p>
+                    </div>
+                </td>
+            </tr>
+        `;
+  }
 }
 
-// --- 3. TABEL & PAGINATION ---
+// --- 2. TABEL & PAGINATION ---
+function applyFilters() {
+  const kw = document.getElementById("searchInput").value.toLowerCase();
+  const tgl = document.getElementById("filterTanggal").value;
+  const st = document.getElementById("filterStatus").value;
+
+  filteredData = barangData.filter((i) => {
+    let m = i.nama.toLowerCase().includes(kw);
+    if (tgl) m = m && i.tanggal === tgl;
+    if (st === "diverifikasi") m = m && i.verifikasi && i.verifikasiAdmin;
+    if (st === "menunggu") m = m && (!i.verifikasi || !i.verifikasiAdmin);
+    return m;
+  });
+  currentPage = 1;
+  renderTable();
+}
+
 function renderTable() {
   const start = (currentPage - 1) * itemsPerPage;
-  const end = start + itemsPerPage;
-  const pageData = filteredData.slice(start, end);
+  const data = filteredData.slice(start, start + itemsPerPage);
 
-  if (pageData.length === 0 && !isInitialLoad) {
-    barangTable.innerHTML = `<tr><td colspan="8" class="text-center py-10 text-gray-400 italic">Data tidak ditemukan.</td></tr>`;
+  if (data.length === 0) {
+    barangTable.innerHTML = `<tr><td colspan="8" class="text-center py-10 text-gray-400 italic">Data tidak ditemukan</td></tr>`;
+    pagination.innerHTML = "";
     return;
   }
 
-  barangTable.innerHTML = pageData.map((data, index) => {
-    const statusBadge = data.verifikasi
-      ? `<span class="px-2 py-1 rounded-full text-[10px] font-bold bg-green-100 text-green-700 uppercase">✅ Diverifikasi</span>`
-      : `<span class="px-2 py-1 rounded-full text-[10px] font-bold bg-amber-100 text-amber-700 uppercase">⏳ Menunggu</span>`;
+  barangTable.innerHTML = data
+    .map((d, i) => {
+      const userSt = d.verifikasi
+        ? '<span class="px-2 py-1 rounded bg-green-100 text-green-700 font-bold text-[9px] uppercase">Diterima</span>'
+        : '<span class="px-2 py-1 rounded bg-amber-100 text-amber-700 font-bold text-[9px] uppercase">Menunggu</span>';
+      const adminSt = d.verifikasiAdmin
+        ? '<span class="px-2 py-1 rounded bg-blue-100 text-blue-700 font-bold text-[9px] uppercase">Disetujui</span>'
+        : '<span class="px-2 py-1 rounded bg-gray-100 text-gray-400 font-bold text-[9px] uppercase">Pending</span>';
 
-    const adminBadge = data.verifikasiAdmin
-      ? `<span class="px-2 py-1 rounded-full text-[10px] font-bold bg-blue-100 text-blue-700 uppercase">Approved</span>`
-      : `<span class="px-2 py-1 rounded-full text-[10px] font-bold bg-gray-100 text-gray-400 uppercase">Pending</span>`;
-
-    return `
-      <tr class="row-barang hover:bg-gray-50/80 transition-colors group cursor-pointer border-b border-gray-100" data-id="${data.id}">
-          <td class="px-6 py-4 text-gray-400 font-medium">${start + index + 1}</td>
-          <td class="px-6 py-4">${data.foto1 ? `<img src="${data.foto1}" class="w-12 h-12 object-cover rounded-xl border border-gray-200 shadow-sm">` : `<div class="w-12 h-12 bg-gray-100 rounded-xl flex items-center justify-center text-gray-300"><i class="fa-solid fa-image"></i></div>`}</td>
-          <td class="px-6 py-4">
-              <div class="font-bold text-gray-800">${data.nama}</div>
-              <div class="text-[11px] text-gray-400 flex items-center gap-1"><i class="fa-regular fa-calendar-check"></i> ${formatTanggalHari(data.tanggal)}</div>
-          </td>
-          <td class="px-6 py-4 text-center"><div class="flex items-center justify-center gap-2"><span class="font-semibold text-gray-700">${data.jumlahKebutuhan}</span><span class="text-gray-300">/</span><span class="font-bold text-blue-600">${data.jumlahDatang}</span></div></td>
-          <td class="px-6 py-4">${data.tambahan ? `<span class="bg-blue-50 text-blue-600 text-[10px] font-bold px-2 py-1 rounded border border-blue-100">TAMBAHAN</span>` : `<span class="text-gray-400 text-[10px] font-bold">UTAMA</span>`}</td>
-          <td class="px-6 py-4">${statusBadge}</td>
-          <td class="px-6 py-4">${adminBadge}</td>
-          <td class="px-6 py-4 text-center"><button class="btn-hapus p-2 text-gray-300 hover:text-red-600 rounded-lg" data-id="${data.id}" data-nama="${data.nama}"><i class="fa-solid fa-trash-can pointer-events-none"></i></button></td>
-      </tr>`;
-  }).join('');
+      return `
+        <tr class="row-barang cursor-pointer hover:bg-gray-50 transition-colors border-b" data-id="${d.id}">
+            <td class="px-6 py-4 text-gray-400 font-medium">${start + i + 1}</td>
+            <td class="px-6 py-4"><img src="${d.foto1 || ""}" class="w-10 h-10 object-cover rounded-lg border"></td>
+            <td class="px-6 py-4">
+                <div class="font-bold text-gray-800">${d.nama}</div>
+                <div class="text-[10px] text-gray-400 italic">${formatTgl(d.tanggal)}</div>
+            </td>
+            <td class="px-6 py-4 text-center font-bold">
+                <span class="text-gray-500">${d.jumlahKebutuhan}</span> / <span class="text-blue-600">${d.jumlahDatang}</span>
+            </td>
+            <td class="px-6 py-4 text-[10px] font-bold uppercase ${d.tambahan ? "text-blue-500" : "text-gray-400"}">${d.tambahan ? "Tambahan" : "Utama"}</td>
+            <td class="px-6 py-4">${userSt}</td>
+            <td class="px-6 py-4">${adminSt}</td>
+            <td class="px-6 py-4 text-center">
+                <button class="btn-hapus text-gray-300 hover:text-red-600" data-id="${d.id}"><i class="fa-solid fa-trash"></i></button>
+            </td>
+        </tr>`;
+    })
+    .join("");
+  renderPagination();
 }
 
-function renderPagination(totalItems) {
-  pagination.innerHTML = "";
-  const totalPages = Math.ceil(totalItems / itemsPerPage);
+function renderPagination() {
+  const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+  const container = document.getElementById("pagination");
+  container.innerHTML = "";
+
   if (totalPages <= 1) return;
 
-  const createBtn = (text, target, active = false, disabled = false) => {
-    const btn = document.createElement("button");
-    btn.textContent = text;
-    btn.className = `px-3 py-1 rounded ${active ? "bg-blue-600 text-white" : "bg-gray-200 hover:bg-gray-300"} ${disabled ? "opacity-40 cursor-not-allowed" : ""}`;
-    btn.disabled = disabled;
-    btn.onclick = () => { currentPage = target; renderTable(); renderPagination(totalItems); };
-    return btn;
+  // Tombol Back
+  const prev = document.createElement("button");
+  prev.innerHTML = '<i class="fa-solid fa-angle-left"></i>';
+  prev.className = `w-8 h-8 flex items-center justify-center rounded-lg border text-xs ${currentPage === 1 ? "text-gray-300" : "text-primary hover:bg-gray-100"}`;
+  prev.onclick = () => {
+    if (currentPage > 1) {
+      currentPage--;
+      renderTable();
+    }
   };
+  container.appendChild(prev);
 
-  pagination.appendChild(createBtn("«", currentPage - 1, false, currentPage === 1));
-  let start = Math.max(1, currentPage - 2);
-  let end = Math.min(totalPages, start + 4);
-  if (end - start < 4) start = Math.max(1, end - 4);
-  for (let i = start; i <= end; i++) pagination.appendChild(createBtn(i, i, i === currentPage));
-  pagination.appendChild(createBtn("»", currentPage + 1, false, currentPage === totalPages));
+  // Hitung Range Nomor (Agar tidak kepanjangan)
+  let startPage = Math.max(1, currentPage - 1);
+  let endPage = Math.min(totalPages, startPage + 2);
+
+  if (endPage - startPage < 2) {
+    startPage = Math.max(1, endPage - 2);
+  }
+
+  for (let i = startPage; i <= endPage; i++) {
+    const btn = document.createElement("button");
+    btn.innerText = i;
+    btn.className = `w-8 h-8 rounded-lg text-xs font-bold transition-all ${i === currentPage ? "bg-primary text-white shadow-md" : "text-gray-500 border hover:bg-gray-50"}`;
+    btn.onclick = () => {
+      currentPage = i;
+      renderTable();
+    };
+    container.appendChild(btn);
+  }
+
+  // Tombol Next
+  const next = document.createElement("button");
+  next.innerHTML = '<i class="fa-solid fa-angle-right"></i>';
+  next.className = `w-8 h-8 flex items-center justify-center rounded-lg border text-xs ${currentPage === totalPages ? "text-gray-300" : "text-primary hover:bg-gray-100"}`;
+  next.onclick = () => {
+    if (currentPage < totalPages) {
+      currentPage++;
+      renderTable();
+    }
+  };
+  container.appendChild(next);
 }
 
-// --- 4. LOGIKA KOLASE (PILIH & GENERATE) ---
-document.getElementById("kolaseBtn").addEventListener("click", () => {
-  kolaseModal.classList.replace("hidden", "flex");
-  selectedItems = []; 
+// --- 3. LOGIKA KOLASE (FILTER & SELECT FOTO) ---
+document.getElementById("kolaseFilterTanggal").onchange = (e) => {
+  kolaseSelectedDate = e.target.value;
+  selectedItems = [];
   renderKolaseList();
-});
-
-document.getElementById("closeKolase").addEventListener("click", () => kolaseModal.classList.replace("flex", "hidden"));
+};
 
 function renderKolaseList() {
   kolaseList.innerHTML = "";
-  
-  // 1. Filter data yang valid
-  let vItems = barangData.filter(i => i.verifikasi && i.verifikasiAdmin);
-  if (kolaseSelectedDate) vItems = vItems.filter(i => toISODateOnly(i.tanggal) === kolaseSelectedDate);
+  let items = barangData.filter((i) => i.verifikasi && i.verifikasiAdmin);
+  if (kolaseSelectedDate)
+    items = items.filter((i) => i.tanggal === kolaseSelectedDate);
 
-  if (vItems.length === 0) {
-    kolaseList.innerHTML = `<p class="text-center text-gray-500 col-span-2 py-10 italic">Tidak ada data untuk tanggal ini.</p>`;
+  if (items.length === 0) {
+    kolaseList.innerHTML = `<p class="col-span-2 text-center py-10 text-gray-400 text-xs italic">Tidak ada barang yang siap dikolase (Pastikan sudah di-approve User & Admin)</p>`;
     return;
   }
 
-  vItems.forEach((item) => {
-    const isSelected = selectedItems.find(s => s.id === item.id);
+  items.forEach((item) => {
+    const isSelected = selectedItems.find((s) => s.id === item.id);
     const div = document.createElement("div");
-    div.className = `border rounded-lg p-2 hover:bg-blue-50 relative cursor-pointer transition-all ${isSelected ? 'ring-2 ring-blue-600 bg-blue-50' : ''}`;
+    div.className = `border rounded-xl p-2 relative cursor-pointer hover:bg-blue-50 transition-all ${isSelected ? "ring-2 ring-primary bg-blue-50" : ""}`;
     div.setAttribute("data-id", item.id);
 
     div.innerHTML = `
-      <div class="relative overflow-hidden rounded-lg mb-2">
-        <img src="${item.foto1 || ""}" class="w-full h-32 object-cover" id="thumb-${item.id}">
-        <div class="btn-ganti-foto absolute inset-0 bg-black/20 opacity-0 hover:opacity-100 flex items-center justify-center text-white text-[10px] font-bold">
-          GANTI FOTO
-        </div>
-      </div>
-      <p class="text-sm font-bold text-gray-800 truncate">${item.nama}</p>
-      
-      <p class="text-[11px] text-gray-500 flex items-center gap-1 mt-1">
-        <i class="fa-regular fa-calendar text-[10px]"></i> ${formatTanggalSingkat(item.tanggal)}
-      </p>
+            <div class="relative mb-2">
+                <img src="${item.foto1}" id="thumb-${item.id}" class="w-full h-24 object-cover rounded-lg">
+                <button class="btn-ganti absolute inset-0 bg-black/40 text-white text-[8px] font-bold opacity-0 hover:opacity-100 rounded-lg">GANTI FOTO</button>
+            </div>
+            <p class="text-[10px] font-extrabold truncate text-gray-800 uppercase">${item.nama}</p>
+            <p class="text-[9px] text-gray-400">${formatTgl(item.tanggal)}</p>
+            <span class="orderBadge absolute -top-1 -right-1 bg-primary text-white text-[10px] w-5 h-5 flex items-center justify-center rounded-full font-bold hidden"></span>
+        `;
 
-      <span class="orderBadge absolute top-2 left-2 bg-blue-600 text-white text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full ${isSelected ? '' : 'hidden'}"></span>
-    `;
-
-    // Event stopPropagation agar ganti foto tidak memicu seleksi card
-    div.querySelector(".btn-ganti-foto").onclick = (e) => {
+    div.querySelector(".btn-ganti").onclick = (e) => {
       e.stopPropagation();
       currentSelectItem = item;
-      openFotoSelectModal(item);
+      openFotoSelect(item);
     };
-
-    div.onclick = () => toggleSelect(item, div);
+    div.onclick = () => toggleKolaseSelection(item, div);
     kolaseList.appendChild(div);
   });
-}
-
-// Fungsi helper untuk format tanggal singkat di dalam card
-function formatTanggalSingkat(tgl) {
-  if (!tgl) return "-";
-  const d = new Date(tgl);
-  return d.toLocaleDateString("id-ID", { 
-    day: "numeric", 
-    month: "short", 
-    year: "numeric" 
-  });
-}
-
-function toggleSelect(item, div) {
-  const idx = selectedItems.findIndex(s => s.id === item.id);
-  
-  if (idx >= 0) {
-    // Jika sudah ada, hapus dari seleksi
-    selectedItems.splice(idx, 1);
-    div.classList.remove("ring-2", "ring-blue-600", "bg-blue-50");
-  } else {
-    // Jika belum ada, tambahkan (maksimal 6)
-    if (selectedItems.length >= 6) {
-      alert("Maksimal hanya boleh memilih 6 item!");
-      return;
-    }
-    selectedItems.push(item);
-    div.classList.add("ring-2", "ring-blue-600", "bg-blue-50");
-  }
-  
   updateBadges();
 }
 
-function updateBadges() {
-  const allDivs = [...kolaseList.children];
-  
-  // Sembunyikan semua badge dulu
-  allDivs.forEach(d => {
-    const b = d.querySelector(".orderBadge");
-    if (b) b.classList.add("hidden");
-  });
-
-  // Tampilkan badge sesuai urutan di array selectedItems
-  selectedItems.forEach((item, i) => {
-    const targetDiv = allDivs.find(d => d.getAttribute("data-id") === item.id);
-    if (targetDiv) {
-      const badge = targetDiv.querySelector(".orderBadge");
-      badge.classList.remove("hidden");
-      badge.textContent = i + 1;
-    }
-  });
-}
-
-// FUNGSI UTAMA GENERATE
-// --- Perbaikan Fungsi Generate Agar Tidak Melewati Kontainer ---
-// --- Perbaikan Fungsi Generate Dinamis (2-6 Foto) ---
-// --- Perbaikan Fungsi Generate Tata Letak Vertikal & Grid Khusus ---
-buatKolaseBtn.onclick = () => {
-  const jumlah = selectedItems.length;
-  if (jumlah < 2 || jumlah > 6) return alert("Pilih antara 2 sampai 6 item!");
-  
-  kolasePreview.innerHTML = "";
-  // Reset Grid Class
-  kolasePreview.className = "relative w-full aspect-square bg-white border border-gray-200 shadow-inner overflow-hidden mx-auto grid gap-0.5";
-  
-  // Tentukan Layout Grid berdasarkan jumlah foto (Vertikal & Grid 2 Column)
-  if (jumlah === 2) {
-    // 2 Foto: Vertical Kebawah
-    kolasePreview.classList.add("grid-cols-1", "grid-rows-2");
-  } else if (jumlah === 3) {
-    // 3 Foto: 3 Vertical Kebawah
-    kolasePreview.classList.add("grid-cols-1", "grid-rows-3");
-  } else if (jumlah === 4) {
-    // 4 Foto: Standar Grid 2x2
-    kolasePreview.classList.add("grid-cols-2", "grid-rows-2");
-  } else if (jumlah === 5) {
-    // 5 Foto: Grid 2 Column, 3 Baris, 1 Foto Memenuhi
-    kolasePreview.classList.add("grid-cols-2", "grid-rows-3");
-  } else if (jumlah === 6) {
-    // 6 Foto: Grid 2 Column, 3 Baris
-    kolasePreview.classList.add("grid-cols-2", "grid-rows-3");
-  }
-
-  // Reset transformasi state
-  transformState = Array.from({ length: jumlah }, () => ({ scale: 1, x: 0, y: 0 }));
-
-  selectedItems.forEach((item, index) => {
-    const src = item.selectedFoto === "foto2" ? item.foto2 : item.foto1;
-    const wrap = document.createElement("div");
-    
-    let spanClass = "relative w-full h-full border-[0.5px] border-white overflow-hidden cursor-move bg-gray-100";
-    
-    // Logika Spesifik Desain sesuai Permintaan User:
-    if (jumlah === 5 && index === 0) {
-      // Foto pertama memenuhi baris pertama (2 kolom)
-      spanClass += " col-span-2";
-    }
-
-    wrap.className = spanClass;
-    
-    wrap.innerHTML = `
-      <img src="${src}" 
-           id="img-edit-${index}"
-           class="absolute w-full h-full object-cover origin-center transition-transform duration-75 pointer-events-none" 
-           style="transform: scale(1) translate(0px, 0px);"
-           crossorigin="anonymous">
-      <div class="absolute bottom-1 left-1 bg-black/50 text-white text-[7px] md:text-[8px] p-1 rounded pointer-events-none z-10 leading-tight">
-        ${formatTanggalHari(item.tanggal)}<br>
-        SPPG NAILA JASMIN 📍
-      </div>
-      
-      <div class="absolute top-1 right-1 flex gap-1 z-20" data-html2canvas-ignore="true">
-         <button class="btn-zoom-in bg-white/80 hover:bg-white px-1.5 py-0.5 rounded shadow text-[10px]">➕</button>
-         <button class="btn-zoom-out bg-white/80 hover:bg-white px-1.5 py-0.5 rounded shadow text-[10px]">➖</button>
-      </div>`;
-
-    // Zoom Events
-    wrap.querySelector(".btn-zoom-in").onclick = (e) => { e.stopPropagation(); changeZoom(index, 0.1); };
-    wrap.querySelector(".btn-zoom-out").onclick = (e) => { e.stopPropagation(); changeZoom(index, -0.1); };
-
-    // Drag Logic
-    let isDragging = false;
-    let startX, startY;
-
-    wrap.addEventListener('mousedown', (e) => {
-      isDragging = true;
-      startX = e.clientX - transformState[index].x;
-      startY = e.clientY - transformState[index].y;
-      wrap.style.cursor = 'grabbing';
-    });
-
-    const mouseMoveHandler = (e) => {
-      if (!isDragging) return;
-      transformState[index].x = e.clientX - startX;
-      transformState[index].y = e.clientY - startY;
-      updateImageTransform(index);
-    };
-
-    const mouseUpHandler = () => {
-      if (isDragging) {
-        isDragging = false;
-        wrap.style.cursor = 'move';
-      }
-    };
-
-    document.addEventListener('mousemove', mouseMoveHandler);
-    document.addEventListener('mouseup', mouseUpHandler);
-
-    kolasePreview.appendChild(wrap);
-  });
-  
-  kolasePreview.classList.remove("hidden");
-  downloadKolaseBtn.classList.remove("hidden");
-  simpanDbBtn.classList.remove("hidden");
-};
-// Fungsi untuk memperbarui tampilan gambar
-window.updateImageTransform = (index) => {
-  const img = document.getElementById(`img-edit-${index}`);
-  if (img) {
-    const { scale, x, y } = transformState[index];
-    // Translate harus dibagi scale agar pergerakan mouse sinkron dengan gambar
-    img.style.transform = `scale(${scale}) translate(${x / scale}px, ${y / scale}px)`;
-  }
-};
-
-// Fungsi untuk Zoom
-window.changeZoom = (index, delta) => {
-  transformState[index].scale = Math.max(1, transformState[index].scale + delta);
-  updateImageTransform(index);
-};
-
-// --- 5. FOTO SELECT MODAL ---
-function openFotoSelectModal(item) {
+function openFotoSelect(item) {
   const opt = document.getElementById("fotoSelectOptions");
   opt.innerHTML = `
-    <label class="flex flex-col items-center"><input type="radio" name="fc" value="f1" checked><img src="${item.foto1}" class="w-20 h-20 object-cover mt-1"></label>
-    <label class="flex flex-col items-center"><input type="radio" name="fc" value="f2"><img src="${item.foto2}" class="w-20 h-20 object-cover mt-1"></label>`;
+        <label class="cursor-pointer border p-2 rounded-xl flex flex-col items-center">
+            <input type="radio" name="fc" value="f1" checked class="mb-2">
+            <img src="${item.foto1}" class="w-full h-20 object-cover rounded-lg">
+            <span class="text-[8px] mt-1 font-bold uppercase">Foto 1</span>
+        </label>
+        <label class="cursor-pointer border p-2 rounded-xl flex flex-col items-center">
+            <input type="radio" name="fc" value="f2" class="mb-2">
+            <img src="${item.foto2 || item.foto1}" class="w-full h-20 object-cover rounded-lg">
+            <span class="text-[8px] mt-1 font-bold uppercase">Foto 2</span>
+        </label>`;
   document.getElementById("fotoSelectModal").classList.remove("hidden");
 }
 
 document.getElementById("fotoSelectOk").onclick = () => {
   const val = document.querySelector("input[name='fc']:checked").value;
-  currentSelectItem.selectedFoto = (val === "f2") ? "foto2" : "foto1";
-  document.getElementById(`thumb-${currentSelectItem.id}`).src = (val === "f2") ? currentSelectItem.foto2 : currentSelectItem.foto1;
+  const chosen =
+    val === "f2" && currentSelectItem.foto2
+      ? currentSelectItem.foto2
+      : currentSelectItem.foto1;
+  currentSelectItem.chosenImg = chosen;
+  document.getElementById(`thumb-${currentSelectItem.id}`).src = chosen;
   document.getElementById("fotoSelectModal").classList.add("hidden");
 };
 
-// --- 6. DOWNLOAD ---
-downloadKolaseBtn.onclick = async () => {
-  const canvas = await html2canvas(kolasePreview, { 
-  useCORS: true, 
-  scale: 3, // Meningkatkan kualitas gambar hasil download meskipun preview di web terlihat kecil
-  logging: false 
-});
-  const link = document.createElement("a");
-  link.download = "kolase.png";
-  link.href = canvas.toDataURL();
-  link.click();
-};
+function toggleKolaseSelection(item, div) {
+  const idx = selectedItems.findIndex((s) => s.id === item.id);
+  if (idx >= 0) {
+    selectedItems.splice(idx, 1);
+  } else {
+    if (selectedItems.length >= 6) return alert("Maksimal 6 foto!");
+    if (!item.chosenImg) item.chosenImg = item.foto1; // Default
+    selectedItems.push(item);
+  }
+  renderKolaseList(); // Re-render untuk update UI ring & badge
+}
 
-
-
-
-// --- 7. UTILS & FILTER ---
-function applyFilters() {
-  const tgl = document.getElementById("filterTanggal")?.value || "";
-  const st = document.getElementById("filterStatus")?.value || "";
-  const kw = searchInput.value.toLowerCase();
-
-  filteredData = barangData.filter(i => {
-    let m = i.nama.toLowerCase().includes(kw);
-    if (tgl) m = m && i.tanggal === tgl;
-    if (st === "diverifikasi") m = m && i.verifikasi === true;
-    else if (st === "menunggu") m = m && i.verifikasi === false;
-    return m;
+function updateBadges() {
+  selectedItems.forEach((item, i) => {
+    const div = [...kolaseList.children].find(
+      (d) => d.getAttribute("data-id") === item.id,
+    );
+    if (div) {
+      const b = div.querySelector(".orderBadge");
+      b.classList.remove("hidden");
+      b.innerText = i + 1;
+      div.classList.add("ring-2", "ring-primary", "bg-blue-50");
+    }
   });
-  renderTable();
-  renderPagination(filteredData.length);
 }
 
-function formatTanggalHari(t) {
+// --- 4. GENERATE KOLASE ---
+document.getElementById("buatKolaseBtn").onclick = () => {
+  const jml = selectedItems.length;
+  if (jml < 2) return alert("Pilih minimal 2 foto!");
+
+  kolasePreview.innerHTML = "";
+  kolasePreview.className =
+    "relative w-full aspect-square bg-white border grid gap-[2px] overflow-hidden";
+
+  // Dynamic Grid Layout
+  if (jml === 2) kolasePreview.classList.add("grid-cols-1", "grid-rows-2");
+  else if (jml === 3) kolasePreview.classList.add("grid-cols-1", "grid-rows-3");
+  else if (jml === 4) kolasePreview.classList.add("grid-cols-2", "grid-rows-2");
+  else if (jml === 5) kolasePreview.classList.add("grid-cols-2", "grid-rows-3");
+  else if (jml === 6) kolasePreview.classList.add("grid-cols-2", "grid-rows-3");
+
+  transformState = Array.from({ length: jml }, () => ({
+    scale: 1,
+    x: 0,
+    y: 0,
+  }));
+
+  selectedItems.forEach((item, idx) => {
+    const wrap = document.createElement("div");
+    wrap.className =
+      "relative w-full h-full overflow-hidden cursor-move bg-gray-50";
+    if (jml === 5 && idx === 0) wrap.classList.add("col-span-2");
+
+    wrap.innerHTML = `
+            <img src="${item.chosenImg}" id="img-edit-${idx}" class="absolute w-full h-full object-cover origin-center pointer-events-none" style="transform: scale(1) translate(0px,0px)" crossorigin="anonymous">
+            <div class="absolute bottom-1 left-1 bg-black/60 text-white text-[7px] p-1 rounded z-10 font-bold leading-tight">
+                ${formatTglFull(item.tanggal)}<br>SPPG NAILA JASMIN 📍
+            </div>
+            <div class="absolute top-1 right-1 flex gap-1 z-20" data-html2canvas-ignore="true">
+                <button onclick="event.stopPropagation(); changeZ(${idx}, 0.1)" class="bg-white/90 w-6 h-6 rounded flex items-center justify-center text-xs">➕</button>
+                <button onclick="event.stopPropagation(); changeZ(${idx}, -0.1)" class="bg-white/90 w-6 h-6 rounded flex items-center justify-center text-xs">➖</button>
+            </div>`;
+
+    let isD = false,
+      sx,
+      sy;
+    wrap.onmousedown = (e) => {
+      isD = true;
+      sx = e.clientX - transformState[idx].x;
+      sy = e.clientY - transformState[idx].y;
+    };
+    window.onmousemove = (e) => {
+      if (!isD) return;
+      transformState[idx].x = e.clientX - sx;
+      transformState[idx].y = e.clientY - sy;
+      upd(idx);
+    };
+    window.onmouseup = () => (isD = false);
+    kolasePreview.appendChild(wrap);
+  });
+
+  kolasePreview.classList.remove("hidden");
+  document.getElementById("kolasePlaceholder").classList.add("hidden");
+  document.getElementById("downloadKolaseBtn").classList.remove("hidden");
+  document.getElementById("simpanDbBtn").classList.remove("hidden");
+};
+
+// Global Zoom Helper
+window.changeZ = (idx, delta) => {
+  transformState[idx].scale = Math.max(1, transformState[idx].scale + delta);
+  upd(idx);
+};
+
+function upd(idx) {
+  const img = document.getElementById(`img-edit-${idx}`);
+  const { scale, x, y } = transformState[idx];
+  img.style.transform = `scale(${scale}) translate(${x / scale}px, ${y / scale}px)`;
+}
+
+// --- UTILS ---
+function formatTgl(t) {
   if (!t) return "-";
-  return new Date(t).toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+  const d = new Date(t);
+  return d.toLocaleDateString("id-ID", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
 }
 
-function toISODateOnly(d) {
-  const date = new Date(d);
-  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+function formatTglFull(t) {
+  if (!t) return "-";
+  const d = new Date(t);
+  return d.toLocaleDateString("id-ID", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
 }
 
-barangTable.addEventListener("click", async (e) => {
-    const btn = e.target.closest(".btn-hapus");
-    if (btn) {
-        e.stopPropagation();
-        if (confirm("Hapus?")) await deleteDoc(doc(db, "barang", btn.dataset.id));
-        return;
-    }
-    const row = e.target.closest(".row-barang");
-    if (row) {
-        const d = filteredData.find(i => i.id === row.dataset.id);
-        if (d) openDetailModal(d);
-    }
-});
-
-searchInput.addEventListener("input", applyFilters);
-document.getElementById("filterTanggal")?.addEventListener("change", applyFilters);
-document.getElementById("closeDetail").onclick = () => {
-    detailModal.classList.add("hidden");
+// --- GLOBAL CLICK HANDLERS ---
+barangTable.onclick = (e) => {
+  const b = e.target.closest(".btn-hapus");
+  if (b) {
+    e.stopPropagation();
+    if (confirm("Hapus barang?")) deleteDoc(doc(db, "barang", b.dataset.id));
+    return;
+  }
+  const r = e.target.closest(".row-barang");
+  if (r) openDetailModal(barangData.find((x) => x.id === r.dataset.id));
 };
 
-document.getElementById("closeTambah").onclick = () => {
-    tambahModal.classList.add("hidden");
+document.getElementById("searchInput").oninput = applyFilters;
+document.getElementById("filterTanggal").onchange = applyFilters;
+document.getElementById("filterStatus").onchange = applyFilters;
+document.getElementById("kolaseBtn").onclick = () => {
+  document.getElementById("kolaseModal").classList.remove("hidden");
+  renderKolaseList();
 };
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+document.getElementById("closeKolase").onclick = () =>
+  document.getElementById("kolaseModal").classList.add("hidden");

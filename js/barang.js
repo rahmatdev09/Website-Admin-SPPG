@@ -5,6 +5,7 @@ import {
   doc,
   deleteDoc,
   addDoc,
+  updateDoc,
   serverTimestamp,
 } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
 import { openDetailModal } from "./detailBarang.js";
@@ -19,11 +20,20 @@ let transformState = [];
 let currentSelectItem = null;
 let kolaseSelectedDate = "";
 let isInitialLoad = true;
+let deleteId = null;
 
 const barangTable = document.getElementById("barangTable");
 const pagination = document.getElementById("pagination");
 const kolaseList = document.getElementById("kolaseList");
 const kolasePreview = document.getElementById("kolasePreview");
+
+// Elemen Modal Tambahan
+const confirmModal = document.getElementById("confirmModal");
+const successModal = document.getElementById("successModal");
+const okConfirmBtn = document.getElementById("okConfirm");
+const cancelConfirmBtn = document.getElementById("cancelConfirm");
+const closeSuccessBtn = document.getElementById("closeSuccess");
+
 // --- LOGIKA TOMBOL TAMBAH BARANG ---
 const btnTambah = document.getElementById("tambahBarangBtn");
 const modalTambah = document.getElementById("tambahBarangModal");
@@ -36,15 +46,17 @@ if (btnTambah && modalTambah) {
 if (btnCloseTambah) {
   btnCloseTambah.onclick = () => modalTambah.classList.add("hidden");
 }
+
+// Langsung panggil loading sebelum data snapshot tiba
+renderLoading();
+
 // --- 1. FIRESTORE LISTENER & LOADING ---
 onSnapshot(collection(db, "barang"), (snapshot) => {
-  if (isInitialLoad) renderLoading();
   barangData = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
   isInitialLoad = false;
   applyFilters();
 });
 
-// Ganti fungsi renderLoading di barang.js dengan ini
 function renderLoading() {
   const tableBody = document.getElementById("barangTable");
   if (tableBody) {
@@ -129,7 +141,6 @@ function renderPagination() {
 
   if (totalPages <= 1) return;
 
-  // Tombol Back
   const prev = document.createElement("button");
   prev.innerHTML = '<i class="fa-solid fa-angle-left"></i>';
   prev.className = `w-8 h-8 flex items-center justify-center rounded-lg border text-xs ${currentPage === 1 ? "text-gray-300" : "text-primary hover:bg-gray-100"}`;
@@ -141,13 +152,9 @@ function renderPagination() {
   };
   container.appendChild(prev);
 
-  // Hitung Range Nomor (Agar tidak kepanjangan)
   let startPage = Math.max(1, currentPage - 1);
   let endPage = Math.min(totalPages, startPage + 2);
-
-  if (endPage - startPage < 2) {
-    startPage = Math.max(1, endPage - 2);
-  }
+  if (endPage - startPage < 2) startPage = Math.max(1, endPage - 2);
 
   for (let i = startPage; i <= endPage; i++) {
     const btn = document.createElement("button");
@@ -160,7 +167,6 @@ function renderPagination() {
     container.appendChild(btn);
   }
 
-  // Tombol Next
   const next = document.createElement("button");
   next.innerHTML = '<i class="fa-solid fa-angle-right"></i>';
   next.className = `w-8 h-8 flex items-center justify-center rounded-lg border text-xs ${currentPage === totalPages ? "text-gray-300" : "text-primary hover:bg-gray-100"}`;
@@ -173,7 +179,7 @@ function renderPagination() {
   container.appendChild(next);
 }
 
-// --- 3. LOGIKA KOLASE (FILTER & SELECT FOTO) ---
+// --- 3. LOGIKA KOLASE ---
 document.getElementById("kolaseFilterTanggal").onchange = (e) => {
   kolaseSelectedDate = e.target.value;
   selectedItems = [];
@@ -251,10 +257,10 @@ function toggleKolaseSelection(item, div) {
     selectedItems.splice(idx, 1);
   } else {
     if (selectedItems.length >= 6) return alert("Maksimal 6 foto!");
-    if (!item.chosenImg) item.chosenImg = item.foto1; // Default
+    if (!item.chosenImg) item.chosenImg = item.foto1;
     selectedItems.push(item);
   }
-  renderKolaseList(); // Re-render untuk update UI ring & badge
+  renderKolaseList();
 }
 
 function updateBadges() {
@@ -280,12 +286,11 @@ document.getElementById("buatKolaseBtn").onclick = () => {
   kolasePreview.className =
     "relative w-full aspect-square bg-white border grid gap-[2px] overflow-hidden";
 
-  // Dynamic Grid Layout
   if (jml === 2) kolasePreview.classList.add("grid-cols-1", "grid-rows-2");
   else if (jml === 3) kolasePreview.classList.add("grid-cols-1", "grid-rows-3");
   else if (jml === 4) kolasePreview.classList.add("grid-cols-2", "grid-rows-2");
-  else if (jml === 5) kolasePreview.classList.add("grid-cols-2", "grid-rows-3");
-  else if (jml === 6) kolasePreview.classList.add("grid-cols-2", "grid-rows-3");
+  else if (jml === 5 || jml === 6)
+    kolasePreview.classList.add("grid-cols-2", "grid-rows-3");
 
   transformState = Array.from({ length: jml }, () => ({
     scale: 1,
@@ -333,7 +338,6 @@ document.getElementById("buatKolaseBtn").onclick = () => {
   document.getElementById("simpanDbBtn").classList.remove("hidden");
 };
 
-// Global Zoom Helper
 window.changeZ = (idx, delta) => {
   transformState[idx].scale = Math.max(1, transformState[idx].scale + delta);
   upd(idx);
@@ -367,17 +371,116 @@ function formatTglFull(t) {
   });
 }
 
+const showSuccess = (msg) => {
+  document.getElementById("successMessage").innerText = msg;
+  successModal.classList.remove("hidden");
+};
+
 // --- GLOBAL CLICK HANDLERS ---
 barangTable.onclick = (e) => {
   const b = e.target.closest(".btn-hapus");
   if (b) {
     e.stopPropagation();
-    if (confirm("Hapus barang?")) deleteDoc(doc(db, "barang", b.dataset.id));
+    deleteId = b.dataset.id;
+    confirmModal.classList.remove("hidden");
     return;
   }
   const r = e.target.closest(".row-barang");
   if (r) openDetailModal(barangData.find((x) => x.id === r.dataset.id));
 };
+
+// Logika Modal Confirm
+okConfirmBtn.onclick = async () => {
+  if (deleteId) {
+    await deleteDoc(doc(db, "barang", deleteId));
+    confirmModal.classList.add("hidden");
+    deleteId = null;
+    showSuccess("Data barang berhasil dihapus!");
+  }
+};
+
+cancelConfirmBtn.onclick = () => {
+  confirmModal.classList.add("hidden");
+  deleteId = null;
+};
+
+closeSuccessBtn.onclick = () => {
+  successModal.classList.add("hidden");
+};
+
+// --- UPDATE/APPROVE DARI DETAIL BARANG ---
+// Fungsi ini bisa dipanggil dari detailBarang.js atau langsung di sini
+export const handleApprove = async (id) => {
+  try {
+    await updateDoc(doc(db, "barang", id), {
+      verifikasiAdmin: true,
+    });
+    showSuccess("Barang berhasil disetujui oleh Admin!");
+    document.getElementById("detailModal").classList.add("hidden");
+  } catch (e) {
+    alert("Gagal memverifikasi: " + e.message);
+  }
+};
+
+// --- LOGIKA SIMPAN BARANG BARU KE FIREBASE ---
+const tambahBarangForm = document.getElementById("tambahBarangForm");
+
+if (tambahBarangForm) {
+  tambahBarangForm.onsubmit = async (e) => {
+    e.preventDefault();
+
+    // 1. Ambil elemen tombol untuk efek loading
+    const btnSubmit = tambahBarangForm.querySelector('button[type="submit"]');
+    const originalText = btnSubmit.innerText;
+
+    // 2. Ambil nilai input
+    const nama = document.getElementById("namaBarangBaru").value;
+    const jumlahKebutuhan = document.getElementById(
+      "jumlahKebutuhanBaru",
+    ).value;
+    const isTambahan = document.getElementById("tambahanBaru").checked;
+
+    // 3. Bersihkan format titik dari harga agar menjadi angka murni
+    const hargaSatuan =
+      parseInt(
+        document.getElementById("hargaBarangBaru").value.replace(/\./g, ""),
+      ) || 0;
+    const totalHarga = hargaSatuan * (parseInt(jumlahKebutuhan) || 0);
+
+    // Efek loading
+    btnSubmit.disabled = true;
+    btnSubmit.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> MEMPROSES...`;
+
+    try {
+      // 4. Simpan ke Collection "barang"
+      await addDoc(collection(db, "barang"), {
+        nama: nama,
+        jumlahKebutuhan: parseInt(jumlahKebutuhan),
+        jumlahDatang: 0, // Default awal
+        hargaSatuan: hargaSatuan,
+        totalHarga: totalHarga,
+        tambahan: isTambahan,
+        tanggal: new Date().toISOString().split("T")[0], // Default tanggal hari ini
+        createdAt: serverTimestamp(),
+        verifikasi: false, // Status User
+        verifikasiAdmin: false, // Status Admin
+      });
+
+      // 5. Reset Form dan Tutup Modal
+      tambahBarangForm.reset();
+      document.getElementById("tambahBarangModal").classList.add("hidden");
+
+      // 6. Tampilkan Modal Sukses (Menggunakan fungsi showSuccess yang sudah ada)
+      showSuccess("Barang baru berhasil ditambahkan ke sistem!");
+    } catch (error) {
+      console.error("Error tambah barang:", error);
+      alert("Gagal menyimpan data: " + error.message);
+    } finally {
+      btnSubmit.disabled = false;
+      btnSubmit.innerText = originalText;
+    }
+  };
+}
 
 document.getElementById("searchInput").oninput = applyFilters;
 document.getElementById("filterTanggal").onchange = applyFilters;

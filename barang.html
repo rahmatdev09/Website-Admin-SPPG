@@ -1,152 +1,41 @@
-
 <!doctype html>
 <html lang="id">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Master Barang - Aguna APP</title>
-
+    <title>Dashboard - SPPG NAILA JASMIN</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
-      rel="stylesheet"
-    />
     <link
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
       rel="stylesheet"
     />
-
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap"
+      rel="stylesheet"
+    />
     <style>
-      body {
-        font-family: "Inter", sans-serif;
-        background-color: #f8fafc;
-      }
       :root {
         --primary: #061e49;
       }
-      .sidebar {
-        width: 280px;
-        height: 100vh;
-        position: fixed;
-        left: 0;
-        top: 0;
-        background: #061e49;
-        z-index: 100;
+      body {
+        font-family: "Plus Jakarta Sans", sans-serif;
       }
-      .main-content {
-        margin-left: 280px;
-        width: calc(100% - 280px);
-        min-height: 100vh;
+      .bg-primary {
+        background-color: var(--primary);
       }
-      .nav-link {
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-        padding: 1rem 1.5rem;
-        border-radius: 1.25rem;
-        transition: all 0.3s;
-        color: #94a3b8;
-        font-weight: 600;
-        font-size: 0.875rem;
-      }
-      .nav-link:hover {
-        background: rgba(255, 255, 255, 0.05);
-        color: white;
-      }
-      .nav-link.active {
-        background: #3b82f6;
-        color: white;
-        box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.3);
+      .text-primary {
+        color: var(--primary);
       }
 
-      /* Mobile Bottom Nav */
-      .bottom-nav {
-        display: none;
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        background: white;
-        padding: 0.75rem 0.25rem;
-        border-top: 1px solid #e2e8f0;
-        z-index: 200;
-        justify-content: space-around;
-        align-items: center;
-        box-shadow: 0 -10px 15px -3px rgba(0, 0, 0, 0.1);
-      }
-      .bottom-nav a {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        font-size: 0.6rem;
-        font-weight: 700;
-        color: #94a3b8;
-        gap: 0.25rem;
-        flex: 1;
-      }
-      .bottom-nav a.active {
-        color: #3b82f6;
-      }
-
-      @media (max-width: 768px) {
-        .sidebar {
-          display: none !important;
-        }
-        .main-content {
-          margin-left: 0;
-          width: 100%;
-          padding: 1.5rem 1.5rem 180px 1.5rem;
-        }
-        .bottom-nav {
-          display: flex;
-        }
-        .desktop-table,
-        .desktop-pagination {
-          display: none !important;
-        }
-        .mobile-cards {
-          display: grid;
-          gap: 1rem;
-          margin-bottom: 2rem;
-        }
-      }
-      @media (min-width: 769px) {
-        .mobile-cards {
-          display: none;
-        }
-        .mobile-load-more {
-          display: none !important;
-        }
-      }
-
-      .logo-box {
-        background: linear-gradient(135deg, #fbbf24 0%, #d97706 100%);
-        padding: 10px;
-        border-radius: 12px;
-        box-shadow: 0 4px 10px rgba(217, 119, 6, 0.3);
-      }
-
-      @keyframes fadeSlideUp {
-        0% {
-          opacity: 0;
-          transform: translateY(20px);
-        }
-        100% {
-          opacity: 1;
-          transform: translateY(0);
-        }
-      }
-      .animate-fadeSlideUp {
-        animation: fadeSlideUp 0.4s ease-out forwards;
-      }
-
-      .loader {
+      /* LOADING CIRCULAR CSS */
+      .loader-circle {
+        width: 30px;
+        height: 30px;
         border: 3px solid #f3f3f3;
-        border-top: 3px solid #3b82f6;
+        border-top: 3px solid var(--primary);
         border-radius: 50%;
-        width: 40px;
-        height: 40px;
-        animation: spin 1s linear infinite;
+        animation: spin 0.8s linear infinite;
       }
       @keyframes spin {
         0% {
@@ -156,583 +45,451 @@
           transform: rotate(360deg);
         }
       }
+
+      /* Hide Scrollbar */
+      .no-scrollbar::-webkit-scrollbar {
+        display: none;
+      }
     </style>
   </head>
-  <body class="flex">
-    <aside class="sidebar flex flex-col p-6 text-white shadow-2xl">
-      <div class="flex items-center gap-4 mb-12 px-2">
-        <div class="logo-box">
-          <i class="fa-solid fa-scale-balanced text-[#061e49] text-xl"></i>
-        </div>
-        <div class="flex flex-col">
-          <h1 class="text-xl font-black italic tracking-tighter leading-none">
-            AGUNA
+  <body class="bg-gray-50 text-gray-900">
+    <div class="md:flex min-h-screen">
+      <aside
+        id="sidebar"
+        class="fixed inset-y-0 left-0 w-64 bg-primary text-white flex flex-col p-5 space-y-6 transform -translate-x-full transition-transform md:translate-x-0 md:static z-50"
+      >
+        <div class="flex flex-col items-center py-4">
+          <img
+            src="icon/Picture1__3_-removebg-preview.png"
+            alt="Logo"
+            class="w-16 mb-2"
+          />
+          <h1 class="text-xs font-bold tracking-widest text-center">
+            SPPG NAILA JASMIN
           </h1>
-          <span
-            class="text-[10px] font-bold tracking-[0.2em] text-amber-500 uppercase"
-            >Koperasi App</span
-          >
         </div>
-      </div>
-
-      <nav class="flex-1 space-y-2">
-        <a href="index.html" class="nav-link">
-          <i class="fa-solid fa-chart-pie w-5"></i> Dashboard
-        </a>
-        <a href="barang.html" class="nav-link active">
-          <i class="fa-solid fa-box w-5"></i> Master Barang
-        </a>
-        <a href="transaksi.html" class="nav-link">
-          <i class="fa-solid fa-receipt w-5"></i> Transaksi
-        </a>
-        <a href="dapur.html" class="nav-link">
-          <i class="fa-solid fa-utensils w-5"></i> Dapur
-        </a>
-        <a href="settings.html" class="nav-link">
-          <i class="fa-solid fa-gear w-5"></i> Pengaturan
-        </a>
-      </nav>
-
-      <div class="mt-auto pt-6 border-t border-white/10">
-        <div class="flex items-center gap-3 px-2 mb-6">
-          <div
-            class="w-10 h-10 rounded-full bg-gradient-to-tr from-amber-500 to-amber-300 flex items-center justify-center font-bold text-[#061e49] shadow-lg"
+        <nav class="flex-1 space-y-2">
+          <a
+            href="index.html"
+            class="flex items-center px-4 py-3 rounded-xl hover:bg-white/10 transition-all"
           >
-            <span id="initials">AD</span>
-          </div>
-          <div>
-            <p
-              class="text-xs font-bold text-white truncate w-32"
-              id="sideUserName"
-            >
-              Admin
-            </p>
-            <p
-              class="text-[10px] text-amber-500 font-bold uppercase tracking-widest"
-            >
-              Administrator
-            </p>
-          </div>
-        </div>
-        <button
-          onclick="logout()"
-          class="w-full bg-red-500/10 hover:bg-red-500 text-red-400 hover:text-white p-4 rounded-2xl text-xs font-black transition-all flex items-center justify-center gap-3"
+            <i class="fa-solid fa-house w-6 text-center"></i>
+            <span>Beranda</span>
+          </a>
+          <a
+            href="#"
+            class="flex items-center px-4 py-3 rounded-xl bg-white text-primary font-bold shadow-lg"
+          >
+            <i class="fa-solid fa-box w-6 text-center"></i> <span>Barang</span>
+          </a>
+          <a
+            href="stok.html"
+            class="flex items-center px-4 py-3 rounded-xl hover:bg-white/10 transition-all text-sm opacity-80 hover:opacity-100"
+          >
+            <i class="fa-solid fa-warehouse w-6 text-center text-xs"></i>
+            <span class="ml-2">Stok Barang</span>
+          </a>
+          <a
+            href="dokumen.html"
+            class="flex items-center px-4 py-3 rounded-xl hover:bg-white/10 transition-all text-sm opacity-80 hover:opacity-100"
+          >
+            <i class="fa-solid fa-file-invoice w-6 text-center text-xs"></i>
+            <span class="ml-2">Dokumen</span>
+          </a>
+          <a
+            href="penerima.html"
+            class="flex items-center px-4 py-3 rounded-xl hover:bg-white/10 transition-all text-sm opacity-80 hover:opacity-100"
+          >
+            <i class="fa-solid fa-users-viewfinder w-6 text-center text-xs"></i>
+            <span class="ml-2">Penerima Manfaat</span>
+          </a>
+          <a
+            href="presensi.html"
+            class="flex items-center px-4 py-3 rounded-xl hover:bg-white/10 transition-all text-sm opacity-80 hover:opacity-100"
+          >
+            <i class="fa-solid fa-calendar-check w-6 text-center text-xs"></i>
+            <span class="ml-2">Presensi</span>
+          </a>
+          <a
+            href="gizi.html"
+            class="flex items-center px-4 py-3 rounded-xl hover:bg-white/10 transition-all text-sm opacity-80 hover:opacity-100"
+          >
+            <i class="fa-solid fa-calculator w-6 text-center text-xs"></i>
+            <span class="ml-2">Hitung Nilai Gizi</span>
+          </a>
+          <a
+            href="survey.html"
+            class="flex items-center px-4 py-3 rounded-xl hover:bg-white/10 transition-all text-sm opacity-80 hover:opacity-100"
+          >
+            <i
+              class="fa-solid fa-magnifying-glass-chart w-6 text-center text-xs"
+            ></i>
+            <span class="ml-2">Survey Pasar</span>
+          </a>
+        </nav>
+      </aside>
+
+      <main class="flex-1 flex flex-col h-screen overflow-hidden">
+        <header
+          class="bg-white border-b px-6 py-4 flex items-center justify-between"
         >
-          <i class="fa-solid fa-power-off"></i> KELUAR SISTEM
-        </button>
-      </div>
-    </aside>
-
-    <nav class="bottom-nav">
-      <a href="index.html"
-        ><i class="fa-solid fa-chart-pie text-lg"></i><span>Home</span></a
-      >
-      <a href="barang.html" class="active"
-        ><i class="fa-solid fa-box text-lg"></i><span>Barang</span></a
-      >
-      <a href="transaksi.html"
-        ><i class="fa-solid fa-receipt text-lg"></i><span>Transaksi</span></a
-      >
-      <a href="dapur.html"
-        ><i class="fa-solid fa-utensils text-lg"></i><span>Dapur</span></a
-      >
-      <a href="settings.html"
-        ><i class="fa-solid fa-gear text-lg"></i><span>Setting</span></a
-      >
-    </nav>
-
-    <main class="main-content p-6 md:p-10">
-      <header
-        class="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10"
-      >
-        <div>
-          <h2
-            class="text-3xl font-black text-[#061e49] tracking-tight uppercase"
-          >
-            Master Barang
+          <button id="menuBtn" class="md:hidden text-primary">
+            <i class="fa-solid fa-bars-staggered text-xl"></i>
+          </button>
+          <h2 class="font-bold text-gray-800 uppercase tracking-tight">
+            Manajemen Barang
           </h2>
-          <p class="text-gray-400 font-medium text-sm">
-            Kelola daftar inventaris
-            <span class="text-amber-600 font-bold">Koperasi Aguna</span>.
-          </p>
+          <div class="w-10 h-10 rounded-full bg-gray-200 border"></div>
+        </header>
+
+        <div class="p-6 overflow-y-auto flex-1 no-scrollbar">
+          <div
+            class="flex flex-col lg:flex-row gap-4 mb-6 justify-between items-center"
+          >
+            <div class="flex gap-2 w-full lg:w-auto">
+              <button
+                id="tambahBarangBtn"
+                class="bg-primary text-white px-5 py-2.5 rounded-xl font-bold text-xs uppercase shadow-md active:scale-95 transition-all"
+              >
+                Tambah Barang
+              </button>
+              <button
+                id="kolaseBtn"
+                class="bg-white border text-gray-700 px-5 py-2.5 rounded-xl font-bold text-xs uppercase shadow-sm"
+              >
+                Buat Kolase
+              </button>
+            </div>
+            <div class="flex flex-wrap gap-2 w-full lg:w-auto">
+              <input
+                type="text"
+                id="searchInput"
+                placeholder="Cari barang..."
+                class="px-4 py-2.5 border rounded-xl text-xs outline-none focus:ring-2 focus:ring-blue-500 w-full lg:w-48"
+              />
+              <input
+                type="date"
+                id="filterTanggal"
+                class="px-4 py-2.5 border rounded-xl text-xs outline-none"
+              />
+              <select
+                id="filterStatus"
+                class="px-4 py-2.5 border rounded-xl text-xs outline-none"
+              >
+                <option value="">Status</option>
+                <option value="diverifikasi">Diverifikasi</option>
+                <option value="menunggu">Menunggu</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="bg-white rounded-2xl border overflow-hidden shadow-sm">
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-xs">
+                <thead class="bg-gray-50 border-b">
+                  <tr class="text-gray-400 uppercase font-bold tracking-widest">
+                    <th class="px-6 py-4">No</th>
+                    <th class="px-6 py-4">Foto</th>
+                    <th class="px-6 py-4">Barang & Tanggal</th>
+                    <th class="px-6 py-4 text-center">Kebutuhan/Datang</th>
+                    <th class="px-6 py-4">Tipe</th>
+                    <th class="px-6 py-4">Status User</th>
+                    <th class="px-6 py-4">Status Admin</th>
+                    <th class="px-6 py-4 text-center">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody
+                  id="barangTable"
+                  class="divide-y divide-gray-100"
+                ></tbody>
+              </table>
+            </div>
+            <div
+              id="pagination"
+              class="px-6 py-4 bg-gray-50 flex gap-2 justify-center border-t"
+            ></div>
+          </div>
         </div>
-        <button
-          id="btnOpenModal"
-          class="bg-[#061e49] hover:bg-blue-900 text-white px-8 py-4 rounded-2xl font-bold shadow-2xl transition-all flex items-center gap-3 active:scale-95"
-        >
-          <i class="fa-solid fa-circle-plus text-xl"></i> Tambah Barang
-        </button>
-      </header>
-
-      <div
-        id="loadingState"
-        class="flex flex-col items-center justify-center py-20"
-      >
-        <div class="loader"></div>
-        <p class="mt-4 text-gray-400 font-medium">Memuat data...</p>
-      </div>
-
-      <div
-        id="emptyState"
-        class="hidden flex flex-col items-center justify-center py-20 bg-white rounded-[2.5rem] border-2 border-dashed border-gray-100"
-      >
-        <i class="fa-solid fa-box-open text-6xl text-gray-200 mb-4"></i>
-        <p class="text-gray-400 font-bold text-lg">
-          Belum ada barang terdaftar
-        </p>
-      </div>
-
-      <div
-        id="desktopContainer"
-        class="hidden desktop-table bg-white rounded-[2.5rem] shadow-sm border border-gray-100 overflow-hidden"
-      >
-        <table class="w-full text-left border-collapse">
-          <thead class="bg-gray-50/50 border-b border-gray-100">
-            <tr>
-              <th
-                class="px-8 py-5 text-[10px] font-bold text-gray-400 uppercase tracking-widest text-center"
-              >
-                No
-              </th>
-              <th
-                class="px-8 py-5 text-[10px] font-bold text-gray-400 uppercase tracking-widest"
-              >
-                Nama Produk
-              </th>
-              <th
-                class="px-8 py-5 text-[10px] font-bold text-gray-400 uppercase tracking-widest text-right"
-              >
-                Harga Beli
-              </th>
-              <th
-                class="px-8 py-5 text-[10px] font-bold text-gray-400 uppercase tracking-widest text-center"
-              >
-                Aksi
-              </th>
-            </tr>
-          </thead>
-          <tbody
-            id="barangTableBody"
-            class="divide-y divide-gray-50 text-sm"
-          ></tbody>
-        </table>
-      </div>
-
-      <div id="mobileContainer" class="mobile-cards"></div>
-
-      <div
-        id="mobileLoadMoreContainer"
-        class="mobile-load-more hidden mt-6 flex justify-center"
-      >
-        <button
-          id="btnLoadMore"
-          class="w-full bg-white border-2 border-gray-100 text-[#061e49] py-4 rounded-2xl font-bold shadow-sm flex items-center justify-center gap-2 active:scale-95 transition-all"
-        >
-          Lihat Lebih Banyak <i class="fa-solid fa-chevron-down text-xs"></i>
-        </button>
-      </div>
-
-      <div
-        id="paginationContainer"
-        class="desktop-pagination hidden mt-8 flex items-center justify-center gap-4"
-      >
-        <button
-          id="prevPage"
-          class="w-12 h-12 flex items-center justify-center rounded-xl bg-white border border-gray-200 text-[#061e49] disabled:opacity-30 disabled:cursor-not-allowed hover:bg-gray-50 transition-all shadow-sm"
-        >
-          <i class="fa-solid fa-chevron-left"></i>
-        </button>
-        <span
-          id="pageInfo"
-          class="text-sm font-bold text-[#061e49] bg-white px-6 py-3 rounded-xl border border-gray-100 shadow-sm"
-          >Halaman 1</span
-        >
-        <button
-          id="nextPage"
-          class="w-12 h-12 flex items-center justify-center rounded-xl bg-white border border-gray-200 text-[#061e49] disabled:opacity-30 disabled:cursor-not-allowed hover:bg-gray-50 transition-all shadow-sm"
-        >
-          <i class="fa-solid fa-chevron-right"></i>
-        </button>
-      </div>
-    </main>
+      </main>
+    </div>
 
     <div
-      id="modalForm"
-      class="hidden fixed inset-0 z-[110] flex items-center justify-center p-4 bg-[#061e49]/40 backdrop-blur-sm"
+      id="detailModal"
+      class="hidden fixed inset-0 bg-black/60 z-[100] flex items-center justify-center p-4 backdrop-blur-sm"
     >
       <div
-        class="bg-white w-full max-w-md rounded-[3rem] shadow-2xl p-10 animate-fadeSlideUp"
+        class="bg-white rounded-3xl w-full max-w-2xl p-8 overflow-y-auto max-h-[90vh]"
       >
-        <div class="mb-8">
-          <h3
-            id="modalTitle"
-            class="text-2xl font-black text-[#061e49] uppercase italic"
-          >
-            Tambah Data
+        <div class="flex justify-between items-center mb-6">
+          <h3 class="font-bold text-primary italic uppercase text-sm">
+            Detail Barang
           </h3>
+          <button id="closeDetail">
+            <i class="fa-solid fa-xmark text-xl text-gray-300"></i>
+          </button>
         </div>
-        <form id="formBarang" class="space-y-5">
-          <input type="hidden" id="editId" />
-          <div class="space-y-1">
-            <label
-              class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1"
-              >UID Barang</label
+        <div class="grid grid-cols-2 gap-4 mb-6">
+          <div>
+            <label class="text-[9px] font-bold text-gray-400 uppercase"
+              >Nama</label
+            ><input
+              type="text"
+              id="detailNama"
+              readonly
+              class="w-full border rounded-xl px-4 py-2 bg-gray-50 font-bold text-xs"
+            />
+          </div>
+          <div>
+            <label class="text-[9px] font-bold text-gray-400 uppercase"
+              >Jam</label
+            ><input
+              type="time"
+              id="detailJam"
+              class="w-full border rounded-xl px-4 py-2 font-bold text-xs"
+            />
+          </div>
+          <div>
+            <label class="text-[9px] font-bold text-gray-400 uppercase"
+              >Kebutuhan</label
+            ><input
+              type="number"
+              id="detailKebutuhan"
+              readonly
+              class="w-full border rounded-xl px-4 py-2 bg-gray-50 font-bold text-xs"
+            />
+          </div>
+          <div>
+            <label class="text-[9px] font-bold text-gray-400 uppercase"
+              >Datang</label
+            ><input
+              type="number"
+              id="detailDatang"
+              class="w-full border rounded-xl px-4 py-2 font-bold text-xs"
+            />
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-4 mb-8">
+          <img
+            id="detailFoto1"
+            class="w-full h-32 object-cover rounded-2xl border"
+          />
+          <img
+            id="detailFoto2"
+            class="w-full h-32 object-cover rounded-2xl border"
+          />
+        </div>
+        <div class="flex gap-3">
+          <button
+            id="updateBtn"
+            class="flex-1 bg-primary text-white py-3 rounded-2xl font-bold uppercase text-[10px]"
+          >
+            Simpan Perubahan
+          </button>
+          <button
+            id="verifikasiBtn"
+            class="flex-1 bg-green-600 text-white py-3 rounded-2xl font-bold uppercase text-[10px]"
+          >
+            Verifikasi Sekarang
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div
+      id="kolaseModal"
+      class="hidden fixed inset-0 bg-black/60 z-[100] flex items-center justify-center p-4 backdrop-blur-sm"
+    >
+      <div
+        class="bg-white rounded-3xl w-full max-w-5xl p-8 flex flex-col h-[90vh]"
+      >
+        <div class="flex justify-between items-center mb-6">
+          <h3 class="font-bold text-primary uppercase text-sm tracking-widest">
+            Pembuat Kolase
+          </h3>
+          <button id="closeKolase">
+            <i class="fa-solid fa-xmark text-xl text-gray-300"></i>
+          </button>
+        </div>
+        <div class="grid grid-cols-3 gap-4 mb-4">
+          <div class="col-span-1">
+            <label class="text-[9px] font-bold text-gray-400 uppercase"
+              >Filter Tanggal</label
+            >
+            <input
+              type="date"
+              id="kolaseFilterTanggal"
+              class="w-full border rounded-xl px-4 py-2 text-xs"
+            />
+          </div>
+          <div class="col-span-2">
+            <label class="text-[9px] font-bold text-gray-400 uppercase"
+              >Nama File</label
             >
             <input
               type="text"
-              id="uidBarang"
-              readonly
-              class="w-full bg-blue-50 border border-blue-100 rounded-2xl py-4 px-5 font-mono font-bold text-blue-600 outline-none"
+              id="kolaseFileName"
+              placeholder="Nama file hasil kolase"
+              class="w-full border rounded-xl px-4 py-2 text-xs"
             />
           </div>
-          <div class="space-y-1">
-            <label
-              class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1"
+        </div>
+        <div
+          class="grid grid-cols-1 md:grid-cols-2 gap-6 flex-1 overflow-hidden"
+        >
+          <div
+            id="kolaseList"
+            class="grid grid-cols-2 gap-3 overflow-y-auto pr-2 border-r content-start"
+          ></div>
+          <div
+            class="flex flex-col items-center justify-center bg-gray-50 rounded-2xl relative p-4"
+          >
+            <div
+              id="kolasePreview"
+              class="hidden shadow-2xl bg-white border"
+            ></div>
+            <p
+              id="kolasePlaceholder"
+              class="text-gray-400 text-[10px] font-bold uppercase text-center"
+            >
+              Pilih 2-6 foto yang sudah di-approve
+            </p>
+          </div>
+        </div>
+        <div class="flex gap-3 mt-6">
+          <button
+            id="buatKolaseBtn"
+            class="flex-1 bg-blue-600 text-white py-3 rounded-2xl font-bold uppercase text-[10px]"
+          >
+            Generate Kolase
+          </button>
+          <button
+            id="simpanDbBtn"
+            class="hidden flex-1 bg-primary text-white py-3 rounded-2xl font-bold uppercase text-[10px]"
+          >
+            Simpan ke DB
+          </button>
+          <button
+            id="downloadKolaseBtn"
+            class="hidden flex-1 bg-green-600 text-white py-3 rounded-2xl font-bold uppercase text-[10px]"
+          >
+            Download PNG
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div
+      id="fotoSelectModal"
+      class="hidden fixed inset-0 bg-black/80 z-[110] flex items-center justify-center p-4"
+    >
+      <div class="bg-white p-6 rounded-3xl max-w-sm w-full">
+        <h4 class="font-bold mb-4 text-center text-xs uppercase">
+          Ganti Foto Kolase
+        </h4>
+        <div id="fotoSelectOptions" class="grid grid-cols-2 gap-4 mb-6"></div>
+        <div class="flex gap-2">
+          <button
+            onclick="
+              document.getElementById('fotoSelectModal').classList.add('hidden')
+            "
+            class="flex-1 py-2 bg-gray-100 rounded-xl font-bold text-[10px]"
+          >
+            BATAL
+          </button>
+          <button
+            id="fotoSelectOk"
+            class="flex-1 py-2 bg-primary text-white rounded-xl font-bold text-[10px]"
+          >
+            PILIH
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div
+      id="tambahBarangModal"
+      class="hidden fixed inset-0 bg-black/60 z-[100] flex items-center justify-center p-4"
+    >
+      <div class="bg-white rounded-3xl w-full max-w-md p-8">
+        <div class="flex justify-between items-center mb-6">
+          <h3 class="font-bold text-primary italic uppercase text-sm">
+            Tambah Data
+          </h3>
+          <button id="closeTambah">
+            <i class="fa-solid fa-xmark text-xl text-gray-300"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div
+      id="tambahBarangModal"
+      class="hidden fixed inset-0 bg-black/60 z-[110] flex items-center justify-center p-4 backdrop-blur-sm"
+    >
+      <div class="bg-white rounded-3xl w-full max-w-md p-8 shadow-2xl">
+        <div class="flex justify-between items-center mb-6">
+          <h3 class="font-bold text-primary italic uppercase text-sm">
+            Entry Barang Baru
+          </h3>
+          <button id="closeTambah" class="text-gray-300 hover:text-gray-600">
+            <i class="fa-solid fa-xmark text-xl"></i>
+          </button>
+        </div>
+        <form id="tambahBarangForm" class="space-y-4">
+          <div>
+            <label class="text-[10px] font-bold text-gray-400 uppercase ml-1"
               >Nama Barang</label
             >
             <input
               type="text"
-              id="namaBarang"
+              id="namaBarangBaru"
               required
-              class="w-full bg-gray-50 border border-gray-200 rounded-2xl py-4 px-5 focus:border-blue-500 outline-none transition-all"
+              placeholder="Contoh: Semen Gresik"
+              class="w-full border-2 border-gray-100 rounded-2xl px-4 py-3 text-xs outline-none focus:border-primary transition-all"
             />
           </div>
-          <div class="space-y-1">
+          <div>
+            <label class="text-[10px] font-bold text-gray-400 uppercase ml-1"
+              >Jumlah Kebutuhan</label
+            >
+            <input
+              type="number"
+              id="jumlahKebutuhanBaru"
+              required
+              placeholder="0"
+              class="w-full border-2 border-gray-100 rounded-2xl px-4 py-3 text-xs outline-none focus:border-primary transition-all"
+            />
+          </div>
+          <div
+            class="flex items-center gap-3 p-4 bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200"
+          >
+            <input
+              type="checkbox"
+              id="tambahanBaru"
+              class="w-5 h-5 accent-primary"
+            />
             <label
-              class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1"
-              >Harga Beli</label
+              for="tambahanBaru"
+              class="text-xs font-bold text-gray-600 uppercase cursor-pointer"
+              >Barang Tambahan</label
             >
-            <div class="relative">
-              <span
-                class="absolute left-5 top-1/2 -translate-y-1/2 font-bold text-gray-400"
-                >Rp</span
-              >
-              <input
-                type="text"
-                id="hargaBeliDisplay"
-                required
-                class="w-full bg-gray-50 border border-gray-200 rounded-2xl py-4 pl-12 pr-5 focus:border-blue-500 outline-none transition-all"
-              />
-            </div>
           </div>
-          <div class="flex gap-3 pt-4">
-            <button
-              type="button"
-              onclick="closeModal('modalForm')"
-              class="flex-1 bg-gray-100 text-gray-500 py-4 rounded-2xl font-bold hover:bg-gray-200"
-            >
-              Batal
-            </button>
-            <button
-              type="submit"
-              id="btnSimpan"
-              class="flex-[2] bg-[#061e49] text-white py-4 rounded-2xl font-bold shadow-lg hover:bg-blue-900 transition-all flex items-center justify-center gap-2"
-            >
-              <span id="btnSimpanText">Simpan Data</span>
-            </button>
-          </div>
+          <button
+            type="submit"
+            class="w-full py-4 bg-primary text-white rounded-2xl font-bold uppercase text-xs shadow-lg shadow-blue-900/20 active:scale-95 transition-all"
+          >
+            Simpan ke Database
+          </button>
         </form>
       </div>
     </div>
 
-    <div
-      id="modalConfirm"
-      class="hidden fixed inset-0 z-[120] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
-    >
-      <div
-        class="bg-white w-full max-w-xs rounded-[2.5rem] p-8 text-center animate-fadeSlideUp"
-      >
-        <div
-          class="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl"
-        >
-          <i class="fa-solid fa-triangle-exclamation"></i>
-        </div>
-        <h4 class="text-xl font-black text-gray-800 mb-2">Hapus Item?</h4>
-        <div class="flex gap-3">
-          <button
-            onclick="closeModal('modalConfirm')"
-            class="flex-1 py-3 bg-gray-100 rounded-xl font-bold text-gray-500"
-          >
-            Batal
-          </button>
-          <button
-            id="confirmDeleteBtn"
-            class="flex-1 py-3 bg-red-500 rounded-xl font-bold text-white"
-          >
-            Ya, Hapus
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <div
-      id="modalSuccess"
-      class="hidden fixed inset-0 z-[130] flex items-center justify-center p-4 bg-black/20 backdrop-blur-sm"
-    >
-      <div
-        class="bg-white w-full max-w-xs rounded-[2.5rem] p-8 text-center animate-fadeSlideUp"
-      >
-        <div
-          class="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl"
-        >
-          <i class="fa-solid fa-check-circle"></i>
-        </div>
-        <h4 class="text-xl font-black text-gray-800 mb-2">Berhasil!</h4>
-        <p id="successMsg" class="text-gray-500 text-sm mb-4">
-          Data telah diperbarui.
-        </p>
-      </div>
-    </div>
-
-    <script type="module">
-      import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
-      import {
-        getFirestore,
-        collection,
-        addDoc,
-        updateDoc,
-        deleteDoc,
-        doc,
-        onSnapshot,
-        query,
-        orderBy,
-      } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
-
-      const firebaseConfig = {
-        apiKey: "AIzaSyBuIk0yhnqpcrkt4q_ed9ikJYuo6PJ78aQ",
-        authDomain: "koperasi-aguna-3a14a.firebaseapp.com",
-        projectId: "koperasi-aguna-3a14a",
-        storageBucket: "koperasi-aguna-3a14a.firebasestorage.app",
-        messagingSenderId: "668307732730",
-        appId: "1:668307732730:web:c2457d9a690eb303c3f143",
-      };
-      const app = initializeApp(firebaseConfig);
-      const db = getFirestore(app);
-      const colRef = collection(db, "master_barang");
-
-      let allData = [];
-      let currentPage = 1;
-      const itemsPerPage = 5; // PAGINATION PER 5 ITEM
-      let mobileVisibleItems = 5;
-      let deleteTargetId = null;
-
-      const name = localStorage.getItem("userEmail") || "Admin";
-      document.getElementById("sideUserName").textContent = name;
-      document.getElementById("initials").textContent = name
-        .substring(0, 2)
-        .toUpperCase();
-
-      const formatRupiah = (val) => "Rp " + Number(val).toLocaleString("id-ID");
-      const cleanRupiah = (val) => val.replace(/[^0-9]/g, "");
-      const generateUID = () =>
-        `NJ-${Date.now().toString().slice(-4)}${Math.random().toString(36).substring(2, 5).toUpperCase()}`;
-
-      window.closeModal = (id) =>
-        document.getElementById(id).classList.add("hidden");
-      window.showModal = (id) =>
-        document.getElementById(id).classList.remove("hidden");
-
-      function showToast(msg) {
-        const modal = document.getElementById("modalSuccess");
-        document.getElementById("successMsg").innerText = msg;
-        modal.classList.remove("hidden");
-        setTimeout(() => modal.classList.add("hidden"), 2000);
-      }
-
-      const priceInput = document.getElementById("hargaBeliDisplay");
-      priceInput.addEventListener("input", (e) => {
-        let clean = cleanRupiah(e.target.value);
-        e.target.value = clean ? Number(clean).toLocaleString("id-ID") : "";
-      });
-
-      document.getElementById("btnOpenModal").onclick = () => {
-        document.getElementById("formBarang").reset();
-        document.getElementById("editId").value = "";
-        document.getElementById("uidBarang").value = generateUID();
-        document.getElementById("modalTitle").innerText = "Tambah Data";
-        showModal("modalForm");
-      };
-
-      document.getElementById("formBarang").onsubmit = async (e) => {
-        e.preventDefault();
-        const id = document.getElementById("editId").value;
-        const btnSimpan = document.getElementById("btnSimpan");
-        const btnSimpanText = document.getElementById("btnSimpanText");
-
-        btnSimpan.disabled = true;
-        btnSimpanText.innerHTML = `<i class="fa-solid fa-circle-notch animate-spin"></i>`;
-
-        const data = {
-          uid: document.getElementById("uidBarang").value,
-          nama: document.getElementById("namaBarang").value,
-          hargaBeli: Number(cleanRupiah(priceInput.value)),
-          updatedAt: new Date().toISOString(),
-        };
-
-        try {
-          if (id) {
-            await updateDoc(doc(db, "master_barang", id), data);
-            showToast("Barang diperbarui!");
-          } else {
-            data.createdAt = new Date().toISOString();
-            await addDoc(colRef, data);
-            showToast("Barang ditambahkan!");
-          }
-          closeModal("modalForm");
-        } catch (err) {
-          alert(err.message);
-        } finally {
-          btnSimpan.disabled = false;
-          btnSimpanText.innerHTML = "Simpan Data";
-        }
-      };
-
-      function renderData() {
-        const tableBody = document.getElementById("barangTableBody");
-        const mobileContainer = document.getElementById("mobileContainer");
-        const desktopPagination = document.getElementById(
-          "paginationContainer",
-        );
-        const mobileLoadMore = document.getElementById(
-          "mobileLoadMoreContainer",
-        );
-        const empty = document.getElementById("emptyState");
-        const desktopTbl = document.getElementById("desktopContainer");
-
-        tableBody.innerHTML = "";
-        mobileContainer.innerHTML = "";
-
-        if (allData.length === 0) {
-          empty.classList.remove("hidden");
-          desktopTbl.classList.add("hidden");
-          desktopPagination.classList.add("hidden");
-          mobileLoadMore.classList.add("hidden");
-          return;
-        }
-
-        empty.classList.add("hidden");
-        desktopTbl.classList.remove("hidden");
-
-        // PAGINATION LOGIC (DESKTOP)
-        const totalPages = Math.ceil(allData.length / itemsPerPage);
-        if (currentPage > totalPages) currentPage = totalPages || 1;
-
-        const start = (currentPage - 1) * itemsPerPage;
-        const end = start + itemsPerPage;
-        const desktopItems = allData.slice(start, end);
-
-        desktopItems.forEach((docSnap, index) => {
-          const item = docSnap.data();
-          const tr = document.createElement("tr");
-          tr.className = "hover:bg-gray-50/80 transition-all";
-          tr.innerHTML = `
-            <td class="px-8 py-6 text-center text-gray-400 font-medium">${start + index + 1}</td>
-            <td class="px-8 py-6 font-bold text-[#061e49]">
-               <div class="text-[10px] font-mono text-blue-500 uppercase">${item.uid}</div>
-               ${item.nama}
-            </td>
-            <td class="px-8 py-6 text-right font-black text-green-600">${formatRupiah(item.hargaBeli)}</td>
-            <td class="px-8 py-6 text-center space-x-2">
-              <button onclick="editItem('${docSnap.id}', '${item.uid}', '${item.nama}', ${item.hargaBeli})" class="text-blue-400 hover:text-blue-600 p-2"><i class="fa-solid fa-pen-to-square"></i></button>
-              <button onclick="confirmDelete('${docSnap.id}')" class="text-gray-300 hover:text-red-500 p-2"><i class="fa-solid fa-trash-can"></i></button>
-            </td>
-          `;
-          tableBody.appendChild(tr);
-        });
-
-        // Update Desktop Pagination UI
-        if (allData.length > itemsPerPage) {
-          desktopPagination.classList.remove("hidden");
-          document.getElementById("pageInfo").innerText =
-            `Halaman ${currentPage} dari ${totalPages}`;
-          document.getElementById("prevPage").disabled = currentPage === 1;
-          document.getElementById("nextPage").disabled =
-            currentPage === totalPages;
-        } else {
-          desktopPagination.classList.add("hidden");
-        }
-
-        // LOAD MORE LOGIC (MOBILE)
-        const mobileItems = allData.slice(0, mobileVisibleItems);
-        mobileItems.forEach((docSnap) => {
-          const item = docSnap.data();
-          const card = document.createElement("div");
-          card.className =
-            "bg-white p-6 rounded-[2rem] shadow-sm border border-gray-100 flex justify-between items-center animate-fadeSlideUp";
-          card.innerHTML = `
-            <div>
-              <p class="text-[10px] font-mono font-bold text-blue-500">${item.uid}</p>
-              <h4 class="font-bold text-[#061e49] text-lg">${item.nama}</h4>
-              <p class="font-black text-green-600 mt-1">${formatRupiah(item.hargaBeli)}</p>
-            </div>
-            <div class="flex flex-col gap-2">
-              <button onclick="editItem('${docSnap.id}', '${item.uid}', '${item.nama}', ${item.hargaBeli})" class="w-10 h-10 bg-blue-50 text-blue-500 rounded-full flex items-center justify-center"><i class="fa-solid fa-pen"></i></button>
-              <button onclick="confirmDelete('${docSnap.id}')" class="w-10 h-10 bg-red-50 text-red-500 rounded-full flex items-center justify-center"><i class="fa-solid fa-trash"></i></button>
-            </div>
-          `;
-          mobileContainer.appendChild(card);
-        });
-
-        if (allData.length > mobileVisibleItems) {
-          mobileLoadMore.classList.remove("hidden");
-        } else {
-          mobileLoadMore.classList.add("hidden");
-        }
-      }
-
-      // Event Listeners for Pagination
-      document.getElementById("prevPage").onclick = () => {
-        if (currentPage > 1) {
-          currentPage--;
-          renderData();
-        }
-      };
-      document.getElementById("nextPage").onclick = () => {
-        if (currentPage < Math.ceil(allData.length / itemsPerPage)) {
-          currentPage++;
-          renderData();
-        }
-      };
-      document.getElementById("btnLoadMore").onclick = () => {
-        mobileVisibleItems += 5;
-        renderData();
-      };
-
-      // Firestore Listener
-      onSnapshot(query(colRef, orderBy("createdAt", "desc")), (snap) => {
-        document.getElementById("loadingState").classList.add("hidden");
-        allData = snap.docs;
-        renderData();
-      });
-
-      // Window functions for Actions
-      window.editItem = (id, uid, nama, harga) => {
-        document.getElementById("editId").value = id;
-        document.getElementById("uidBarang").value = uid;
-        document.getElementById("namaBarang").value = nama;
-        priceInput.value = Number(harga).toLocaleString("id-ID");
-        document.getElementById("modalTitle").innerText = "Edit Data";
-        showModal("modalForm");
-      };
-
-      window.confirmDelete = (id) => {
-        deleteTargetId = id;
-        showModal("modalConfirm");
-      };
-
-      document.getElementById("confirmDeleteBtn").onclick = async () => {
-        if (deleteTargetId) {
-          await deleteDoc(doc(db, "master_barang", deleteTargetId));
-          deleteTargetId = null;
-          closeModal("modalConfirm");
-          showToast("Item dihapus.");
-        }
-      };
-
-      window.logout = () => {
-        localStorage.clear();
-        window.location.href = "login.html";
-      };
+    <script>
+      // SIDEBAR TOGGLE
+      const sidebar = document.getElementById("sidebar");
+      document.getElementById("menuBtn").onclick = () =>
+        sidebar.classList.toggle("-translate-x-full");
     </script>
+    <script type="module" src="js/barang.js"></script>
   </body>
 </html>

@@ -47,6 +47,50 @@ if (btnCloseTambah) {
   btnCloseTambah.onclick = () => modalTambah.classList.add("hidden");
 }
 
+// --- LOGIKA DOWNLOAD KOLASE PNG ---
+const btnDownload = document.getElementById("downloadKolaseBtn");
+
+if (btnDownload) {
+  btnDownload.onclick = async () => {
+    const target = document.getElementById("kolasePreview");
+    const fileNameInput = document.getElementById("kolaseFileName");
+    const fileName = fileNameInput.value.trim() || "kolase-barang-" + new Date().getTime();
+
+    // Efek loading pada tombol
+    const originalText = btnDownload.innerText;
+    btnDownload.disabled = true;
+    btnDownload.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> PROSES...`;
+
+    try {
+      // html2canvas menangkap elemen preview
+      const canvas = await html2canvas(target, {
+        useCORS: true, // WAJIB: Agar gambar dari Firebase/URL luar bisa terbaca
+        allowTaint: false,
+        scale: 2, // Meningkatkan kualitas gambar (HD)
+        backgroundColor: "#ffffff",
+      });
+
+      // Konversi canvas ke URL Gambar
+      const image = canvas.toDataURL("image/png");
+      
+      // Buat elemen link download sementara
+      const link = document.createElement("a");
+      link.href = image;
+      link.download = `${fileName}.png`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      showSuccess("Kolase berhasil diunduh!");
+    } catch (error) {
+      console.error("Gagal mendownload kolase:", error);
+      alert("Gagal mendownload gambar. Pastikan koneksi stabil.");
+    } finally {
+      btnDownload.disabled = false;
+      btnDownload.innerText = originalText;
+    }
+  };
+}
 // Langsung panggil loading sebelum data snapshot tiba
 renderLoading();
 
@@ -491,3 +535,4 @@ document.getElementById("kolaseBtn").onclick = () => {
 };
 document.getElementById("closeKolase").onclick = () =>
   document.getElementById("kolaseModal").classList.add("hidden");
+

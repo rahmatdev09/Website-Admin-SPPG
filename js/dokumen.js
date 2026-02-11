@@ -458,6 +458,16 @@ const supplierData = {
     namaBank: "BRI",
     nomorRekening: "770701004777535",
   },
+  fasya: {
+    supplier: "FASYAH JAYA RENTAL",
+    namaBank: "MANDIRI",
+    nomorRekening: "1120085852007",
+  },
+  nailajasmin: {
+    supplier: "PT. NAILA JASMIN CATERING",
+    namaBank: "BRI",
+    nomorRekening: "227201007630534",
+  },
 };
 
 let counter = 1;
@@ -966,6 +976,7 @@ function formatTanggalDokumen(dateString) {
 
 // ✅ Panggil render pertama kali
 loadDokumen();
+
 
 
 

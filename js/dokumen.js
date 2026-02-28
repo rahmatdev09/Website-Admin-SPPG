@@ -817,7 +817,7 @@ async function downloadDokumen(docId) {
     docx.setData({
       namaDokumen: data.namaDokumen,
       createdAt: data.createdAt,
-      createdAt: data.kategori,
+      kategori: data.kategori,
       suppliers: finalSuppliers, // Data yang sudah digabung
       fotoGrid: fotoGrid,
     });
@@ -1067,3 +1067,4 @@ function parseTanggalIndo(tanggalStr) {
   return new Date(year, month, day);
 }
 loadDokumen();
+

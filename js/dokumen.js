@@ -813,11 +813,14 @@ async function downloadDokumen(docId) {
       };
     });
 
+    const kategoriUppercase = data.kategori.toUppercase();
+
     // --- 3. KIRIM KE DOCXTEMPLATER ---
     docx.setData({
       namaDokumen: data.namaDokumen,
       createdAt: data.createdAt,
       kategori: data.kategori,
+      kategoriUpper: kategoriUppercase,
       suppliers: finalSuppliers, // Data yang sudah digabung
       fotoGrid: fotoGrid,
     });
@@ -1067,4 +1070,3 @@ function parseTanggalIndo(tanggalStr) {
   return new Date(year, month, day);
 }
 loadDokumen();
-

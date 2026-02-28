@@ -18,6 +18,7 @@ const closeDokumenModal = document.getElementById("closeDokumenModal");
 const cardSPP = document.getElementById("cardSPP");
 const cardRAB = document.getElementById("cardRAB");
 let filteredDocs = [];
+const loadingDokumen = document.getElementById("loadingDokumen");
 
 let selectedImages = []; // Menampung base64 gambar yang dipilih
 let selectedImagesEdit = []; // Menampung base64 gambar yang dipilih di modal edit
@@ -305,22 +306,31 @@ const itemsPerPage = 5;
 let allDocs = [];
 
 async function loadDokumen(page = 1) {
-  const querySnapshot = await getDocs(collection(db, "dokumenBarang"));
-  allDocs = [];
+  loadingDokumen.classList.remove("hidden"); // ✅ tampilkan loading
 
-  querySnapshot.forEach((docSnap) => {
-    allDocs.push({ id: docSnap.id, data: docSnap.data() });
-  });
+  try {
+    const querySnapshot = await getDocs(collection(db, "dokumenBarang"));
+    allDocs = [];
 
-  // ✅ SORT TERBARU (Descending)
-  allDocs.sort((a, b) => {
-    const dateA = parseTanggalIndo(a.data.createdAt);
-    const dateB = parseTanggalIndo(b.data.createdAt);
-    return dateB - dateA; // terbaru di atas
-  });
+    querySnapshot.forEach((docSnap) => {
+      allDocs.push({ id: docSnap.id, data: docSnap.data() });
+    });
 
-  filteredDocs = [...allDocs];
-  renderPage(page);
+    // ✅ sorting terbaru
+    allDocs.sort((a, b) => {
+      const dateA = parseTanggalIndo(a.data.createdAt);
+      const dateB = parseTanggalIndo(b.data.createdAt);
+      return dateB - dateA;
+    });
+
+    filteredDocs = [...allDocs];
+    renderPage(page);
+  } catch (err) {
+    console.error("Gagal load dokumen:", err);
+    alert("Gagal memuat data.");
+  } finally {
+    loadingDokumen.classList.add("hidden"); // ✅ sembunyikan loading
+  }
 }
 
 document.getElementById("searchInput").addEventListener("input", function () {
@@ -1070,4 +1080,5 @@ function parseTanggalIndo(tanggalStr) {
   return new Date(year, month, day);
 }
 loadDokumen();
+
 

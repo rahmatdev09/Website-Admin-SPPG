@@ -813,7 +813,7 @@ async function downloadDokumen(docId) {
       };
     });
 
-    const kategoriUppercase = data.kategori.toUppercase();
+  const kategoriUppercase = data.kategori?.toUpperCase() || "";
 
     // --- 3. KIRIM KE DOCXTEMPLATER ---
     docx.setData({
@@ -1070,3 +1070,4 @@ function parseTanggalIndo(tanggalStr) {
   return new Date(year, month, day);
 }
 loadDokumen();
+

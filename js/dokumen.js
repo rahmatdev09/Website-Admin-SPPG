@@ -19,6 +19,17 @@ const cardSPP = document.getElementById("cardSPP");
 const cardRAB = document.getElementById("cardRAB");
 let filteredDocs = [];
 const loadingDokumen = document.getElementById("loadingDokumen");
+const dokumenBody = document.getElementById("dokumenBody");
+let confirmCallback = null;
+let deleteIndex = null;
+let currentPageBarang = 1;
+let rowsPerPageBarang = 3;
+
+let currentPageBarangEdit = 1;
+
+let currentPageSupplier = 1;
+let rowsPerPageSupplier = 5;
+dokumenBody.innerHTML = "";
 
 let selectedImages = []; // Menampung base64 gambar yang dipilih
 let selectedImagesEdit = []; // Menampung base64 gambar yang dipilih di modal edit
@@ -159,7 +170,7 @@ async function loadKolaseHistory() {
 }
 async function confirmDeleteDokumen() {
   if (!dokumenToDelete) return;
-
+  loadingDokumen.classList.remove("hidden"); // ✅ tampilkan loading
   const btnText = document.getElementById("btnDeleteText");
   const btnSpinner = document.getElementById("btnDeleteSpinner");
 
@@ -306,8 +317,6 @@ const itemsPerPage = 5;
 let allDocs = [];
 
 async function loadDokumen(page = 1) {
-  loadingDokumen.classList.remove("hidden"); // ✅ tampilkan loading
-
   try {
     const querySnapshot = await getDocs(collection(db, "dokumenBarang"));
     allDocs = [];
@@ -349,7 +358,6 @@ document.getElementById("searchInput").addEventListener("input", function () {
 });
 
 function renderPage(page) {
-  const dokumenBody = document.getElementById("dokumenBody");
   dokumenBody.innerHTML = "";
 
   if (allDocs.length === 0) {
@@ -420,23 +428,31 @@ function renderPage(page) {
 
       const tableBody = document.getElementById("tableBodyEdit");
       tableBody.innerHTML = "";
+
+      // 🔥 RESET ARRAY EDIT
+      listBarangEdit = [];
+
       let i = 1;
+
       if (data.suppliers) {
         data.suppliers.forEach((supplierNode) => {
           supplierNode.barang.forEach((barang) => {
-            const tr = document.createElement("tr");
-            tr.innerHTML = `
-              <td class="px-4 py-2">${i++}</td>
-              <td class="px-4 py-2">${barang.namaBarang}</td>
-              <td class="px-4 py-2">${barang.jumlahBayar}</td>
-              <td class="px-4 py-2">${supplierNode.supplier}</td>
-              <td class="px-4 py-2">${barang.nomorRekening || "-"}</td>
-              <td class="px-4 py-2">${barang.namaBank || "-"}</td>
-            `;
-            tableBody.appendChild(tr);
+            // 🔥 MASUKKAN KE ARRAY EDIT JUGA
+            listBarangEdit.push({
+              id: Date.now() + Math.random(),
+              namaBarang: barang.namaBarang,
+              jumlahBayar: barang.jumlahBayar,
+              supplier: supplierNode.supplier,
+              namaBank: barang.namaBank,
+              nomorRekening: barang.nomorRekening,
+              createdAt: barang.createdAt,
+            });
           });
         });
       }
+
+      // 🔥 Setelah array terisi, render ulang pakai function
+      renderListBarangEdit();
 
       document.getElementById("editModal").classList.remove("hidden");
     });
@@ -532,98 +548,264 @@ const supplierData = {
 
 let counter = 1;
 
-document.getElementById("formBarang").addEventListener("submit", (e) => {
+const tableBody = document.getElementById("tableBody");
+
+document
+  .getElementById("formBarang")
+  .addEventListener("submit", handleSubmitBarang);
+
+function handleSubmitBarang(e) {
   e.preventDefault();
 
-  const supplierKey = document.getElementById("supplier").value;
-  const supplierInfo = supplierData[supplierKey];
-  const namaBarang = document.getElementById("namaBarang").value;
-  const jumlahBayar = getJumlahBayarRaw();
-  const itemData = {
-    namaBarang,
-    jumlahBayar,
-    supplier: supplierInfo.supplier,
-    namaBank: supplierInfo.namaBank,
-    nomorRekening: supplierInfo.nomorRekening,
-    createdAt: new Date(),
-  };
+  const supplierSelect = document.getElementById("supplier");
+  const lastSupplierValue = supplierSelect.value;
 
-  // ✅ cek duplikat
+  const supplierInfo = supplierData[lastSupplierValue];
+  const namaBarang = document.getElementById("namaBarang").value.trim();
+  const jumlahBayar = getJumlahBayarRaw();
+
+  if (!namaBarang || !jumlahBayar) {
+    alert("Lengkapi data terlebih dahulu.");
+    return;
+  }
+
   const exists = listBarang.some(
     (b) => b.namaBarang === namaBarang && b.supplier === supplierInfo.supplier,
   );
+
   if (exists) {
     alert("Barang sudah ada di list.");
     return;
   }
 
-  listBarang.push(itemData);
-
-  // render ke tabel preview
-  const tableBody = document.getElementById("tableBody");
-  const row = document.createElement("tr");
-  row.innerHTML = `
-    <td class="text-center">${listBarang.length}</td>
-    <td class="text-center">${namaBarang}</td>
-    <td class="text-center">Rp. ${jumlahBayar}</td>
-    <td class="text-center">${supplierInfo.supplier}</td>
-    <td class="text-center">${supplierInfo.nomorRekening}</td>
-    <td class="text-center">${supplierInfo.namaBank}</td>
-  `;
-  tableBody.appendChild(row);
-
-  e.target.reset();
-});
-
-// array khusus barang edit
-let listBarangEdit = [];
-
-document.getElementById("formBarangEdit").addEventListener("submit", (e) => {
-  e.preventDefault();
-
-  const supplierKey = document.getElementById("supplierEdit").value;
-  const supplierInfo = supplierData[supplierKey];
-  const namaBarang = document.getElementById("namaBarangEdit").value;
-  const jumlahBayar = getJumlahBayarRawEdit("Edit"); // bisa buat fungsi khusus untuk ambil jumlah dari form edit
-  const itemData = {
+  listBarang.push({
+    id: Date.now(), // 🔥 unique id biar aman
     namaBarang,
     jumlahBayar,
     supplier: supplierInfo.supplier,
     namaBank: supplierInfo.namaBank,
     nomorRekening: supplierInfo.nomorRekening,
     createdAt: new Date(),
-  };
+  });
 
-  // ✅ cek duplikat
+  renderListBarang();
+
+  e.target.reset();
+  supplierSelect.value = lastSupplierValue;
+}
+
+function createRowBarang(item, index) {
+  const row = document.createElement("tr");
+
+  row.className =
+    "group hover:bg-gradient-to-r hover:from-indigo-50 hover:to-white transition duration-200 border-b last:border-0";
+
+  row.innerHTML = `
+    <td class="px-4 py-3 text-sm text-gray-500 font-medium">
+      ${index + 1}
+    </td>
+
+    <td class="px-4 py-3 text-sm font-semibold text-gray-800">
+      ${item.namaBarang}
+    </td>
+
+    <td class="px-4 py-3 text-sm ">
+    <div class="flex justify-center w-max">
+      <span
+      style="
+    display: ruby-text;"
+     class="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full text-xs font-semibold shadow-sm d-flex justify-center">
+        Rp ${parseInt(item.jumlahBayar).toLocaleString("id-ID")}
+      </span>
+      </div>
+    </td>
+
+    <td class="px-4 py-3 text-sm text-gray-700">
+      ${item.supplier}
+    </td>
+
+    <td class="px-4 py-3 text-sm text-gray-500">
+      ${item.nomorRekening}
+    </td>
+
+    <td class="px-4 py-3 text-sm text-gray-500">
+      ${item.namaBank}
+    </td>
+
+    <td class="px-4 py-3 text-center">
+      <button
+        class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-lg text-xs shadow transition duration-200"
+        onclick="hapusBarang('${item.id}')"
+      >
+        Hapus
+      </button>
+    </td>
+  `;
+
+  return row;
+}
+
+function hapusBarang(id) {
+  openConfirm(
+    "Hapus Barang",
+    "Data yang dihapus tidak bisa dikembalikan.",
+    () => {
+      listBarang = listBarang.filter((item) => item.id != id);
+      renderListBarang();
+      showToast("Barang berhasil dihapus");
+    },
+  );
+}
+window.hapusBarang = hapusBarang;
+
+// array khusus barang edit
+let listBarangEdit = [];
+
+document
+  .getElementById("formBarangEdit")
+  .addEventListener("submit", handleSubmitBarangEdit);
+
+function handleSubmitBarangEdit(e) {
+  e.preventDefault();
+
+  const supplierSelect = document.getElementById("supplierEdit");
+  const lastSupplierValue = supplierSelect.value;
+
+  const supplierInfo = supplierData[lastSupplierValue];
+  const namaBarang = document.getElementById("namaBarangEdit").value.trim();
+
+  const jumlahBayar = getJumlahBayarRawEdit("Edit");
+
+  if (!namaBarang || !jumlahBayar) {
+    alert("Lengkapi data terlebih dahulu.");
+    return;
+  }
+
+  // cek duplikat
   const exists = listBarangEdit.some(
     (b) => b.namaBarang === namaBarang && b.supplier === supplierInfo.supplier,
   );
+
   if (exists) {
     alert("Barang sudah ada di list edit.");
     return;
   }
 
-  listBarangEdit.push(itemData);
+  listBarangEdit.push({
+    id: Date.now(),
+    namaBarang,
+    jumlahBayar,
+    supplier: supplierInfo.supplier,
+    namaBank: supplierInfo.namaBank,
+    nomorRekening: supplierInfo.nomorRekening,
+    createdAt: new Date(),
+  });
 
-  // render ke tabel edit
-  const tableBody = document.getElementById("tableBodyEdit");
-  const row = document.createElement("tr");
-  row.innerHTML = `
-    <td>${listBarangEdit.length}</td>
-    <td>${namaBarang}</td>
-    <td>Rp. ${jumlahBayar}</td>
-    <td>${supplierInfo.supplier}</td>
-    <td>${supplierInfo.nomorRekening}</td>
-    <td>${supplierInfo.namaBank}</td>
-  `;
-  tableBody.appendChild(row);
+  renderListBarangEdit(); // 🔥 WAJIB render ulang
 
   e.target.reset();
-});
+  supplierSelect.value = lastSupplierValue;
+}
+
+function renderListBarang() {
+  const tableBody = document.getElementById("tableBody");
+  tableBody.innerHTML = "";
+
+  const start = (currentPageBarang - 1) * rowsPerPageBarang;
+  const end = start + rowsPerPageBarang;
+
+  const paginatedItems = listBarang.slice(start, end);
+
+  if (paginatedItems.length === 0) {
+    tableBody.innerHTML = `
+      <tr>
+        <td colspan="7" class="text-center py-6 text-gray-400">
+          Belum ada barang
+        </td>
+      </tr>
+    `;
+    renderPaginationBarang();
+    return;
+  }
+
+  paginatedItems.forEach((item, index) => {
+    const realIndex = start + index;
+    tableBody.appendChild(createRowBarang(item, realIndex));
+  });
+
+  renderPaginationBarang();
+}
+
+function renderListBarangEdit() {
+  const tableBody = document.getElementById("tableBodyEdit");
+  tableBody.innerHTML = "";
+
+  const start = (currentPageBarangEdit - 1) * rowsPerPageBarang;
+  const end = start + rowsPerPageBarang;
+  const paginatedItems = listBarangEdit.slice(start, end);
+
+  if (paginatedItems.length === 0) {
+    tableBody.innerHTML = `
+      <tr>
+        <td colspan="7" class="text-center py-6 text-gray-400">
+          Belum ada barang
+        </td>
+      </tr>
+    `;
+    return;
+  }
+
+  paginatedItems.forEach((item, index) => {
+    const row = document.createElement("tr");
+
+    row.innerHTML = `
+      <td class="px-4 py-2">${start + index + 1}</td>
+      <td class="px-4 py-2">${item.namaBarang}</td>
+     <td class="px-4 py-3 text-sm ">
+    <div class="flex justify-center w-max">
+      <span
+      style="
+    display: ruby-text;"
+     class="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full text-xs font-semibold shadow-sm d-flex justify-center">
+        Rp ${parseInt(item.jumlahBayar).toLocaleString("id-ID")}
+      </span>
+      </div>
+    </td>
+      <td class="px-4 py-2">${item.supplier}</td>
+      <td class="px-4 py-2">${item.nomorRekening}</td>
+      <td class="px-4 py-2">${item.namaBank}</td>
+      <td class="px-4 py-2 text-center">
+        <button class="btn-hapus bg-red-500 text-white px-3 py-1 rounded text-xs">
+          Hapus
+        </button>
+      </td>
+    `;
+
+    const btnHapus = row.querySelector(".btn-hapus");
+    btnHapus.addEventListener("click", () => {
+      const realIndex = start + index;
+      openConfirm(
+        "Hapus Barang",
+        "Data yang dihapus tidak bisa dikembalikan.",
+        () => {
+          listBarangEdit.splice(realIndex, 1);
+          renderListBarangEdit();
+          renderPaginationBarangEdit();
+          showToast("Barang berhasil dihapus");
+        },
+      );
+    });
+
+    tableBody.appendChild(row);
+  });
+
+  renderPaginationBarangEdit();
+}
 
 document
   .getElementById("updateDatabase")
   .addEventListener("click", async () => {
+    loadingDokumen.classList.remove("hidden"); // ✅ tampilkan loading
     const docId = document.getElementById("editDokumenId").value;
     const namaDokumen = document.getElementById("namaDokumenEdit").value.trim();
     const tanggalDokumen = formatTanggalDokumen(
@@ -705,6 +887,23 @@ document
       alert("❌ Gagal update dokumen.");
     }
   });
+
+document.getElementById("cancelConfirm").addEventListener("click", () => {
+  document.getElementById("confirmModal").classList.add("hidden");
+});
+
+document.getElementById("confirmAction").addEventListener("click", () => {
+  if (confirmCallback) confirmCallback();
+
+  document.getElementById("confirmModal").classList.add("hidden");
+});
+
+function closeConfirmModal() {
+  const modal = document.getElementById("confirmModal");
+  modal.classList.add("hidden");
+  modal.classList.remove("flex");
+  deleteIndex = null;
+}
 
 async function downloadDokumen(docId) {
   try {
@@ -823,7 +1022,7 @@ async function downloadDokumen(docId) {
       };
     });
 
-  const kategoriUppercase = data.kategori?.toUpperCase() || "";
+    const kategoriUppercase = data.kategori?.toUpperCase() || "";
 
     // --- 3. KIRIM KE DOCXTEMPLATER ---
     docx.setData({
@@ -908,6 +1107,18 @@ cardRAB.addEventListener("click", () => {
   renderDokumen();
   dokumenModal.classList.add("hidden");
 });
+
+function openConfirm(title, text, callback) {
+  const modal = document.getElementById("confirmModal");
+
+  document.getElementById("confirmTitle").innerText = title;
+  document.getElementById("confirmText").innerText = text;
+
+  confirmCallback = callback;
+
+  modal.classList.remove("hidden");
+  modal.classList.add("flex");
+}
 
 const sppModal = document.getElementById("sppModal");
 const sppNamaDokumen = document.getElementById("sppNamaDokumen");
@@ -1079,6 +1290,83 @@ function parseTanggalIndo(tanggalStr) {
 
   return new Date(year, month, day);
 }
+
+function showToast(message) {
+  const toast = document.getElementById("toastSuccess");
+  const toastMessage = document.getElementById("toastMessage");
+
+  toastMessage.innerText = message;
+
+  toast.classList.remove("hidden");
+  setTimeout(() => {
+    toast.classList.remove("opacity-0");
+    toast.classList.add("opacity-100");
+  }, 10);
+
+  setTimeout(() => {
+    toast.classList.remove("opacity-100");
+    toast.classList.add("opacity-0");
+
+    setTimeout(() => {
+      toast.classList.add("hidden");
+    }, 300);
+  }, 2500);
+}
+
+function renderPaginationBarang() {
+  const container = document.getElementById("paginationBarang");
+  container.innerHTML = "";
+
+  const totalPages = Math.ceil(listBarang.length / rowsPerPageBarang);
+
+  for (let i = 1; i <= totalPages; i++) {
+    const btn = document.createElement("button");
+
+    btn.innerText = i;
+    btn.className = `
+      px-3 py-1 rounded text-sm transition
+      ${
+        i === currentPageBarang
+          ? "bg-indigo-500 text-white"
+          : "bg-gray-200 hover:bg-gray-300"
+      }
+    `;
+
+    btn.addEventListener("click", () => {
+      currentPageBarang = i;
+      renderListBarang();
+    });
+
+    container.appendChild(btn);
+  }
+}
+
+function renderPaginationBarangEdit() {
+  const container = document.getElementById("paginationBarangEdit");
+  container.innerHTML = "";
+
+  const totalPages = Math.ceil(listBarangEdit.length / rowsPerPageBarang);
+
+  for (let i = 1; i <= totalPages; i++) {
+    const btn = document.createElement("button");
+
+    btn.innerText = i;
+    btn.className = `
+      px-3 py-1 rounded text-sm transition
+      ${
+        i === currentPageBarangEdit
+          ? "bg-indigo-500 text-white"
+          : "bg-gray-200 hover:bg-gray-300"
+      }
+    `;
+
+    btn.addEventListener("click", () => {
+      currentPageBarangEdit = i;
+      renderListBarangEdit();
+    });
+
+    container.appendChild(btn);
+  }
+}
+
 loadDokumen();
-
-

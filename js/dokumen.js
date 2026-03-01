@@ -1,5 +1,3 @@
-// dokumen.js
-// Data dokumen sementara (bisa diganti dengan Firestore)
 import { db } from "./firebase.js";
 import {
   doc,
@@ -10,6 +8,33 @@ import {
   getDocs,
   collection,
 } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
+
+// import { getUserData } from "./user-service.js";
+// import { updateSidebarSubscriptionUI } from "./subscription.js";
+// import { lockPremiumMenus, protectPremiumPage } from "./access-control.js";
+
+// async function init() {
+//   try {
+//     const userData = await getUserData();
+
+//     console.log(userData.subscription);
+
+//     updateSidebarSubscriptionUI(userData.subscription);
+//     lockPremiumMenus(userData.subscription);
+//     protectPremiumPage(userData.subscription);
+//   } catch (err) {
+//     console.error("Error getUserData:", err);
+//     // window.location.href = "/login.html";
+//   }
+// }
+
+// init();
+// function goToSubscription() {
+//   window.location.href = "subscription.html";
+// }
+
+// // bikin global
+// window.goToSubscription = goToSubscription;
 
 const dokumenTable = document.getElementById("dokumenTable");
 const tambahDokumenBtn = document.getElementById("tambahDokumenBtn");
